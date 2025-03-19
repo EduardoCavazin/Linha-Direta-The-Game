@@ -24,7 +24,7 @@ class Player:
         self.health -= damage
         if self.health <= 0:
             self.health = 0;
-            self.status = "dead"
+            self.die()
     
     def is_alive(self):
         return self.status != "dead"
@@ -36,3 +36,7 @@ class Player:
     
     def reload(self):
         self.ammo = self.weapon.max_ammo
+
+    def die(self):
+        self.status = "dead"
+        print(f"{self.name} has died.")

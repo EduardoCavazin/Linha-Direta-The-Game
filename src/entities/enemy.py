@@ -29,6 +29,7 @@ class Enemy:
     def die(self):
         print("Died")
 
-
-# enemy = Enemy(health=100, damage=10, speed=5, position=(0, 0), rotation=0)
-# print(enemy.health)  # Output: 100
+    def attack(self, target):
+        if self.weapon and self.ammo > 0:
+            self.ammo -= 1
+            target.take_damage(self.weapon.damage)
