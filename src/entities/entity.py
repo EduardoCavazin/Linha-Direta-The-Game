@@ -20,7 +20,6 @@ class Entity(GameObject):
         elif direction == "right":
             new_position.x += self.speed
 
-       
         if obstacles:
             new_hitbox = pygame.Rect(new_position.x, new_position.y, self.size[0], self.size[1])
             for obstacle in obstacles:

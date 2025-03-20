@@ -1,7 +1,7 @@
 
 
 class Room:
-    def __init__(self, id, size, objects=None, enemies=None, items=None, doors=None, player=None, cleared=False):
+    def __init__(self, id, size, objects=None, enemies=None, items=None, doors=None, player=None, cleared=False, visited = False):
         self.id = id
         self.size = size
         self.objects = objects if objects else []
@@ -10,6 +10,7 @@ class Room:
         self.doors = doors if doors else []
         self.player = player
         self.cleared = cleared
+        self.visted = visited
 
     def spawn_enemy(self, enemy):
         self.enemies.append(enemy)

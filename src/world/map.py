@@ -28,16 +28,26 @@ class Map:
         return rooms
 
     def generate_seed(self, num_rooms=5):
-        if len(self.rooms) < num_rooms:
-            raise ValueError("Não há salas suficientes para gerar uma sequência.")
+        if len(self.rooms) < num_rooms + 1: 
+            raise ValueError("Não há salas suficientes para gerar uma sequência válida.")
 
-        self.sequence = random.sample(self.rooms, num_rooms)
+        normal_rooms = [room for room in self.rooms if "boss" not in room.id] 
+        boss_rooms = [room for room in self.rooms if "boss" in room.id]
+
+        self.sequence = random.sample(normal_rooms, num_rooms)  
+        self.sequence.append(random.choice(boss_rooms))  
         self.current_room = self.sequence[0]  
+  
 
     def next_room(self):
         if self.sequence:
             self.sequence.pop(0)
             self.current_room = self.sequence[0] if self.sequence else None
+            if self.current_room:
+                self.current_room.visited = True
+        else:
+            self.current_room = None
+
 
     def is_complete(self):
         return not self.sequence
