@@ -1,8 +1,8 @@
-from src.entities.entity import Entity
+from src.entities.gameObject import GameObject
 
-class Item(Entity):
-    def __init__(self, id, name, position, size, effect, status="inactive"):
-        super().__init__(id, position, size, status)
+class Item(GameObject):
+    def __init__(self, id, name, position, size, effect):
+        super().__init__(id, position, size)
         self.name = name
         self.effect = effect
 

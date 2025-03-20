@@ -1,12 +1,12 @@
-from src.entities.entity import Entity
+from src.entities.gameObject import GameObject
 
-class Weapon(Entity):
-    def __init__(self, id, name, position, size, damage, max_ammo, status="inactive"):
-        super().__init__(id, position, size, status)
+class Weapon(GameObject):
+    def __init__(self, id, name, position, size, damage, max_ammo):
+        super().__init__(id, position, size)
         self.name = name
         self.damage = damage
         self.max_ammo = max_ammo
-        self.current_ammo = max_ammo  
+        self.current_ammo = max_ammo
 
     def reload(self):
         self.current_ammo = self.max_ammo
