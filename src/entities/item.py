@@ -1,9 +1,11 @@
-class Item:
-    def __init__(self, name, position, effect):
+from src.entities.gameObject import GameObject
+
+class Item(GameObject):
+    def __init__(self, id, name, position, size, effect):
+        super().__init__(id, position, size)
         self.name = name
-        self.position = position
         self.effect = effect
-    
+
     def use(self, target):
         if self.effect == "heal":
             target.health += 20
