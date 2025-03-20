@@ -1,9 +1,11 @@
-class Item:
-    def __init__(self, name, position, effect):
+from src.entities.entity import Entity
+
+class Item(Entity):
+    def __init__(self, id, name, position, size, effect, status="inactive"):
+        super().__init__(id, position, size, status)
         self.name = name
-        self.position = position
         self.effect = effect
-    
+
     def use(self, target):
         if self.effect == "heal":
             target.health += 20
