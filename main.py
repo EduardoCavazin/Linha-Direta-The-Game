@@ -12,6 +12,7 @@ width = 800
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Linha Direta")
 
+# Instantiate the player with required arguments
 player = Player(
     name="Player1",
     position=(100, 100),
@@ -22,6 +23,7 @@ player = Player(
     status="Alive"
 )
 
+# Instantiate the HUD with the player instance
 hud = Hud(screen, player)
 
 while True:
@@ -30,11 +32,18 @@ while True:
             pygame.quit()
             exit()
 
-    player.health = 100 
-    player.ammo = 30   
+    # Update game state (example updates)
+    player.health = 90  # Example update
+    player.ammo = 25    # Example update
 
+    # Clear screen
     screen.fill((0, 0, 0))
 
+    # Draw player
+    player.draw(screen)
+
+    # Draw HUD
     hud.draw()
 
+    # Update display
     pygame.display.update()
