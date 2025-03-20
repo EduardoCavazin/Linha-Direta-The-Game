@@ -1,3 +1,4 @@
+import pygame
 from src.entities.entity import Entity
 
 class Player(Entity):
@@ -6,6 +7,8 @@ class Player(Entity):
         self.name = name
         self.weapon = weapon
         self.ammo = ammo
+        self.image = pygame.image.load('assets\sprites\player.png')  # Carregar a imagem do jogador
+        self.image = pygame.transform.scale(self.image, size)  # Redimensionar a imagem para o tamanho especificado
 
     def attack(self, target):
         if self.weapon and self.ammo > 0:
@@ -15,3 +18,6 @@ class Player(Entity):
     def reload(self):
         if self.weapon:
             self.ammo = self.weapon.max_ammo
+
+    def draw(self, screen):
+        screen.blit(self.image, self.position)
