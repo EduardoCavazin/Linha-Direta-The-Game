@@ -33,6 +33,9 @@ class Map:
 
         normal_rooms = [room for room in self.rooms if "boss" not in room.id] 
         boss_rooms = [room for room in self.rooms if "boss" in room.id]
+        
+        if not boss_rooms:
+            raise ValueError("Nenhuma sala de chefe disponível no JSON!")
 
         self.sequence = random.sample(normal_rooms, num_rooms)  
         self.sequence.append(random.choice(boss_rooms))  

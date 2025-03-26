@@ -10,7 +10,7 @@ class Room:
         self.doors = doors if doors else []
         self.player = player
         self.cleared = cleared
-        self.visted = visited
+        self.visited = visited
 
     def spawn_enemy(self, enemy):
         self.enemies.append(enemy)
