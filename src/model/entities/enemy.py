@@ -1,4 +1,4 @@
-from entities.entities.entity import Entity
+from model.entities.entity import Entity
 
 class Enemy(Entity):
     def __init__(self, id, name, position, size, speed, health, weapon, ammo, status):

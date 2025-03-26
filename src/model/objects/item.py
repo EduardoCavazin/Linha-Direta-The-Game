@@ -1,4 +1,4 @@
-from src.entities.gameObject import GameObject
+from src.model.objects.gameObject import GameObject
 
 class Item(GameObject):
     def __init__(self, id, name, position, size, effect):

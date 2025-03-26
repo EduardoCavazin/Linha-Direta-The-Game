@@ -1,5 +1,5 @@
 import pygame
-from src.entities.gameObject import GameObject
+from src.model.objects.gameObject import GameObject
 
 class Entity(GameObject):
     def __init__(self, id, position, size, speed, health, status):
