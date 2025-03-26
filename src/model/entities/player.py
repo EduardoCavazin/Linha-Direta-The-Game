@@ -1,5 +1,5 @@
 import pygame
-from model.entities.entity import Entity
+from src.model.entities.entity import Entity
 
 class Player(Entity):
     def __init__(self, id, name, position, size, speed, health, weapon, ammo, status):
@@ -8,7 +8,7 @@ class Player(Entity):
         self.weapon = weapon
         self.ammo = ammo
         self.image = pygame.image.load('assets\sprites\player.png') 
-        self.image = pygame.transform.scale(self.image, size)  
+        self.image = pygame.transform.scale(self.image, size) 
 
     def attack(self, target):
         if self.weapon and self.ammo > 0:
