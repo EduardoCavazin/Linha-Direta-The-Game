@@ -6,16 +6,14 @@ from src.model.entities.player import Player
 
 pygame.init()
 
-# Configurações da tela
 height = 600
 width = 800
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Linha Direta - Teste de Movimentação")
 
-# Cores
 black = (0, 0, 0)
+red = (255, 0, 0)  
 
-# Criando o jogador
 player = Player(
     id=1,
     name="Player1",
@@ -28,10 +26,10 @@ player = Player(
     status="alive"
 )
 
-# HUD (opcional)
+enemy = pygame.Rect(300, 300, 50, 50) 
+
 hud = Hud(screen, player)
 
-# Loop principal
 clock = pygame.time.Clock()
 while True:
     for event in pygame.event.get():
@@ -39,7 +37,6 @@ while True:
             pygame.quit()
             exit()
 
-    # Movimentação do jogador
     keys = pygame.key.get_pressed()
     if keys[K_UP]:
         player.move("up")
@@ -50,9 +47,12 @@ while True:
     if keys[K_RIGHT]:
         player.move("right")
 
-    # Renderização
+    if player.hitbox.colliderect(enemy):
+        print("Colisão detectada com o inimigo!")
+
     screen.fill(black)  # Fundo preto
     player.draw(screen)  # Desenha o jogador
+    pygame.draw.rect(screen, red, enemy)  # Desenha o inimigo
     hud.draw()  # Desenha o HUD
     pygame.display.update()
 
