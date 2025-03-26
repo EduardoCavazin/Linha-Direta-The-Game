@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 from sys import exit
 from src.ui.hud import Hud
-from model.entities.player import Player
+from src.model.entities.player import Player
 
 pygame.init()
 
