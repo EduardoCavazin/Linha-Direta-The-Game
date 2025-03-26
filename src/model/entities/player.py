@@ -8,7 +8,7 @@ class Player(Entity):
         self.weapon = weapon
         self.ammo = ammo
         self.image = pygame.image.load('assets\sprites\player.png') 
-        self.image = pygame.transform.scale(self.image, size)  
+        self.image = pygame.transform.scale(self.image, size) 
 
     def attack(self, target):
         if self.weapon and self.ammo > 0:
