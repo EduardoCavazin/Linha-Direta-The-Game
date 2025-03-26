@@ -1,60 +1,66 @@
 import pygame
-from pygame.locals import *
-from sys import exit
+import sys
+from src.world.map import Map
 from src.ui.hud import Hud
-from src.model.entities.player import Player
 
 pygame.init()
 
-# Configurações da tela
-height = 600
-width = 800
-screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Linha Direta - Teste de Movimentação")
+# Configurações de tela
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Linha Direta - The Game")
+clock = pygame.time.Clock()
 
-# Cores
-black = (0, 0, 0)
+# Carrega o mapa real do JSON
+game_map = Map("src\world\map_test.json")
+game_map.generate_seed(1)  # Gera uma sequência com 1 sala + boss
 
-# Criando o jogador
-player = Player(
-    id=1,
-    name="Player1",
-    position=(100, 100),
-    size=(50, 50),
-    speed=5,
-    health=100,
-    weapon=None,
-    ammo=0,
-    status="alive"
-)
+# Acessa a sala atual e o player
+room = game_map.current_room
+player = room.player
 
-# HUD (opcional)
+# HUD
 hud = Hud(screen, player)
 
 # Loop principal
-clock = pygame.time.Clock()
-while True:
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            exit()
+running = True
+while running:
+    screen.fill((0, 0, 0))  # Limpa a tela
 
-    # Movimentação do jogador
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Input (movimento básico com setas)
     keys = pygame.key.get_pressed()
-    if keys[K_UP]:
+    if keys[pygame.K_w]:
         player.move("up")
-    if keys[K_DOWN]:
+    if keys[pygame.K_s]:
         player.move("down")
-    if keys[K_LEFT]:
+    if keys[pygame.K_a]:
         player.move("left")
-    if keys[K_RIGHT]:
+    if keys[pygame.K_d]:
         player.move("right")
 
-    # Renderização
-    screen.fill(black)  # Fundo preto
-    player.draw(screen)  # Desenha o jogador
-    hud.draw()  # Desenha o HUD
-    pygame.display.update()
+    # Desenha jogador
+    player.draw(screen)
 
-    # Controle de FPS
+    # Desenha itens da sala
+    for item in room.items:
+        pygame.draw.rect(screen, (0, 255, 0), item.hitbox)
+
+    # Checa colisão jogador-item
+    for item in room.items[:]:
+        if player.hitbox.colliderect(item.hitbox):
+            item.use(player)
+            room.items.remove(item)
+            print(f"{player.name} usou {item.name}!")
+
+    # HUD
+    hud.draw()
+
+    pygame.display.flip()
     clock.tick(60)
+
+pygame.quit()
+sys.exit()
