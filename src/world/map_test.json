@@ -17,7 +17,7 @@
           "name": "Herói",
           "position": [100, 100],
           "size": [32, 32],
-          "speed": 5,
+          "speed": 300,
           "health": 100,
           "ammo": 10,
           "status": "alive",

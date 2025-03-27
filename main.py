@@ -12,7 +12,7 @@ pygame.display.set_caption("Linha Direta - The Game")
 clock = pygame.time.Clock()
 
 # Carrega o mapa real do JSON
-game_map = Map("src\world\map_test.json")
+game_map = Map("src/world/map_test.json")
 game_map.generate_seed(1)  # Gera uma sequência com 1 sala + boss
 
 # Acessa a sala atual e o player
@@ -25,6 +25,7 @@ hud = Hud(screen, player)
 # Loop principal
 running = True
 while running:
+    delta_time = clock.tick(60) / 1000.0  # Tempo decorrido entre os quadros (em segundos)
     screen.fill((0, 0, 0))  # Limpa a tela
 
     for event in pygame.event.get():
@@ -34,13 +35,13 @@ while running:
     # Input (movimento básico com setas)
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:
-        player.move("up")
+        player.move("up", delta_time)
     if keys[pygame.K_s]:
-        player.move("down")
+        player.move("down", delta_time)
     if keys[pygame.K_a]:
-        player.move("left")
+        player.move("left", delta_time)
     if keys[pygame.K_d]:
-        player.move("right")
+        player.move("right", delta_time)
 
     # Desenha jogador
     player.draw(screen)
