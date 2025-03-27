@@ -54,7 +54,7 @@ while running:
         if player.hitbox.colliderect(item.hitbox):
             item.use(player)
             room.items.remove(item)
-            print(f"{player.name} usou {item.name}!")
+            print(f"Usou {item.name}!")
 
     # HUD
     hud.draw()
