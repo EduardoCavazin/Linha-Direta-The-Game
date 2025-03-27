@@ -1,13 +1,8 @@
-from model.entities.entity import Entity
+import pygame
+from src.model.entities.entity import Entity
 
 class Enemy(Entity):
-    def __init__(self, id, name, position, size, speed, health, weapon, ammo, status):
-        super().__init__(id, position, size, speed, health, status)
-        self.name = name
-        self.weapon = weapon
-        self.ammo = ammo
-
-    def attack(self, target):
-        if self.weapon and self.ammo > 0:
-            self.ammo -= 1
-            target.take_damage(self.weapon.damage)
+    def __init__(self, id, position, size, speed, health, name, weapon, ammo, status):
+        image = pygame.image.load('assets\sprites\enemy.png') 
+        image = pygame.transform.scale(image, size)
+        super().__init__(id, position, size, speed, health, name, weapon, ammo, image, status)
