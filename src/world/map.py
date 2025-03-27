@@ -1,6 +1,10 @@
 import json
 import random
 from src.world.room import Room
+from src.model.entities.player import Player
+from src.model.objects.weapon import Weapon
+from src.model.objects.item import Item
+
 
 class Map:
     def __init__(self, map_file):
@@ -14,18 +18,29 @@ class Map:
             data = json.load(file)
             rooms = []
             for room_data in data["rooms"]:
+                # Carregar itens
+                items_data = room_data.get("items", [])
+                items = [Item(**item_data) for item_data in items_data]
+
+                # Carregar player
+                player_data = room_data.get("player")
+                player = None
+                if player_data:
+                    weapon_data = player_data.pop("weapon")
+                    weapon = Weapon(**weapon_data)
+                    player = Player(**player_data, weapon=weapon)
+
+                # Criar sala
                 room = Room(
                     id=room_data["id"],
                     size=room_data["size"],
-                    objects=room_data.get("objects", []),
-                    enemies=room_data.get("enemies", []),
-                    items=room_data.get("items", []),
-                    doors=room_data.get("doors", []),
-                    player=room_data.get("player"),
-                    cleared=room_data.get("cleared", False)
+                    items=items,
+                    player=player
                 )
+
                 rooms.append(room)
         return rooms
+
 
     def generate_seed(self, num_rooms=5):
         if len(self.rooms) < num_rooms + 1: 

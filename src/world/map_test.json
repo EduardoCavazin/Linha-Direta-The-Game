@@ -1,0 +1,42 @@
+{
+    "rooms": [
+      {
+        "id": "room1",
+        "size": [800, 600],
+        "items": [
+          {
+            "id": "medkit1",
+            "name": "Medkit",
+            "position": [200, 200],
+            "size": [32, 32],
+            "effect": "heal"
+          }
+        ],
+        "player": {
+          "id": "player1",
+          "name": "Herói",
+          "position": [100, 100],
+          "size": [32, 32],
+          "speed": 5,
+          "health": 100,
+          "ammo": 10,
+          "status": "alive",
+          "weapon": {
+            "id": "pistol",
+            "name": "Pistol",
+            "position": [0, 0],
+            "size": [32, 32],
+            "damage": 10,
+            "max_ammo": 10
+          }
+        }
+      },
+      {
+        "id": "boss_room",
+        "size": [800, 600],
+        "items": [],
+        "player": null
+      }
+    ]
+  }
+  
