@@ -37,3 +37,6 @@ class Room:
         
         for door in self.doors:
             door.open()
+    
+    
+
