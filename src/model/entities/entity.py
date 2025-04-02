@@ -1,12 +1,11 @@
 import pygame
-from src.model.objects.gameObject import GameObject
+from src.model.objects.movableObject import MovableObject
 
-class Entity(GameObject):
-    def __init__(self, id, position, size, speed, health, name, weapon, ammo, image, status):
-        super().__init__(id, position, size)
-        self.speed = speed  # Velocidade em pixels por segundo
-        self.health = health
+class Entity(MovableObject):
+    def __init__(self, id, name, position, size, speed, health, weapon, ammo, image, status):
+        super().__init__(id, position, size, speed)
         self.name = name
+        self.health = health
         self.weapon = weapon
         self.ammo = ammo
         self.image = image
@@ -42,7 +41,7 @@ class Entity(GameObject):
         # Atualizar posição e hitbox
         self.position = new_position
         self.hitbox.topleft = (self.position.x, self.position.y)
-    
+
     def attack(self, target):
         if self.weapon and self.ammo > 0:
             self.ammo -= 1
@@ -57,6 +56,6 @@ class Entity(GameObject):
     def die(self):
         self.status = "dead"
         print(f"Entity {self.id} has died.")
-    
+
     def draw(self, screen):
         screen.blit(self.image, self.position)
