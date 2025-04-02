@@ -43,6 +43,9 @@ while running:
     if keys[pygame.K_d]:
         player.move("right", delta_time)
 
+    # Atualiza a rotação do jogador com base no mouse
+    player.player_turning()
+
     # Desenha jogador
     player.draw(screen)
 
