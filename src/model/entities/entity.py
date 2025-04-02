@@ -2,8 +2,9 @@ import pygame
 from src.model.objects.movableObject import MovableObject
 
 class Entity(MovableObject):
-    def __init__(self, id, name, position, size, speed, health, weapon, ammo, image, status):
-        super().__init__(id, position, size, speed)
+    def __init__(self, id, name, position, size, speed, health, weapon, ammo, image, status, rotation=0):
+        # Agora passamos o parâmetro rotation com valor padrão 0
+        super().__init__(id, position, size, speed, rotation)
         self.name = name
         self.health = health
         self.weapon = weapon
@@ -12,13 +13,6 @@ class Entity(MovableObject):
         self.status = status
 
     def move(self, direction, delta_time, obstacles=None):
-        """
-        Move a entidade em uma direção específica, ajustando pelo delta time.
-
-        :param direction: Direção do movimento ("up", "down", "left", "right").
-        :param delta_time: Tempo decorrido entre os quadros (em segundos).
-        :param obstacles: Lista de obstáculos para verificar colisões (opcional).
-        """
         new_position = self.position.copy()
         distance = self.speed * delta_time  # Distância baseada no tempo
 
@@ -31,14 +25,12 @@ class Entity(MovableObject):
         elif direction == "right":
             new_position.x += distance
 
-        # Verificar colisões, se necessário
         if obstacles:
             new_hitbox = pygame.Rect(new_position.x, new_position.y, self.size[0], self.size[1])
             for obstacle in obstacles:
                 if new_hitbox.colliderect(obstacle.hitbox):
                     return  # Movimento bloqueado pela colisão
 
-        # Atualizar posição e hitbox
         self.position = new_position
         self.hitbox.topleft = (self.position.x, self.position.y)
 

@@ -29,8 +29,11 @@ class Map:
                 enemies_data = room_data.get("enemies", [])
                 enemies = []
                 for enemy_data in enemies_data:
-                    weapon_data = enemy_data.pop("weapon")
-                    weapon = Weapon(**weapon_data)
+                    # Usa pop com valor padrão para evitar erro se "weapon" não existir
+                    weapon_data = enemy_data.pop("weapon", None)
+                    weapon = Weapon(**weapon_data) if weapon_data else None
+                    # Garante que o campo "status" esteja presente
+                    enemy_data.setdefault("status", "alive")
                     enemy = Enemy(**enemy_data, weapon=weapon)
                     enemies.append(enemy)
 
@@ -38,22 +41,26 @@ class Map:
                 doors_data = room_data.get("doors", [])
                 doors = [Door(**door_data) for door_data in doors_data]
 
-                # Carregar player
+                # Carregar jogador (caso exista)
                 player_data = room_data.get("player")
                 player = None
                 if player_data:
-                    weapon_data = player_data.pop("weapon")
-                    weapon = Weapon(**weapon_data)
+                    weapon_data = player_data.pop("weapon", None)
+                    weapon = Weapon(**weapon_data) if weapon_data else None
+                    # Garante que o campo "status" esteja presente para o player
+                    player_data.setdefault("status", "alive")
                     player = Player(**player_data, weapon=weapon)
 
-                # Criar sala
+                # Criar sala com todos os campos, incluindo 'cleared' e 'visited'
                 room = Room(
                     id=room_data["id"],
                     size=room_data["size"],
                     items=items,
                     enemies=enemies,
                     doors=doors,
-                    player=player
+                    player=player,
+                    cleared=room_data.get("cleared", False),
+                    visited=room_data.get("visited", False)
                 )
 
                 rooms.append(room)
