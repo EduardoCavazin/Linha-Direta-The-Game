@@ -3,11 +3,25 @@ import math
 from src.model.objects.gameObject import GameObject
 
 class MovableObject(GameObject):
-    def __init__(self, id, position, size, speed, rotation):
+    def __init__(self, id, position, size, speed, rotation=0):
         super().__init__(id, position, size)
+        # Armazena a posição internamente sem chamar o setter
+        self._position = pygame.Vector2(position)
         self.speed = speed
         self.rotation = rotation
         self.directedSpeed = pygame.Vector2(0, 0)
+        self.update_velocity()
+
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, new_position):
+        self._position = pygame.Vector2(new_position)
+        # Atualiza a hitbox apenas se ela já existir
+        if hasattr(self, 'hitbox'):
+            self.hitbox.topleft = (self._position.x, self._position.y)
 
     def update_velocity(self):
         self.directedSpeed = pygame.Vector2(
@@ -15,9 +29,29 @@ class MovableObject(GameObject):
             math.sin(math.radians(self.rotation)) * self.speed
         )
 
-    def move(self):
-        self.position += self.directedSpeed
-        self.hitbox.topleft = (self.position.x, self.position.y)
+    def move(self, direction, delta_time, obstacles=None):
+        distance = self.speed * delta_time
+        new_position = self.position.copy()
+
+        if direction == "up":
+            new_position.y -= distance
+        elif direction == "down":
+            new_position.y += distance
+        elif direction == "left":
+            new_position.x -= distance
+        elif direction == "right":
+            new_position.x += distance
+
+        if obstacles:
+            new_hitbox = pygame.Rect(new_position.x, new_position.y, self.size[0], self.size[1])
+            for obstacle in obstacles:
+                if new_hitbox.colliderect(obstacle.hitbox):
+                    return  # Movimento bloqueado
+
+        self.position = new_position
+
+    def update(self, direction, delta_time, obstacles=None):
+        self.move(direction, delta_time, obstacles)
 
     def draw(self, screen):
-        pygame.draw.rect(screen, (255, 255, 255), self.hitbox)  # Representação genérica
+        pygame.draw.rect(screen, (255, 255, 255), self.hitbox)

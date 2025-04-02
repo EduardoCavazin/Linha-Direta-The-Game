@@ -6,7 +6,7 @@ from src.model.entities.player import Player
 from src.model.entities.enemy import Enemy
 from src.model.objects.weapon import Weapon
 from src.model.objects.item import Item
-from src.model.objects.door import Door  # Nova classe de porta
+from src.model.objects.door import Door 
 
 class Map:
     def __init__(self, map_file):
@@ -21,37 +21,29 @@ class Map:
             rooms = []
 
             for room_data in data["rooms"]:
-                # Carregar itens
                 items_data = room_data.get("items", [])
                 items = [Item(**item_data) for item_data in items_data]
 
-                # Carregar inimigos
                 enemies_data = room_data.get("enemies", [])
                 enemies = []
                 for enemy_data in enemies_data:
-                    # Usa pop com valor padrão para evitar erro se "weapon" não existir
                     weapon_data = enemy_data.pop("weapon", None)
                     weapon = Weapon(**weapon_data) if weapon_data else None
-                    # Garante que o campo "status" esteja presente
                     enemy_data.setdefault("status", "alive")
                     enemy = Enemy(**enemy_data, weapon=weapon)
                     enemies.append(enemy)
 
-                # Carregar portas
                 doors_data = room_data.get("doors", [])
                 doors = [Door(**door_data) for door_data in doors_data]
 
-                # Carregar jogador (caso exista)
                 player_data = room_data.get("player")
                 player = None
                 if player_data:
                     weapon_data = player_data.pop("weapon", None)
                     weapon = Weapon(**weapon_data) if weapon_data else None
-                    # Garante que o campo "status" esteja presente para o player
                     player_data.setdefault("status", "alive")
                     player = Player(**player_data, weapon=weapon)
 
-                # Criar sala com todos os campos, incluindo 'cleared' e 'visited'
                 room = Room(
                     id=room_data["id"],
                     size=room_data["size"],
