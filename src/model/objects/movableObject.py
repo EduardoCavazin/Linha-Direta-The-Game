@@ -9,18 +9,7 @@ class MovableObject(GameObject):
         self._position = pygame.Vector2(position)
         self.speed = speed
         self.rotation = rotation
-        self.directedSpeed = pygame.Vector2(0, 0)
-        self.update_velocity()
-
-    @property
-    def position(self):
-        return self._position
-
-    @position.setter
-    def position(self, new_position):
-        self._position = pygame.Vector2(new_position)
-        if hasattr(self, 'hitbox'):
-            self.hitbox.topleft = (self._position.x, self._position.y)
+        self.directedSpeed = pygame.Vector2(0, 1)
 
     def update_velocity(self):
         self.directedSpeed = pygame.Vector2(
