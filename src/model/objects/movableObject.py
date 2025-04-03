@@ -7,7 +7,7 @@ class MovableObject(GameObject):
         super().__init__(id, position, size)
         self.speed = speed
         self.rotation = rotation
-        self.directedSpeed = pygame.Vector2(0, 0)
+        self.directedSpeed = pygame.Vector2(0, 1)
 
     def update_velocity(self):
         self.directedSpeed = pygame.Vector2(
