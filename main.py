@@ -2,6 +2,7 @@ import pygame
 import sys
 from src.world.map import Map
 from src.ui.hud import Hud
+from src.model.entities.enemy import Enemy
 
 pygame.init()
 
@@ -18,6 +19,19 @@ game_map.generate_seed(1)  # Gera uma sequência com 1 sala + boss
 # Acessa a sala atual e o player
 room = game_map.current_room
 player = room.player
+
+# Instancia um inimigo à direita do jogador
+enemy = Enemy(
+    id="enemy_1",
+    name="Enemy",
+    position=pygame.Vector2(player.position.x + 100, player.position.y),  # 100 pixels à direita do jogador
+    size=(50, 50),  # Tamanho do inimigo
+    speed=2,
+    health=100,
+    weapon=None,
+    ammo=0,
+    status="alive"
+)
 
 # HUD
 hud = Hud(screen, player)
@@ -46,8 +60,10 @@ while running:
     # Atualiza a rotação do jogador com base no mouse
     player.player_turning()
 
-    # Desenha jogador
+    enemy.update(player.position)
+
     player.draw(screen)
+    enemy.draw(screen)
 
     # Desenha itens da sala
     for item in room.items:
