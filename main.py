@@ -20,12 +20,13 @@ game_map.generate_seed(1)
 room = game_map.current_room
 player = room.player
 
-# Instancia um inimigo à direita do jogador
+bullets = []
+
 enemy = Enemy(
     id="enemy_1",
     name="Enemy",
-    position=pygame.Vector2(player.position.x + 100, player.position.y),  # 100 pixels à direita do jogador
-    size=(50, 50),  # Tamanho do inimigo
+    position=pygame.Vector2(player.position.x + 100, player.position.y),  
+    size=(50, 50),  
     speed=2,
     health=100,
     weapon=None,
@@ -45,6 +46,10 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Botão esquerdo do mouse
+            bullet = player.shoot()
+            if bullet:
+                bullets.append(bullet)
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:
@@ -57,6 +62,11 @@ while running:
         player.move("right", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
 
     player.player_turning()
+
+    for bullet in bullets[:]:
+        if not bullet.update(delta_time, screen_width=WIDTH, screen_height=HEIGHT):
+            bullets.remove(bullet)
+        bullet.draw(screen)
 
     enemy.update(player.position)
 

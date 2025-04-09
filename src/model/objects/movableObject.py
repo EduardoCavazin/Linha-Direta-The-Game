@@ -10,6 +10,14 @@ class MovableObject(GameObject):
         self.rotation = rotation
         self.directedSpeed = pygame.Vector2(0, 1)
 
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        self._position = pygame.Vector2(value)
+
     def update_velocity(self):
         self.directedSpeed = pygame.Vector2(
             math.cos(math.radians(self.rotation)) * self.speed,

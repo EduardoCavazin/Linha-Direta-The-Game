@@ -25,11 +25,13 @@ class Enemy(Entity):
         self._position = pygame.Vector2(value)
     
     def update_rotation(self, player_position):
-        direction = pygame.Vector2(player_position.x - self.position.x, player_position.y - self.position.y)
-        if direction.length() != 0:
-            direction = direction.normalize()
-        self.direction = direction
-        self.rotation = -math.degrees(math.atan2(direction.y, direction.x))
+        self.direction = pygame.Vector2(
+            player_position.x - self.position.x, player_position.y - self.position.y)
+        if self.direction.length() != 0:
+            self.direction = self.direction.normalize()
+        self.direction = self.direction
+        self.rotation = - \
+            math.degrees(math.atan2(self.direction.y, self.direction.x))
         
         self.image = pygame.transform.rotate(self.base_enemy_image, self.rotation)
         self.rect = self.image.get_rect(topleft=self.position)
