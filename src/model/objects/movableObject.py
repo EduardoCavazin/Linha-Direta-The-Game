@@ -1,24 +1,38 @@
 import pygame
 import math
+from typing import Tuple, List, Optional
 from src.model.objects.gameObject import GameObject
 
 class MovableObject(GameObject):
-    def __init__(self, id, position, size, speed, rotation=0):
+    def __init__(self, id: str, position: Tuple[float, float], size: Tuple[int, int],
+                 speed: float, rotation: float = 0) -> None:
         super().__init__(id, position, size)
-        self._position = pygame.Vector2(position)
-        self.speed = speed
-        self.rotation = rotation
-        self.directedSpeed = pygame.Vector2(0, 1)
+        self._position: pygame.Vector2 = pygame.Vector2(position)
+        self.speed: float = speed
+        self.rotation: float = rotation
+        self.directedSpeed: pygame.Vector2 = pygame.Vector2(0, 1)
+        self.update_velocity()
 
-    def update_velocity(self):
+    @property
+    def position(self) -> pygame.Vector2:
+        return self._position
+
+    @position.setter
+    def position(self, new_position: Tuple[float, float]) -> None:
+        self._position = pygame.Vector2(new_position)
+        if hasattr(self, 'hitbox'):
+            self.hitbox.topleft = (self._position.x, self._position.y)
+
+    def update_velocity(self) -> None:
         self.directedSpeed = pygame.Vector2(
             math.cos(math.radians(self.rotation)) * self.speed,
             math.sin(math.radians(self.rotation)) * self.speed
         )
 
-    def move(self, direction, delta_time, obstacles=None, screen_width=800, screen_height=600):
-        distance = self.speed * delta_time
-        new_position = self.position.copy()
+    def move(self, direction: str, delta_time: float, obstacles: Optional[List[GameObject]] = None,
+             screen_width: int = 800, screen_height: int = 600) -> None:
+        distance: float = self.speed * delta_time
+        new_position: pygame.Vector2 = self.position.copy()
 
         if direction == "up":
             new_position.y -= distance
@@ -40,8 +54,9 @@ class MovableObject(GameObject):
 
         self.position = new_position
 
-    def update(self, direction, delta_time, obstacles=None, screen_width=800, screen_height=600):
+    def update(self, direction: str, delta_time: float, obstacles: Optional[List[GameObject]] = None,
+               screen_width: int = 800, screen_height: int = 600) -> None:
         self.move(direction, delta_time, obstacles, screen_width, screen_height)
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         pygame.draw.rect(screen, (255, 255, 255), self.hitbox)
