@@ -2,6 +2,7 @@ import math
 import pygame
 from src.model.entities.entity import Entity
 
+
 class Enemy(Entity):
     def __init__(self, id, name, position, size, speed, health, weapon, ammo, status):
         self.base_enemy_image = pygame.image.load("assets/sprites/player.png")  
@@ -14,6 +15,14 @@ class Enemy(Entity):
         self.direction = pygame.Vector2(0, 1)
         
         super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
+        
+    @property
+    def position(self):
+        return self._position
+    
+    @position.setter
+    def position(self, value):
+        self._position = pygame.Vector2(value)
     
     def update_rotation(self, player_position):
         direction = pygame.Vector2(player_position.x - self.position.x, player_position.y - self.position.y)

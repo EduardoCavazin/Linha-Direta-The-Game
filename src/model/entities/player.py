@@ -20,6 +20,14 @@ class Player(Entity):
         
         # Garanta que _position esteja corretamente definido (não sobrescreva a propriedade)
         self._position = pygame.Vector2(topleft)
+        
+    @property
+    def position(self) -> pygame.Vector2:
+        return self._position
+    
+    @position.setter
+    def position(self, value):
+        self._position = pygame.Vector2(value)
     
     def move(self, direction, delta_time, obstacles=None, screen_width=800, screen_height=600):
         super().move(direction, delta_time, obstacles, screen_width, screen_height)

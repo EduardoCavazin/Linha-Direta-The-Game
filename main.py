@@ -1,8 +1,12 @@
 import pygame
 import sys
-from src.world.map import Map
-from src.ui.hud import Hud
+import os
+
 from src.model.entities.enemy import Enemy
+from src.ui.hud import Hud
+from src.world.map import Map
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 pygame.init()
 
