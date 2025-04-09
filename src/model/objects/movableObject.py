@@ -5,7 +5,6 @@ from src.model.objects.gameObject import GameObject
 class MovableObject(GameObject):
     def __init__(self, id, position, size, speed, rotation=0):
         super().__init__(id, position, size)
-        # Aqui, position já deve ser o canto superior esquerdo.
         self._position = pygame.Vector2(position)
         self.speed = speed
         self.rotation = rotation
@@ -30,7 +29,6 @@ class MovableObject(GameObject):
         elif direction == "right":
             new_position.x += distance
 
-        # Limitar a nova posição usando o canto superior esquerdo
         new_position.x = max(0, min(new_position.x, screen_width - self.size[0]))
         new_position.y = max(0, min(new_position.y, screen_height - self.size[1]))
 
@@ -38,7 +36,7 @@ class MovableObject(GameObject):
             new_hitbox = pygame.Rect(new_position.x, new_position.y, self.size[0], self.size[1])
             for obstacle in obstacles:
                 if new_hitbox.colliderect(obstacle.hitbox):
-                    return  # Bloqueia o movimento
+                    return 
 
         self.position = new_position
 

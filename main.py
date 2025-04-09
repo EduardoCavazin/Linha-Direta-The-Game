@@ -36,6 +36,7 @@ running = True
 while running:
     delta_time = clock.tick(60) / 1000.0
     screen.fill((0, 0, 0))
+    
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
