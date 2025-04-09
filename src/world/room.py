@@ -37,6 +37,18 @@ class Room:
         
         for door in self.doors:
             door.open()
+
+    def check_player_door_collision(self, game_map):
+        for door in self.doors:
+            if self.player.hitbox.colliderect(door.hitbox) and not door.locked:
+                print("Entrando na próxima sala...")
+                next_room = game_map.get_next_room()
+                if next_room:
+                    next_room.spawn_player(self.player)
+                    self.player = None  #remove da sala anterior
+                    return next_room
+        return self  #se não mudou
+
     
     
 

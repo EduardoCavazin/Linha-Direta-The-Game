@@ -72,14 +72,21 @@ class Map:
         self.sequence.append(random.choice(boss_rooms))
         self.current_room = self.sequence[0]
 
-    def next_room(self):
-        if self.sequence:
-            self.sequence.pop(0)
-            self.current_room = self.sequence[0] if self.sequence else None
-            if self.current_room:
-                self.current_room.visited = True
-        else:
-            self.current_room = None
+    # def next_room(self):
+    #     if self.sequence:
+    #         self.sequence.pop(0)
+    #         self.current_room = self.sequence[0] if self.sequence else None
+    #         if self.current_room:
+    #             self.current_room.visited = True
+    #     else:
+    #         self.current_room = None
+
+    def get_next_room(self):
+        current_index = self.rooms.index(self.current_room)
+        if current_index + 1 < len(self.rooms):
+            self.current_room = self.rooms[current_index + 1]
+            return self.current_room
+        return None
 
     def is_complete(self):
         return not self.sequence

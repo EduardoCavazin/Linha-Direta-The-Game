@@ -10,6 +10,14 @@
           "position": [200, 200],
           "size": [32, 32],
           "effect": "heal"
+        },
+        {
+          "id": "ammo",
+          "name": "Ammo",
+          "position": [300, 300],
+          "size": [20, 20],
+          "effect": "ammo"
+
         }
       ],
       "enemies": [
