@@ -1,1 +1,1 @@
-ne
+player.position
