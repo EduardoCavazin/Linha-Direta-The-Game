@@ -20,12 +20,11 @@ game_map.generate_seed(1)
 room = game_map.current_room
 player = room.player
 
-# Instancia um inimigo à direita do jogador
 enemy = Enemy(
     id="enemy_1",
     name="Enemy",
-    position=pygame.Vector2(player.position.x + 100, player.position.y),  # 100 pixels à direita do jogador
-    size=(50, 50),  # Tamanho do inimigo
+    position=pygame.Vector2(player.position.x + 100, player.position.y),  
+    size=(50, 50), 
     speed=2,
     health=100,
     weapon=None,
@@ -33,7 +32,6 @@ enemy = Enemy(
     status="alive"
 )
 
-# HUD
 hud = Hud(screen, player)
 
 running = True
