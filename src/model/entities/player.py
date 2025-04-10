@@ -57,9 +57,12 @@ class Player(Entity):
         dx: float = mouse_coords[0] - player_center[0]
         dy: float = mouse_coords[1] - player_center[1]
         self.direction = pygame.Vector2(dx, dy).normalize()
+
+    def draw(self, screen: pygame.Surface) -> None:
+        player_center: Tuple[float, float] = (self.position.x + self.size[0] // 2, self.position.y + self.size[1] // 2)
         angle: float = -math.degrees(math.atan2(self.direction.y, self.direction.x))
+        
         self.image = pygame.transform.rotate(self.base_player_image, angle)
         self.rect = self.image.get_rect(center=player_center)
-    
-    def draw(self, screen: pygame.Surface) -> None:
+        
         screen.blit(self.image, self.rect.topleft)
