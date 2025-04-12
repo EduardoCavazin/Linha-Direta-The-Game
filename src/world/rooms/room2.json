@@ -1,0 +1,84 @@
+{
+    "rooms": [
+      {
+        "id": "room2",
+        "size": [800, 600],
+        "items": [
+          {
+            "id": "medkit2",
+            "name": "Medkit",
+            "position": [200, 200],
+            "size": [32, 32],
+            "effect": "heal"
+          },
+          {
+            "id": "ammo2",
+            "name": "Ammo",
+            "position": [300, 300],
+            "size": [20, 20],
+            "effect": "ammo"
+  
+          }
+        ],
+        "enemies": [
+          {
+            "id": "enemy2",
+            "name": "Zumbi",
+            "position": [100, 100],
+            "size": [32, 32],
+            "speed": 2,
+            "health": 50,
+            "status": "alive",
+            "ammo": 5,
+            "weapon": {
+              "id": "bite",
+              "name": "Bite",
+              "position": [0, 0],
+              "size": [16, 16],
+              "damage": 5,
+              "max_ammo": 0
+            }
+          }
+        ],
+        "doors": [
+          {
+            "id": "door2",
+            "position": [750, 250],
+            "size": [50, 100],
+            "locked": false
+          }
+        ],
+        "player": {
+          "id": "player2",
+          "name": "Herói",
+          "position": [100, 100],
+          "size": [32, 32],
+          "speed": 300,
+          "health": 100,
+          "ammo": 10,
+          "status": "alive",
+          "weapon": {
+            "id": "pistol",
+            "name": "Pistol",
+            "position": [0, 0],
+            "size": [32, 32],
+            "damage": 10,
+            "max_ammo": 10
+          }
+        },
+        "cleared": false,
+        "visited": false
+      },    
+      {
+        "id": "boss_room",
+        "size": [800, 600],
+        "items": [],
+        "enemies": [],
+        "doors": [],
+        "player": null,
+        "cleared": false,
+        "visited": false
+      }
+    ]
+  }
+  

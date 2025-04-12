@@ -15,3 +15,5 @@ class Door(GameObject):
 
     def unlock(self):
         self.locked = False
+    
+    

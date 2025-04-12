@@ -20,19 +20,15 @@ game_map.generate_seed(1)
 room = game_map.current_room
 player = room.player
 
-bullets = []
+for enemy in room.enemies:
+    enemy.update(enemy.position)
+    enemy.draw(screen)
 
-enemy = Enemy(
-    id="enemy_1",
-    name="Enemy",
-    position=pygame.Vector2(player.position.x + 100, player.position.y),  
-    size=(50, 50),  
-    speed=2,
-    health=100,
-    weapon=None,
-    ammo=0,
-    status="alive"
-)
+for item in room.items:
+    pygame.draw.rect(screen, (0, 255, 0), item.hitbox)
+
+for door in room.doors:
+    pygame.draw.rect(screen, (100, 100, 255), door.hitbox)
 
 hud = Hud(screen, player)
 
@@ -72,6 +68,9 @@ while running:
     player.draw(screen)
     enemy.draw(screen)
 
+    for door in room.doors:
+        pygame.draw.rect(screen, (100, 100, 255), door.hitbox) # Desenha a porta
+
     for item in room.items:
         pygame.draw.rect(screen, (0, 255, 0), item.hitbox)
 
@@ -81,6 +80,14 @@ while running:
             room.items.remove(item)
             print(f"Usou {item.name}!")
 
+    #Door collision
+    new_room = room.check_player_door_collision(game_map)
+    if new_room != room:
+        room = new_room
+        player = room.player
+        hud.player = player
+
+    hud.player = player
     hud.draw()
     pygame.display.flip()
     clock.tick(60)
