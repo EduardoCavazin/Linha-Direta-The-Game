@@ -7,23 +7,20 @@ class MovableObject(GameObject):
     def __init__(self, id: str, position: Tuple[float, float], size: Tuple[int, int],
                  speed: float, rotation: float = 0) -> None:
         super().__init__(id, position, size)
-        self._position: pygame.Vector2 = pygame.Vector2(position)
-        self.speed: float = speed
-        self.rotation: float = rotation
-        self.directedSpeed: pygame.Vector2 = pygame.Vector2(0, 1)
-        self.update_velocity()
+        self._position = pygame.Vector2(position)
+        self.speed = speed
+        self.rotation = rotation
+        self.directedSpeed = pygame.Vector2(0, 1)
 
     @property
-    def position(self) -> pygame.Vector2:
+    def position(self):
         return self._position
 
     @position.setter
-    def position(self, new_position: Tuple[float, float]) -> None:
-        self._position = pygame.Vector2(new_position)
-        if hasattr(self, 'hitbox'):
-            self.hitbox.topleft = (self._position.x, self._position.y)
+    def position(self, value):
+        self._position = pygame.Vector2(value)
 
-    def update_velocity(self) -> None:
+    def update_velocity(self):
         self.directedSpeed = pygame.Vector2(
             math.cos(math.radians(self.rotation)) * self.speed,
             math.sin(math.radians(self.rotation)) * self.speed
