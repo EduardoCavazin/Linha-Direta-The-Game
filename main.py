@@ -51,11 +51,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Botão esquerdo do mouse
-            bullet = player.shoot()  # Presume que o método shoot() retorna um bullet ou None
+            bullet = player.shoot()  
             if bullet:
                 bullets.append(bullet)
 
-    # Processa inputs para o movimento do jogador
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:
         player.move("up", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
@@ -66,27 +65,21 @@ while running:
     if keys[pygame.K_d]:
         player.move("right", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
 
-    # Atualiza a rotação do jogador com base na posição do mouse
     player.calculate_rotation()
 
-    # Atualiza e desenha os projéteis
     for bullet in bullets[:]:
         if not bullet.update(delta_time, screen_width=WIDTH, screen_height=HEIGHT):
             bullets.remove(bullet)
         bullet.draw(screen)
 
-    # Atualiza o inimigo (com base na posição do player)
     enemy.update(player.position)
 
-    # Desenha o player e o enemy
     player.draw(screen)
     enemy.draw(screen)
 
-    # Desenha as portas
     for door in room.doors:
         pygame.draw.rect(screen, (100, 100, 255), door.hitbox)
     
-    # Desenha os itens e verifica colisão com o player
     for item in room.items:
         pygame.draw.rect(screen, (0, 255, 0), item.hitbox)
 
@@ -96,7 +89,6 @@ while running:
             room.items.remove(item)
             print(f"Usou {item.name}!")
 
-    # Verifica colisões do player com portas para mudar de sala
     new_room = room.check_player_door_collision(game_map)
     if new_room != room:
         room = new_room

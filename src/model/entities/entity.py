@@ -1,5 +1,6 @@
 import pygame
 from typing import Tuple, Optional, Any
+from src.model.objects.bullet import Bullet
 from src.model.objects.movableObject import MovableObject
 import math
 
@@ -31,8 +32,7 @@ class Entity(MovableObject):
             self.ammo -= 1
             target.take_damage(self.weapon.damage)
 
-    def shoot(self) -> Optional[Any]:
-        # Exemplo de disparo que cria um Bullet (caso a classe Bullet esteja implementada)
+    def shoot(self) -> Optional[Bullet]:
         if self.weapon and self.ammo > 0:
             self.ammo -= 1
             bullet_position = pygame.Vector2(
@@ -45,15 +45,20 @@ class Entity(MovableObject):
                 mouse_coords[1] - bullet_position.y
             ).normalize()
             rotation = -math.degrees(math.atan2(direction.y, direction.x))
-            # A criação de Bullet depende de sua implementação:
-            # bullet = Bullet(id=f"bullet_{self.id}", position=bullet_position, size=(5, 5), speed=2000,
-            #                 damage=self.weapon.damage, rotation=rotation)
-            # bullet.directedSpeed = direction * bullet.speed
-            # return bullet
-            return None
+            bullet = Bullet(
+                id=f"bullet_{self.id}",
+                position=bullet_position,
+                size=(5, 5),
+                speed=2000,
+                damage=self.weapon.damage,
+                rotation=rotation
+            )
+            bullet.directedSpeed = direction * bullet.speed
+            return bullet
         else:
             print(f"{self.name} está sem munição!")
             return None
+
 
     def take_damage(self, damage: int) -> None:
         self.health -= damage
