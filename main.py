@@ -7,8 +7,6 @@ from src.model.entities.enemy import Enemy
 from src.ui.hud import Hud
 from src.world.map import Map
 
-# Adiciona o diretório 'src' ao PYTHONPATH para facilitar as importações
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 pygame.init()
 
@@ -18,16 +16,13 @@ screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Linha Direta - The Game")
 clock: pygame.time.Clock = pygame.time.Clock()
 
-# Carrega o mapa a partir do arquivo JSON
 game_map: Map = Map("src/world/map_test.json")
-game_map.generate_seed(1)  # Gera uma sequência com 1 sala normal + 1 sala de chefe
+game_map.generate_seed(1)  
 room = game_map.current_room
 player = room.player
 
-# Lista para armazenar os projéteis
 bullets: List = []
 
-# Inicialmente, desenha os elementos estáticos da sala (inimigos, itens, portas)
 for enemy in room.enemies:
     enemy.update(player.position)
     enemy.draw(screen)
@@ -38,32 +33,46 @@ for item in room.items:
 for door in room.doors:
     pygame.draw.rect(screen, (100, 100, 255), door.hitbox)
 
-# Cria a HUD
 hud: Hud = Hud(screen, player)
 
 running: bool = True
 while running:
-    delta_time: float = clock.tick(60) / 1000.0  # Tempo decorrido entre os frames (em segundos)
-    screen.fill((0, 0, 0))  # Limpa a tela
+    delta_time: float = clock.tick(60) / 1000.0  
+    screen.fill((0, 0, 0))  
 
-    # Processa os eventos
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Botão esquerdo do mouse
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: 
             bullet = player.shoot()  
             if bullet:
                 bullets.append(bullet)
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:
-        player.move("up", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
+        player.move("up", 
+                    delta_time,
+                    obstacles = room.enemies, 
+                    screen_width=WIDTH, 
+                    screen_height=HEIGHT)
     if keys[pygame.K_s]:
-        player.move("down", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
+        player.move("down", 
+                    delta_time,
+                    obstacles = room.enemies, 
+                    screen_width=WIDTH, 
+                    screen_height=HEIGHT)
     if keys[pygame.K_a]:
-        player.move("left", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
+        player.move("left", 
+                    delta_time,
+                    obstacles = room.enemies, 
+                    screen_width=WIDTH, 
+                    screen_height=HEIGHT)
     if keys[pygame.K_d]:
-        player.move("right", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
+        player.move("right", 
+                    delta_time,
+                    obstacles = room.enemies, 
+                    screen_width=WIDTH, 
+                    screen_height=HEIGHT)
 
     player.calculate_rotation()
 
