@@ -16,7 +16,7 @@ screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Linha Direta - The Game")
 clock: pygame.time.Clock = pygame.time.Clock()
 
-game_map: Map = Map("src/world/map_test.json")
+game_map: Map = Map("src/world/rooms")
 game_map.generate_seed(1)  
 room = game_map.current_room
 player = room.player

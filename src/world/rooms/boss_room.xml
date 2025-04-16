@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<room
+    id="boss_room"
+    size="800,600"
+    cleared="false"
+    visited="false"
+>
+  <!-- Sala do chefe:  sem itens, inimigos ou player -->
+  <items />
+  <enemies />
+  <doors />
+  <!-- O player não é definido aqui, pois ele é carregado na primeira sala -->
+</room>
