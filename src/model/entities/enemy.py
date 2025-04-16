@@ -25,23 +25,24 @@ class Enemy(Entity):
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         
         super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
-        
+    
     @property
-    def position(self):
+    def position(self) -> pygame.Vector2:
         return self._position
     
     @position.setter
-    def position(self, value):
+    def position(self, value: Tuple[float, float]) -> None:
         self._position = pygame.Vector2(value)
     
-    def update_rotation(self, player_position):
-        self.direction = pygame.Vector2(
-            player_position.x - self.position.x, player_position.y - self.position.y)
-        if self.direction.length() != 0:
-            self.direction = self.direction.normalize()
-        self.direction = self.direction
-        self.rotation = - \
-            math.degrees(math.atan2(self.direction.y, self.direction.x))
+    def update_rotation(self, player_position: pygame.Vector2) -> None:
+        direction: pygame.Vector2 = pygame.Vector2(
+            player_position.x - self.position.x,
+            player_position.y - self.position.y
+        )
+        if direction.length() != 0:
+            direction = direction.normalize()
+        self.direction = direction
+        self.rotation = -math.degrees(math.atan2(direction.y, direction.x))
         
         self.image = pygame.transform.rotate(self.base_enemy_image, self.rotation)
         self.rect = self.image.get_rect(topleft=self.position)

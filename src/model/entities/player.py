@@ -8,7 +8,7 @@ class Player(Entity):
         self,
         id: str,
         name: str,
-        position: Tuple[float, float], 
+        position: Tuple[float, float],  
         size: Tuple[int, int],
         speed: float,
         health: int,
@@ -20,12 +20,10 @@ class Player(Entity):
         
         self.base_player_image: pygame.Surface = pygame.image.load('assets/sprites/player.png')
         self.base_player_image = pygame.transform.scale(self.base_player_image, size)
-        
         self.base_player_rect: pygame.Rect = self.base_player_image.get_rect(topleft=topleft)
         
         self.image: pygame.Surface = self.base_player_image
         self.rect: pygame.Rect = self.image.get_rect(topleft=topleft)
-        
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         
         super().__init__(id, name, topleft, size, speed, health, weapon, ammo, self.image, status)
@@ -42,27 +40,42 @@ class Player(Entity):
         if hasattr(self, 'hitbox'):
             self.hitbox.topleft = (self._position.x, self._position.y)
     
-    def move(self, direction: str, delta_time: float, obstacles: Optional[list] = None,
-             screen_width: int = 800, screen_height: int = 600) -> None:
+    def move(
+        self,
+        direction: str,
+        delta_time: float,
+        obstacles: Optional[list] = None,
+        screen_width: int = 800,
+        screen_height: int = 600
+    ) -> None:
         super().move(direction, delta_time, obstacles, screen_width, screen_height)
         self.base_player_rect.topleft = (self.position.x, self.position.y)
     
     def reload(self) -> None:
         if self.weapon:
             self.ammo = self.weapon.max_ammo
-    
-    def player_turning(self) -> None:
+
+    def calculate_rotation(self) -> float:
         mouse_coords: Tuple[int, int] = pygame.mouse.get_pos()
-        player_center: Tuple[float, float] = (self.position.x + self.size[0] // 2, self.position.y + self.size[1] // 2)
+        player_center: Tuple[float, float] = (self.position.x + self.size[0] / 2,
+                                               self.position.y + self.size[1] / 2)
         dx: float = mouse_coords[0] - player_center[0]
         dy: float = mouse_coords[1] - player_center[1]
+        if dx == 0 and dy == 0:
+            self.direction = pygame.Vector2(0, 1)
+            return 0.0
         self.direction = pygame.Vector2(dx, dy).normalize()
+        angle: float = -math.degrees(math.atan2(self.direction.y, self.direction.x))
+        return angle
+
+    def update_sprite(self, angle: float) -> None:
+        rotated_image: pygame.Surface = pygame.transform.rotate(self.base_player_image, angle)
+        player_center: Tuple[float, float] = (self.position.x + self.size[0] / 2,
+                                               self.position.y + self.size[1] / 2)
+        self.image = rotated_image
+        self.rect = rotated_image.get_rect(center=player_center)
 
     def draw(self, screen: pygame.Surface) -> None:
-        player_center: Tuple[float, float] = (self.position.x + self.size[0] // 2, self.position.y + self.size[1] // 2)
-        angle: float = -math.degrees(math.atan2(self.direction.y, self.direction.x))
-        
-        self.image = pygame.transform.rotate(self.base_player_image, angle)
-        self.rect = self.image.get_rect(center=player_center)
-        
+        angle: float = self.calculate_rotation()
+        self.update_sprite(angle)
         screen.blit(self.image, self.rect.topleft)
