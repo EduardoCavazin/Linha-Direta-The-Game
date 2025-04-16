@@ -1,53 +1,77 @@
 import pygame
+from typing import Tuple, Optional, Any
+from src.model.objects.bullet import Bullet
 from src.model.objects.movableObject import MovableObject
+import math
 
 class Entity(MovableObject):
-    def __init__(self, id, name, position, size, speed, health, weapon, ammo, image, status, rotation=0):
-        # Agora passamos o parâmetro rotation com valor padrão 0
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        position: Tuple[float, float],
+        size: Tuple[int, int],
+        speed: float,
+        health: int,
+        weapon: Optional[Any],
+        ammo: int,
+        image: Optional[pygame.Surface],
+        status: str,
+        rotation: float = 0
+    ) -> None:
         super().__init__(id, position, size, speed, rotation)
-        self.name = name
-        self.health = health
-        self.weapon = weapon
-        self.ammo = ammo
-        self.image = image
-        self.status = status
+        self.name: str = name
+        self.health: int = health
+        self.weapon: Optional[Any] = weapon
+        self.ammo: int = ammo
+        self.image: Optional[pygame.Surface] = image
+        self.status: str = status
 
-    def move(self, direction, delta_time, obstacles=None):
-        new_position = self.position.copy()
-        distance = self.speed * delta_time  # Distância baseada no tempo
-
-        if direction == "up":
-            new_position.y -= distance
-        elif direction == "down":
-            new_position.y += distance
-        elif direction == "left":
-            new_position.x -= distance
-        elif direction == "right":
-            new_position.x += distance
-
-        if obstacles:
-            new_hitbox = pygame.Rect(new_position.x, new_position.y, self.size[0], self.size[1])
-            for obstacle in obstacles:
-                if new_hitbox.colliderect(obstacle.hitbox):
-                    return  # Movimento bloqueado pela colisão
-
-        self.position = new_position
-        self.hitbox.topleft = (self.position.x, self.position.y)
-
-    def attack(self, target):
+    def attack(self, target: 'Entity') -> None:
         if self.weapon and self.ammo > 0:
             self.ammo -= 1
             target.take_damage(self.weapon.damage)
 
-    def take_damage(self, damage):
+    def shoot(self) -> Optional[Bullet]:
+        if self.weapon and self.ammo > 0:
+            self.ammo -= 1
+            bullet_position = pygame.Vector2(
+                self.position.x + self.size[0] // 2,
+                self.position.y + self.size[1] // 2
+            )
+            mouse_coords = pygame.mouse.get_pos()
+            direction = pygame.Vector2(
+                mouse_coords[0] - bullet_position.x,
+                mouse_coords[1] - bullet_position.y
+            ).normalize()
+            rotation = -math.degrees(math.atan2(direction.y, direction.x))
+            bullet = Bullet(
+                id=f"bullet_{self.id}",
+                position=bullet_position,
+                size=(5, 5),
+                speed=2000,
+                damage=self.weapon.damage,
+                rotation=rotation
+            )
+            bullet.directedSpeed = direction * bullet.speed
+            return bullet
+        else:
+            print(f"{self.name} está sem munição!")
+            return None
+
+
+    def take_damage(self, damage: int) -> None:
         self.health -= damage
         if self.health <= 0:
             self.health = 0
             self.die()
 
-    def die(self):
+    def die(self) -> None:
         self.status = "dead"
         print(f"Entity {self.id} has died.")
 
-    def draw(self, screen):
-        screen.blit(self.image, self.position)
+    def draw(self, screen: pygame.Surface) -> None:
+        if self.image:
+            screen.blit(self.image, (self.position.x, self.position.y))
+        else:
+            super().draw(screen)

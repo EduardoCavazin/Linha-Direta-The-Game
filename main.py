@@ -1,65 +1,102 @@
 import pygame
 import sys
-from src.world.map import Map
+import os
+from typing import List, Optional
+
+from src.model.entities.enemy import Enemy
 from src.ui.hud import Hud
+from src.world.map import Map
+
+# Adiciona o diretório 'src' ao PYTHONPATH para facilitar as importações
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 pygame.init()
 
-# Configurações de tela
-WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+WIDTH: int = 800
+HEIGHT: int = 600
+screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Linha Direta - The Game")
-clock = pygame.time.Clock()
+clock: pygame.time.Clock = pygame.time.Clock()
 
-# Carrega o mapa real do JSON
-game_map = Map("src/world/map_test.json")
-game_map.generate_seed(1)  # Gera uma sequência com 1 sala + boss
-
-# Acessa a sala atual e o player
+# Carrega o mapa a partir do arquivo JSON
+game_map: Map = Map("src/world/map_test.json")
+game_map.generate_seed(1)  # Gera uma sequência com 1 sala normal + 1 sala de chefe
 room = game_map.current_room
 player = room.player
 
-# HUD
-hud = Hud(screen, player)
+# Lista para armazenar os projéteis
+bullets: List = []
 
-# Loop principal
-running = True
+# Inicialmente, desenha os elementos estáticos da sala (inimigos, itens, portas)
+for enemy in room.enemies:
+    enemy.update(player.position)
+    enemy.draw(screen)
+
+for item in room.items:
+    pygame.draw.rect(screen, (0, 255, 0), item.hitbox)
+
+for door in room.doors:
+    pygame.draw.rect(screen, (100, 100, 255), door.hitbox)
+
+# Cria a HUD
+hud: Hud = Hud(screen, player)
+
+running: bool = True
 while running:
-    delta_time = clock.tick(60) / 1000.0  # Tempo decorrido entre os quadros (em segundos)
+    delta_time: float = clock.tick(60) / 1000.0  # Tempo decorrido entre os frames (em segundos)
     screen.fill((0, 0, 0))  # Limpa a tela
 
+    # Processa os eventos
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Botão esquerdo do mouse
+            bullet = player.shoot()  
+            if bullet:
+                bullets.append(bullet)
 
-    # Input (movimento básico com setas)
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:
-        player.move("up", delta_time)
+        player.move("up", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
     if keys[pygame.K_s]:
-        player.move("down", delta_time)
+        player.move("down", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
     if keys[pygame.K_a]:
-        player.move("left", delta_time)
+        player.move("left", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
     if keys[pygame.K_d]:
-        player.move("right", delta_time)
+        player.move("right", delta_time, screen_width=WIDTH, screen_height=HEIGHT)
 
-    # Desenha jogador
+    player.calculate_rotation()
+
+    for bullet in bullets[:]:
+        if not bullet.update(delta_time, screen_width=WIDTH, screen_height=HEIGHT):
+            bullets.remove(bullet)
+        bullet.draw(screen)
+
+    enemy.update(player.position)
+
     player.draw(screen)
+    enemy.draw(screen)
 
-    # Desenha itens da sala
+    for door in room.doors:
+        pygame.draw.rect(screen, (100, 100, 255), door.hitbox)
+    
     for item in room.items:
         pygame.draw.rect(screen, (0, 255, 0), item.hitbox)
 
-    # Checa colisão jogador-item
     for item in room.items[:]:
         if player.hitbox.colliderect(item.hitbox):
             item.use(player)
             room.items.remove(item)
             print(f"Usou {item.name}!")
 
-    # HUD
-    hud.draw()
+    new_room = room.check_player_door_collision(game_map)
+    if new_room != room:
+        room = new_room
+        player = room.player
+        hud.player = player
 
+    hud.player = player
+    hud.draw()
     pygame.display.flip()
     clock.tick(60)
 

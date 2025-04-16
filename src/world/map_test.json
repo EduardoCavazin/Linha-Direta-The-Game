@@ -10,13 +10,21 @@
           "position": [200, 200],
           "size": [32, 32],
           "effect": "heal"
+        },
+        {
+          "id": "ammo",
+          "name": "Ammo",
+          "position": [300, 300],
+          "size": [20, 20],
+          "effect": "ammo"
+
         }
       ],
       "enemies": [
         {
           "id": "enemy1",
           "name": "Zumbi",
-          "position": [300, 300],
+          "position": [300, 100],
           "size": [32, 32],
           "speed": 2,
           "health": 50,
@@ -60,7 +68,7 @@
       },
       "cleared": false,
       "visited": false
-    },
+    },    
     {
       "id": "boss_room",
       "size": [800, 600],
