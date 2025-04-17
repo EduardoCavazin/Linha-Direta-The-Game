@@ -1,5 +1,7 @@
 from typing import List, Optional, Any, Tuple
 
+from src.model.objects.bullet import Bullet
+
 class Room:
     def __init__(
         self,
@@ -56,3 +58,13 @@ class Room:
                     self.player = None  
                     return next_room
         return self 
+    
+    def handle_bullet_collisions(self, bullets: List[Bullet]) -> None:
+        for bullet in bullets[:]:
+            for enemy in self.enemies[:]:
+                if bullet.hitbox.colliderect(enemy.hitbox):
+                    enemy.take_damage(bullet.damage)
+                    bullets.remove(bullet)
+                    if not enemy.is_alive():
+                        self.enemies.remove(enemy) #Trocar para ser uma sprite onde o inimgo está morto, e mudar o status para morto
+                    break

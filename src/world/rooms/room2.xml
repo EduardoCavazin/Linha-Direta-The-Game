@@ -5,7 +5,6 @@
     cleared="false"
     visited="false"
 >
-  <!-- Itens nesta sala -->
   <items>
     <item
       id="medkit2"
@@ -23,7 +22,6 @@
     />
   </items>
 
-  <!-- Inimigos nesta sala -->
   <enemies>
     <enemy
       id="enemy2"
@@ -65,7 +63,6 @@
     </enemy>
   </enemies>
 
-  <!-- Portas de saída/entrada -->
   <doors>
     <door
       id="door2"
@@ -75,5 +72,4 @@
     />
   </doors>
 
-  <!-- Player não é definido aqui (só na primeira sala) -->
 </room>

@@ -1,7 +1,7 @@
 from typing import Tuple
 from src.model.objects.gameObject import GameObject
 
-class Weapon(GameObject):
+class Weapon(GameObject): #Tirar da hierarquia de classes, pois não usa posição nem nada
     def __init__(self, id: str, name: str, position: Tuple[float, float], size: Tuple[int, int],
                  damage: int, max_ammo: int) -> None:
         super().__init__(id, position, size)

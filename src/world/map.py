@@ -15,9 +15,6 @@ def _parse_tuple(s: str, cast: type) -> Tuple:
 
 class Map:
     def __init__(self, rooms_folder: str) -> None:
-        """
-        :param rooms_folder: pasta que contém arquivos XML de cada sala
-        """
         self.rooms_folder: str = rooms_folder
         self.rooms: List[Room] = self.load_rooms()
         self.current_room: Optional[Room] = None
@@ -30,7 +27,7 @@ class Map:
                 continue
             path = os.path.join(self.rooms_folder, filename)
             tree = ET.parse(path)
-            root = tree.getroot()  # elemento <room>
+            root = tree.getroot()  
             rooms.append(self._parse_room_element(root))
         return rooms
 
@@ -40,7 +37,6 @@ class Map:
         cleared: bool = room_el.get('cleared', 'false') == 'true'
         visited: bool = room_el.get('visited', 'false') == 'true'
 
-        # Itens
         items: List[Item] = []
         for item_el in room_el.find('items') or []:
             items.append(Item(
@@ -51,10 +47,8 @@ class Map:
                 effect=item_el.get('effect', '')
             ))
 
-        # Inimigos
         enemies: List[Enemy] = []
         for enemy_el in room_el.find('enemies') or []:
-            # arma do inimigo
             weapon_el = enemy_el.find('weapon')
             weapon = None
             if weapon_el is not None:
@@ -79,7 +73,6 @@ class Map:
                 status=enemy_el.get('status', 'alive')
             ))
 
-        # Portas
         doors: List[Door] = []
         for door_el in room_el.find('doors') or []:
             doors.append(Door(
@@ -89,7 +82,6 @@ class Map:
                 locked=door_el.get('locked', 'false') == 'true'
             ))
 
-        # Player (opcional)
         player: Optional[Player] = None
         player_el = room_el.find('player')
         if player_el is not None:
@@ -129,12 +121,18 @@ class Map:
         )
 
     def generate_seed(self, num_rooms: int = 5) -> None:
-        normal = [r for r in self.rooms if "boss" not in r.id]
+        start_room = next((r for r in self.rooms if r.player is not None), None)
+        if not start_room:
+            raise ValueError("Não encontrei nenhuma sala com player definido!")
+
+        normal = [r for r in self.rooms
+                  if "boss" not in r.id and r is not start_room]
         bosses = [r for r in self.rooms if "boss" in r.id]
+
         if len(normal) < num_rooms or not bosses:
             raise ValueError("Salas insuficientes.")
 
-        self.sequence = random.sample(normal, num_rooms) + [random.choice(bosses)]
+        self.sequence = [start_room] + random.sample(normal, num_rooms) + [random.choice(bosses)]
         self.current_room = self.sequence[0]
 
     def get_next_room(self) -> Optional[Room]:

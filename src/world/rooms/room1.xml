@@ -5,7 +5,6 @@
     cleared="false"
     visited="false"
 >
-  <!-- Itens disponíveis nesta sala -->
   <items>
     <item
       id="medkit1"
@@ -23,7 +22,6 @@
     />
   </items>
 
-  <!-- Inimigos nesta sala -->
   <enemies>
     <enemy
       id="enemy1"
@@ -46,7 +44,6 @@
     </enemy>
   </enemies>
 
-  <!-- Portas de saída/entrada -->
   <doors>
     <door
       id="door1"
@@ -56,15 +53,14 @@
     />
   </doors>
 
-  <!-- Definição do jogador (presente apenas na primeira sala) -->
   <player
     id="player1"
     name="Herói"
     position="100.0,100.0"
     size="32,32"
-    speed="300.0"
+    speed="250"
     health="100"
-    ammo="10"
+    ammo="1000"
     status="alive"
   >
     <weapon
@@ -73,7 +69,7 @@
       position="0.0,0.0"
       size="32,32"
       damage="10"
-      max_ammo="10"
+      max_ammo="1000"
     />
   </player>
 </room>
