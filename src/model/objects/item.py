@@ -13,6 +13,6 @@ class Item(GameObject):
             if target.health > 100:
                 target.health = 100
         elif self.effect == "ammo":
-            target.ammo += 10
-            if target.weapon is not None and target.ammo > target.weapon.max_ammo:
-                target.ammo = target.weapon.max_ammo
+            if target.weapon is not None:
+                target.ammo = min(target.ammo + 10,
+                                target.weapon.max_ammo)

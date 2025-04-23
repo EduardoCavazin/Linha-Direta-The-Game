@@ -69,6 +69,9 @@ class Entity(MovableObject):
     def die(self) -> None:
         self.status = "dead"
         print(f"Entity {self.id} has died.")
+        
+    def is_alive(self) -> bool:
+        return self.status != "dead"
 
     def draw(self, screen: pygame.Surface) -> None:
         if self.image:
