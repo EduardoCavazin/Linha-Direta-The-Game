@@ -39,7 +39,6 @@ while running:
             if bullet:
                 bullets.append(bullet)
 
-    # Movimento do jogador com colisão opcional contra inimigos
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:
         player.move("up", delta_time, obstacles=room.enemies, screen_width=WIDTH, screen_height=HEIGHT)
@@ -49,7 +48,12 @@ while running:
         player.move("left", delta_time, obstacles=room.enemies, screen_width=WIDTH, screen_height=HEIGHT)
     if keys[pygame.K_d]:
         player.move("right", delta_time, obstacles=room.enemies, screen_width=WIDTH, screen_height=HEIGHT)
+    if keys[pygame.K_ESCAPE]:
+        running = False
 
+    # Atualiza a animação do jogador
+    player.update_animation(delta_time)
+    
     # Atualiza rotação do jogador
     player.calculate_rotation()
 
@@ -81,7 +85,7 @@ while running:
     render_queue.append(player)
 
     # Limpa tela e desenha tudo na ordem da fila
-    screen.fill((0, 0, 0))
+    screen.fill((88, 71, 71))
     for obj in render_queue:
         obj.draw(screen)
 
