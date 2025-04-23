@@ -18,15 +18,14 @@ class Player(Entity):
     ) -> None:
         topleft: Tuple[float, float] = (position[0] - size[0] // 2, position[1] - size[1] // 2)
         
-        # Carrega a spritesheet com frames de animação
+       
         self.spritesheet: pygame.Surface = pygame.image.load('assets/sprites/Player_Movement.png')
-        self.frame_count: int = 3  # Número de frames na spritesheet (5 frames visíveis na imagem)
+        self.frame_count: int = 3  
         self.frame_width: int = self.spritesheet.get_width() // self.frame_count
-        self.frame_height: int = self.spritesheet.get_height() // 2  # 2 linhas (superior e inferior)
+        self.frame_height: int = self.spritesheet.get_height() // 2  
         
-        # Recorta os frames da spritesheet
         self.frames: List[pygame.Surface] = []
-        for y in range(2):  # 2 linhas na spritesheet
+        for y in range(2):  
             for x in range(self.frame_count):
                 frame = pygame.Surface((self.frame_width, self.frame_height), pygame.SRCALPHA)
                 frame.blit(self.spritesheet, (0, 0), 
@@ -36,10 +35,9 @@ class Player(Entity):
                 self.frames.append(frame)
         
         self.current_frame: int = 0
-        self.animation_speed: float = 0.2  # Velocidade de animação (frames por segundo)
+        self.animation_speed: float = 0.2  
         self.animation_timer: float = 0
         
-        # Inicialização com o primeiro frame
         self.base_player_image: pygame.Surface = self.frames[0]
         self.base_player_rect: pygame.Rect = self.base_player_image.get_rect(topleft=topleft)
         
@@ -63,8 +61,6 @@ class Player(Entity):
             self.hitbox.topleft = (self._position.x, self._position.y)
     
     def update_animation(self, delta_time: float) -> None:
-        """Atualiza a animação do jogador baseado no tempo decorrido."""
-        # Somente anima se estiver se movendo
         if not self.moving:
             self.current_frame = 0
             self.base_player_image = self.frames[0]
@@ -84,7 +80,7 @@ class Player(Entity):
         screen_width: int = 800,
         screen_height: int = 600
     ) -> None:
-        self.moving = True  # Indica que o jogador está se movendo
+        self.moving = True 
         super().move(direction, delta_time, obstacles, screen_width, screen_height)
         self.base_player_rect.topleft = (self.position.x, self.position.y)
     
@@ -102,10 +98,7 @@ class Player(Entity):
             self.direction = pygame.Vector2(0, 1)
             return 0.0
         self.direction = pygame.Vector2(dx, dy).normalize()
-        
-        # Adicionando 90 graus (rotação para a direita) para alinhar o sprite com o mouse
-        angle: float = -math.degrees(math.atan2(self.direction.y, self.direction.x)) - 90
-        return angle
+    
 
     def update_sprite(self, angle: float) -> None:
         rotated_image: pygame.Surface = pygame.transform.rotate(self.base_player_image, angle)
@@ -115,7 +108,7 @@ class Player(Entity):
         self.rect = rotated_image.get_rect(center=player_center)
 
     def draw(self, screen: pygame.Surface) -> None:
-        angle: float = self.calculate_rotation()
+        angle: float = -math.degrees(math.atan2(self.direction.y, self.direction.x)) - 90
         self.update_sprite(angle)
         screen.blit(self.image, self.rect.topleft)
-        self.moving = False  # Reseta o estado de movimento a cada frame
+        self.moving = False  

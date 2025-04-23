@@ -9,56 +9,45 @@
     <item
       id="medkit2"
       name="Medkit"
-      position="150.0,400.0"
+      position="400.0,200.0"
       size="32,32"
       effect="heal"
-    />
-    <item
-      id="ammo2"
-      name="Ammo"
-      position="500.0,350.0"
-      size="20,20"
-      effect="ammo"
     />
   </items>
 
   <enemies>
     <enemy
       id="enemy2"
-      name="Zumbi"
-      position="400.0,200.0"
+      name="Gangster"
+      position="400.0,100.0"
       size="32,32"
-      speed="2.5"
-      health="60"
+      speed="1.5"
+      health="75"
       status="alive"
-      ammo="0"
+      ammo="15"
     >
       <weapon
-        id="claw"
-        name="Claw"
-        position="0.0,0.0"
-        size="16,16"
-        damage="7"
-        max_ammo="0"
+        id="revolver"
+        name="Revolver"
+        damage="15"
+        max_ammo="6"
       />
     </enemy>
     <enemy
       id="enemy3"
       name="Bandido"
-      position="600.0,450.0"
+      position="500.0,200.0"
       size="32,32"
       speed="3.0"
       health="40"
       status="alive"
-      ammo="10"
+      ammo="0"
     >
       <weapon
-        id="pistol2"
-        name="Pistol"
-        position="0.0,0.0"
-        size="32,32"
-        damage="10"
-        max_ammo="6"
+        id="knife"
+        name="Knife"
+        damage="8"
+        max_ammo="0"
       />
     </enemy>
   </enemies>
@@ -66,7 +55,7 @@
   <doors>
     <door
       id="door2"
-      position="50.0,250.0"
+      position="750.0,250.0"
       size="50,100"
       locked="false"
     />

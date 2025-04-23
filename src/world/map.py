@@ -55,8 +55,6 @@ class Map:
                 weapon = Weapon(
                     id=weapon_el.get('id', ''),
                     name=weapon_el.get('name', ''),
-                    position=_parse_tuple(weapon_el.get('position', '0,0'), float),
-                    size=_parse_tuple(weapon_el.get('size', '0,0'), int),
                     damage=int(weapon_el.get('damage', '0')),
                     max_ammo=int(weapon_el.get('max_ammo', '0'))
                 )
@@ -91,8 +89,6 @@ class Map:
                 weapon = Weapon(
                     id=weapon_el.get('id', ''),
                     name=weapon_el.get('name', ''),
-                    position=_parse_tuple(weapon_el.get('position', '0,0'), float),
-                    size=_parse_tuple(weapon_el.get('size', '0,0'), int),
                     damage=int(weapon_el.get('damage', '0')),
                     max_ammo=int(weapon_el.get('max_ammo', '0'))
                 )

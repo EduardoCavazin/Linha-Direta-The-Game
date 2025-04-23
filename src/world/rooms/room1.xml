@@ -36,8 +36,6 @@
       <weapon
         id="bite"
         name="Bite"
-        position="0.0,0.0"
-        size="16,16"
         damage="5"
         max_ammo="0"
       />
@@ -66,8 +64,6 @@
     <weapon
       id="pistol"
       name="Pistol"
-      position="0.0,0.0"
-      size="32,32"
       damage="10"
       max_ammo="1000"
     />

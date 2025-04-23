@@ -6,7 +6,6 @@ from typing import Optional
 
 pygame.init()
 
-# Configurações da tela
 screen_width: int = 1280
 screen_height: int = 800
 screen: pygame.Surface = pygame.display.set_mode((screen_width, screen_height))
@@ -15,11 +14,9 @@ pygame.display.set_caption("Main Menu")
 white: tuple = (255, 255, 255)
 black: tuple = (0, 0, 0)
 
-# Caminho para a fonte
 font_path: str = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'fonts', 'Neutrons.ttf')
 font: pygame.font.Font = pygame.font.Font(font_path, 74)
 
-# Caminho para o background GIF e processamento dos frames
 gif_path: str = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'ui', 'menu', 'backgroundGif.gif')
 gif: Image.Image = Image.open(gif_path)
 frames: list[pygame.Surface] = [
@@ -31,7 +28,6 @@ frames: list[pygame.Surface] = [
 frame_count: int = len(frames)
 frame_index: int = 0
 
-# Variáveis globais para os retângulos dos elementos de interface
 title_rect: Optional[pygame.Rect] = None
 option1_rect: Optional[pygame.Rect] = None
 option2_rect: Optional[pygame.Rect] = None
