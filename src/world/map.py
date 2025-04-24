@@ -3,6 +3,8 @@ import xml.etree.ElementTree as ET
 import random
 from typing import List, Optional, Tuple
 
+import pygame
+
 from src.world.room import Room
 from src.model.entities.player import Player
 from src.model.entities.enemy import Enemy
@@ -36,6 +38,9 @@ class Map:
         size: Tuple[int, int] = _parse_tuple(room_el.get('size', '0,0'), int)
         cleared: bool = room_el.get('cleared', 'false') == 'true'
         visited: bool = room_el.get('visited', 'false') == 'true'
+        bg_filename = room_el.get('background', f"{rid}.png")
+        background = pygame.image.load(f"assets/sprites/{bg_filename}")
+        background = pygame.transform.scale(background, size)
 
         items: List[Item] = []
         for item_el in room_el.find('items') or []:
@@ -117,7 +122,8 @@ class Map:
             doors=doors,
             player=player,
             cleared=cleared,
-            visited=visited
+            visited=visited,
+            background=background,
         )
 
     def generate_seed(self, num_rooms: int = 5) -> None:

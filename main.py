@@ -8,8 +8,8 @@ from src.world.map import Map
 
 pygame.init()
 
-WIDTH: int = 800
-HEIGHT: int = 600
+WIDTH: int = 1280
+HEIGHT: int = 720
 screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Linha Direta - The Game")
 clock: pygame.time.Clock = pygame.time.Clock()
@@ -29,7 +29,7 @@ hud: Hud = Hud(screen, player, clock)
 running: bool = True
 while running:
     delta_time: float = clock.tick(60) / 1000.0
-
+    
     # Eventos de entrada
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -81,7 +81,7 @@ while running:
     render_queue.append(player)
 
     # Limpa tela e desenha tudo na ordem da fila
-    screen.fill((0, 0, 0))
+    screen.blit(room.background, (0, 0))
     for obj in render_queue:
         obj.draw(screen)
 
@@ -89,7 +89,8 @@ while running:
     for door in room.doors:
         pygame.draw.rect(screen, (100, 100, 255), door.hitbox)
     for item in room.items:
-        pygame.draw.rect(screen, (0, 255, 0), item.hitbox)
+        item.draw(screen)
+
 
     # Coleta de itens
     for item in room.items[:]:
