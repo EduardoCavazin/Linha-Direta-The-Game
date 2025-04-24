@@ -76,14 +76,22 @@ class GameWorld:
             self.bullets = []
 
     def render(self) -> None:
-        self.screen.fill((88, 71, 71))
+        # Desenhar o background se existir
+        if self.current_room.background:
+            self.screen.blit(self.current_room.background, (0, 0))
+        else:
+            self.screen.fill((88, 71, 71))
         
+        # Desenhar objetos na ordem de renderização
         for obj in self.render_queue:
             obj.draw(self.screen)
         
+        # Desenhar portas
         for door in self.current_room.doors:
             pygame.draw.rect(self.screen, (100, 100, 255), door.hitbox)
+        
+        # Desenhar itens usando suas próprias imagens
         for item in self.current_room.items:
-            pygame.draw.rect(self.screen, (0, 255, 0), item.hitbox)
+            item.draw(self.screen)
         
         self.hud.draw()

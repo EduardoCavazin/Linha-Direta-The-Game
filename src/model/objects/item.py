@@ -1,15 +1,18 @@
+import os
 import pygame
 from typing import Tuple, Any
 from src.model.objects.gameObject import GameObject
+from src.core.utils import load_image
 
 class Item(GameObject):
     def __init__(self, id: str, name: str, position: Tuple[float, float], size: Tuple[int, int], effect: str) -> None:
         super().__init__(id, position, size)
         self.name: str = name
         self.effect: str = effect
-        self.image: pygame.Surface = pygame.image.load(f"assets/sprites/{self.id}.png")
-        self.image = pygame.transform.scale(self.image, size)
-
+        
+        # Usar a função utilitária para carregar a imagem
+        self.image = load_image(f"{self.id}.png", size)
+        
     def use(self, target: Any) -> None:
         if self.effect == "heal":
             target.health += 20

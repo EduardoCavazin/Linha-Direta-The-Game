@@ -11,6 +11,7 @@ from src.model.entities.enemy import Enemy
 from src.model.objects.weapon import Weapon
 from src.model.objects.item import Item
 from src.model.objects.door import Door
+from src.core.utils import load_image
 
 def _parse_tuple(s: str, cast: type) -> Tuple:
     return tuple(cast(x) for x in s.split(','))
@@ -39,8 +40,9 @@ class Map:
         cleared: bool = room_el.get('cleared', 'false') == 'true'
         visited: bool = room_el.get('visited', 'false') == 'true'
         bg_filename = room_el.get('background', f"{rid}.png")
-        background = pygame.image.load(f"assets/sprites/{bg_filename}")
-        background = pygame.transform.scale(background, size)
+        
+        # Usar a função utilitária para carregar o background
+        background = load_image(bg_filename, size)
 
         items: List[Item] = []
         for item_el in room_el.find('items') or []:

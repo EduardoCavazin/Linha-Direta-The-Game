@@ -2,6 +2,7 @@ import math
 import pygame
 from typing import Tuple, Optional, Any, List
 from src.model.entities.entity import Entity
+from src.core.utils import load_image
 
 class Player(Entity):
     def __init__(
@@ -18,8 +19,8 @@ class Player(Entity):
     ) -> None:
         topleft: Tuple[float, float] = (position[0] - size[0] // 2, position[1] - size[1] // 2)
         
-       
-        self.spritesheet: pygame.Surface = pygame.image.load('assets/sprites/Player_Movement.png')
+        # Usar a função utilitária para carregar o spritesheet
+        self.spritesheet: pygame.Surface = load_image('Player_Movement.png')
         self.frame_count: int = 3  
         self.frame_width: int = self.spritesheet.get_width() // self.frame_count
         self.frame_height: int = self.spritesheet.get_height() // 2  
@@ -111,4 +112,4 @@ class Player(Entity):
         angle: float = -math.degrees(math.atan2(self.direction.y, self.direction.x)) - 90
         self.update_sprite(angle)
         screen.blit(self.image, self.rect.topleft)
-        self.moving = False  
+        self.moving = False

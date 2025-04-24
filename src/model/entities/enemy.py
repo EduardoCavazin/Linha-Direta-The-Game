@@ -2,6 +2,7 @@ import math
 import pygame
 from typing import Tuple, Optional, Any
 from src.model.entities.entity import Entity
+from src.core.utils import load_image
 
 class Enemy(Entity):
     def __init__(
@@ -16,8 +17,7 @@ class Enemy(Entity):
         ammo: int,
         status: str
     ) -> None:
-        self.base_enemy_image: pygame.Surface = pygame.image.load("assets/sprites/player.png")
-        self.base_enemy_image = pygame.transform.scale(self.base_enemy_image, size)
+        self.base_enemy_image: pygame.Surface = load_image("player.png", size)
         self.base_enemy_rect: pygame.Rect = self.base_enemy_image.get_rect(topleft=position)
         
         self.image: pygame.Surface = self.base_enemy_image

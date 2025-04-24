@@ -3,6 +3,7 @@ import pygame
 import os
 from PIL import Image, ImageSequence
 from typing import Optional
+from src.core.utils import load_image
 
 pygame.init()
 
@@ -14,18 +15,36 @@ pygame.display.set_caption("Main Menu")
 white: tuple = (255, 255, 255)
 black: tuple = (0, 0, 0)
 
-font_path: str = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'fonts', 'Neutrons.ttf')
-font: pygame.font.Font = pygame.font.Font(font_path, 74)
+# Obter caminhos absolutos para recursos
+base_path = os.path.abspath(os.path.dirname(__file__))
+project_root = os.path.abspath(os.path.join(base_path, "../.."))
+font_path: str = os.path.join(project_root, 'assets', 'fonts', 'Neutrons.ttf')
+gif_path: str = os.path.join(project_root, 'assets', 'ui', 'menu', 'backgroundGif.gif')
 
-gif_path: str = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'ui', 'menu', 'backgroundGif.gif')
-gif: Image.Image = Image.open(gif_path)
-frames: list[pygame.Surface] = [
-    pygame.transform.scale(
-        pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode),
-        (screen_width, screen_height)
-    ) for frame in ImageSequence.Iterator(gif)
-]
-frame_count: int = len(frames)
+# Carregar a fonte
+try:
+    font: pygame.font.Font = pygame.font.Font(font_path, 74)
+except Exception as e:
+    print(f"Erro ao carregar fonte: {e}")
+    font: pygame.font.Font = pygame.font.Font(None, 74)  # Fonte padrão
+
+# Carregar e processar o GIF
+try:
+    gif: Image.Image = Image.open(gif_path)
+    frames: list[pygame.Surface] = [
+        pygame.transform.scale(
+            pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode),
+            (screen_width, screen_height)
+        ) for frame in ImageSequence.Iterator(gif)
+    ]
+    frame_count: int = len(frames)
+except Exception as e:
+    print(f"Erro ao carregar GIF: {e}")
+    # Criar frame único como fallback
+    frames: list[pygame.Surface] = [pygame.Surface((screen_width, screen_height))]
+    frames[0].fill((50, 50, 75))  # Cor de fundo azul escuro
+    frame_count: int = 1
+
 frame_index: int = 0
 
 title_rect: Optional[pygame.Rect] = None
