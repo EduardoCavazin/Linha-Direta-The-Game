@@ -5,13 +5,6 @@ from src.world.gameWorld import GameWorld
 
 class GameManager:
     def __init__(self, width: int = 800, height: int = 600):
-        """
-        Inicializa o gerenciador do jogo.
-        
-        Args:
-            width (int): Largura da janela do jogo
-            height (int): Altura da janela do jogo
-        """
         pygame.init()
         self.width: int = width
         self.height: int = height
@@ -20,11 +13,9 @@ class GameManager:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.running: bool = True
         
-        # Inicializa o mundo do jogo
         self.game_world: GameWorld = GameWorld(self.screen, self.clock, self.width, self.height)
 
     def handle_events(self) -> None:
-        """Gerencia os eventos do jogo, como entradas do teclado e mouse"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -44,22 +35,16 @@ class GameManager:
             self.running = False
 
     def run(self) -> None:
-        """Inicia o loop principal do jogo"""
         while self.running:
             delta_time: float = self.clock.tick(60) / 1000.0
             
-            # Gerencia eventos
             self.handle_events()
             
-            # Atualiza o estado do jogo
             self.game_world.update(delta_time)
             
-            # Renderiza o jogo
             self.game_world.render()
             
-            # Atualiza a tela
             pygame.display.flip()
 
-        # Finaliza o pygame e encerra o programa quando o loop termina
         pygame.quit()
         sys.exit()

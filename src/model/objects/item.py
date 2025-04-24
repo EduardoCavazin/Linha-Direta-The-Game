@@ -1,4 +1,5 @@
-from typing import Tuple, Any, Optional
+import pygame
+from typing import Tuple, Any
 from src.model.objects.gameObject import GameObject
 
 class Item(GameObject):
@@ -6,6 +7,8 @@ class Item(GameObject):
         super().__init__(id, position, size)
         self.name: str = name
         self.effect: str = effect
+        self.image: pygame.Surface = pygame.image.load(f"assets/sprites/{self.id}.png")
+        self.image = pygame.transform.scale(self.image, size)
 
     def use(self, target: Any) -> None:
         if self.effect == "heal":
@@ -14,5 +17,7 @@ class Item(GameObject):
                 target.health = 100
         elif self.effect == "ammo":
             if target.weapon is not None:
-                target.ammo = min(target.ammo + 10,
-                                target.weapon.max_ammo)
+                target.ammo = min(target.ammo + 10, target.weapon.max_ammo)
+
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.image, self.hitbox.topleft)

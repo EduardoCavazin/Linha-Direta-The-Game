@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <room
     id="room2"
-    size="800,600"
+    size="1280,720"
     cleared="false"
     visited="false"
+    background="room2.png"
 >
   <items>
     <item
       id="medkit2"
       name="Medkit"
-      position="400.0,200.0"
+      position="250.0,500.0"
       size="32,32"
       effect="heal"
+    />
+    <item
+      id="ammo2"
+      name="Ammo"
+      position="500.0,350.0"
+      size="40, 30"
+      effect="ammo"
     />
   </items>
 
