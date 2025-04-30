@@ -55,7 +55,6 @@ class GameWorld:
         for enemy in self.current_room.enemies[:]:
             if not enemy.is_alive():
                 self.render_queue.append(enemy)
-                print(f"{enemy.name} foi derrotado!")
             else:
                 enemy.update(self.player.position)
                 self.render_queue.append(enemy)

@@ -4,7 +4,7 @@ from src.world.gameWorld import GameWorld
 
 
 class GameManager:
-    def __init__(self, width: int = 800, height: int = 600):
+    def __init__(self, width: int = 1280, height: int = 720):
         pygame.init()
         self.width: int = width
         self.height: int = height
