@@ -70,5 +70,5 @@ class Room:
                     enemy.take_damage(bullet.damage)
                     bullets.remove(bullet)
                     if not enemy.is_alive():
-                        self.enemies.remove(enemy) #Trocar para ser uma sprite onde o inimgo está morto, e mudar o status para morto
+                        enemy.set_dead_state()
                     break

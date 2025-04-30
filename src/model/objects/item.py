@@ -10,7 +10,6 @@ class Item(GameObject):
         self.name: str = name
         self.effect: str = effect
         
-        # Usar a função utilitária para carregar a imagem
         self.image = load_image(f"{self.id}.png", size)
         
     def use(self, target: Any) -> None:

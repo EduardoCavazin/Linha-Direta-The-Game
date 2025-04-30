@@ -48,7 +48,26 @@ class Enemy(Entity):
         self.rect = self.image.get_rect(topleft=self.position)
     
     def update(self, player_position: pygame.Vector2) -> None:
-        self.update_rotation(player_position)
+        if self.is_alive():
+            self.update_rotation(player_position)
     
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.image, self.rect.topleft)
+        
+    def set_dead_state(self) -> None:
+        self.status = "dead"
+        
+        try:
+            self.base_enemy_image = load_image("dead_enemy.png", self.size)
+            self.image = pygame.transform.rotate(self.base_enemy_image, self.rotation)
+            old_center = self.rect.center
+            self.rect = self.image.get_rect()
+            self.rect.center = old_center
+            self.hitbox = self.rect
+        except Exception as e:
+            print(f"Erro ao carregar imagem de inimigo morto: {e}")
+        
+        self.speed = 0
+    
+    def is_alive(self) -> bool:
+        return self.health > 0 and self.status != "dead"

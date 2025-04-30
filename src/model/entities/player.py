@@ -19,7 +19,6 @@ class Player(Entity):
     ) -> None:
         topleft: Tuple[float, float] = (position[0] - size[0] // 2, position[1] - size[1] // 2)
         
-        # Usar a função utilitária para carregar o spritesheet
         self.spritesheet: pygame.Surface = load_image('Player_Movement.png')
         self.frame_count: int = 3  
         self.frame_width: int = self.spritesheet.get_width() // self.frame_count

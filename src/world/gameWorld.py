@@ -30,10 +30,13 @@ class GameWorld:
 
     def move_player(self, direction: str) -> None:
         delta_time: float = self.clock.get_time() / 1000.0
+        
+        live_enemies = [enemy for enemy in self.current_room.enemies if enemy.is_alive()]
+        
         self.player.move(
             direction, 
             delta_time, 
-            obstacles=self.current_room.enemies, 
+            obstacles=live_enemies, 
             screen_width=self.width, 
             screen_height=self.height
         )
@@ -51,7 +54,7 @@ class GameWorld:
         self.render_queue = []
         for enemy in self.current_room.enemies[:]:
             if not enemy.is_alive():
-                self.current_room.enemies.remove(enemy)
+                self.render_queue.append(enemy)
                 print(f"{enemy.name} foi derrotado!")
             else:
                 enemy.update(self.player.position)
@@ -76,21 +79,17 @@ class GameWorld:
             self.bullets = []
 
     def render(self) -> None:
-        # Desenhar o background se existir
         if self.current_room.background:
             self.screen.blit(self.current_room.background, (0, 0))
         else:
             self.screen.fill((88, 71, 71))
         
-        # Desenhar objetos na ordem de renderização
         for obj in self.render_queue:
             obj.draw(self.screen)
         
-        # Desenhar portas
         for door in self.current_room.doors:
             pygame.draw.rect(self.screen, (100, 100, 255), door.hitbox)
         
-        # Desenhar itens usando suas próprias imagens
         for item in self.current_room.items:
             item.draw(self.screen)
         
