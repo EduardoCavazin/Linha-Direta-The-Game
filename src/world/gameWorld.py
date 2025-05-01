@@ -1,5 +1,5 @@
 import pygame
-from typing import List
+from typing import List, Optional
 
 from src.ui.hud import Hud
 from src.world.map import Map
@@ -17,32 +17,29 @@ class GameWorld:
         self.current_room = self.game_map.current_room
         self.player = self.current_room.player
         
+        self.player.screen_width = self.width
+        self.player.screen_height = self.height
+        
         self.bullets: List = []
         
         self.hud: Hud = Hud(self.screen, self.player, self.clock)
         
         self.render_queue: List = []
 
-    def player_shoot(self) -> None:
-        bullet = self.player.shoot()
+    def handle_player_mouse_click(self) -> None:
+        bullet = self.player.handle_mouse_click()
         if bullet:
             self.bullets.append(bullet)
 
-    def move_player(self, direction: str) -> None:
+    def handle_player_key_press(self, key: str) -> None:
         delta_time: float = self.clock.get_time() / 1000.0
         
         live_enemies = [enemy for enemy in self.current_room.enemies if enemy.is_alive()]
         
-        self.player.move(
-            direction, 
-            delta_time, 
-            obstacles=live_enemies, 
-            screen_width=self.width, 
-            screen_height=self.height
-        )
+        self.player.handle_key_press(key, delta_time, obstacles=live_enemies)
 
     def update(self, delta_time: float) -> None:
-        self.player.update_animation(delta_time)
+        self.player.update(delta_time)
         self.player.calculate_rotation()
         
         for bullet in self.bullets[:]:
@@ -51,7 +48,15 @@ class GameWorld:
         
         self.current_room.handle_bullet_collisions(self.bullets)
         
+        self._update_render_queue()
+        
+        self._check_item_collisions()
+        
+        self._check_room_transition()
+
+    def _update_render_queue(self) -> None:
         self.render_queue = []
+        
         for enemy in self.current_room.enemies[:]:
             if not enemy.is_alive():
                 self.render_queue.append(enemy)
@@ -63,17 +68,21 @@ class GameWorld:
             self.render_queue.append(bullet)
         
         self.render_queue.append(self.player)
-        
+    
+    def _check_item_collisions(self) -> None:
         for item in self.current_room.items[:]:
             if self.player.hitbox.colliderect(item.hitbox):
                 item.use(self.player)
                 self.current_room.items.remove(item)
                 print(f"Usou {item.name}!")
-        
+    
+    def _check_room_transition(self) -> None:
         new_room = self.current_room.check_player_door_collision(self.game_map)
         if new_room is not self.current_room:
             self.current_room = new_room
             self.player = self.current_room.player
+            self.player.screen_width = self.width
+            self.player.screen_height = self.height
             self.hud.player = self.player
             self.bullets = []
 
