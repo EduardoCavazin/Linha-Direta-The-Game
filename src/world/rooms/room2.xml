@@ -28,7 +28,7 @@
       id="enemy2"
       name="Gangster"
       position="400.0,100.0"
-      size="32,32"
+      size="84,84"
       speed="1.5"
       health="75"
       status="alive"
