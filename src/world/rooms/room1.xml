@@ -27,8 +27,8 @@
     <enemy
       id="enemy1"
       name="Zumbi"
-      position="300.0,100.0"
-      size="32,32"
+      position="400.0,100.0"
+      size="68,153"
       speed="2.0"
       health="50"
       status="alive"
