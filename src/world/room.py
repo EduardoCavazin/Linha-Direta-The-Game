@@ -1,5 +1,7 @@
 from typing import List, Optional, Any, Tuple
 
+import pygame
+
 from src.model.objects.bullet import Bullet
 
 class Room:
@@ -13,7 +15,8 @@ class Room:
         doors: Optional[List[Any]] = None,
         player: Optional[Any] = None,
         cleared: bool = False,
-        visited: bool = False
+        visited: bool = False,
+        background: Optional[pygame.Surface] = None
     ) -> None:
         self.id: str = id
         self.size: Tuple[int, int] = size
@@ -24,6 +27,7 @@ class Room:
         self.player: Optional[Any] = player
         self.cleared: bool = cleared
         self.visited: bool = visited
+        self.background: Optional[pygame.Surface] = background
 
     def spawn_enemy(self, enemy: Any) -> None:
         self.enemies.append(enemy)
@@ -66,5 +70,5 @@ class Room:
                     enemy.take_damage(bullet.damage)
                     bullets.remove(bullet)
                     if not enemy.is_alive():
-                        self.enemies.remove(enemy) #Trocar para ser uma sprite onde o inimgo está morto, e mudar o status para morto
+                        enemy.set_dead_state()
                     break

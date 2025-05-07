@@ -3,12 +3,15 @@ import xml.etree.ElementTree as ET
 import random
 from typing import List, Optional, Tuple
 
+import pygame
+
 from src.world.room import Room
 from src.model.entities.player import Player
 from src.model.entities.enemy import Enemy
 from src.model.objects.weapon import Weapon
 from src.model.objects.item import Item
 from src.model.objects.door import Door
+from src.core.utils import load_image
 
 def _parse_tuple(s: str, cast: type) -> Tuple:
     return tuple(cast(x) for x in s.split(','))
@@ -36,6 +39,10 @@ class Map:
         size: Tuple[int, int] = _parse_tuple(room_el.get('size', '0,0'), int)
         cleared: bool = room_el.get('cleared', 'false') == 'true'
         visited: bool = room_el.get('visited', 'false') == 'true'
+        bg_filename = room_el.get('background', f"{rid}.png")
+        
+        # Usar a função utilitária para carregar o background
+        background = load_image(bg_filename, size)
 
         items: List[Item] = []
         for item_el in room_el.find('items') or []:
@@ -55,8 +62,6 @@ class Map:
                 weapon = Weapon(
                     id=weapon_el.get('id', ''),
                     name=weapon_el.get('name', ''),
-                    position=_parse_tuple(weapon_el.get('position', '0,0'), float),
-                    size=_parse_tuple(weapon_el.get('size', '0,0'), int),
                     damage=int(weapon_el.get('damage', '0')),
                     max_ammo=int(weapon_el.get('max_ammo', '0'))
                 )
@@ -91,8 +96,6 @@ class Map:
                 weapon = Weapon(
                     id=weapon_el.get('id', ''),
                     name=weapon_el.get('name', ''),
-                    position=_parse_tuple(weapon_el.get('position', '0,0'), float),
-                    size=_parse_tuple(weapon_el.get('size', '0,0'), int),
                     damage=int(weapon_el.get('damage', '0')),
                     max_ammo=int(weapon_el.get('max_ammo', '0'))
                 )
@@ -117,7 +120,8 @@ class Map:
             doors=doors,
             player=player,
             cleared=cleared,
-            visited=visited
+            visited=visited,
+            background=background,
         )
 
     def generate_seed(self, num_rooms: int = 5) -> None:

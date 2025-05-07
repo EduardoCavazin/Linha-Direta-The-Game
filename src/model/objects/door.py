@@ -1,4 +1,3 @@
-import pygame
 from typing import Tuple
 from src.model.objects.gameObject import GameObject
 

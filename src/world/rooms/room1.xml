@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <room
     id="room1"
-    size="800,600"
+    size="1280,720"
     cleared="false"
     visited="false"
+    background="room1.png"
 >
   <items>
     <item
       id="medkit1"
       name="Medkit"
-      position="200.0,200.0"
+      position="600.0,380.0"
       size="32,32"
       effect="heal"
     />
@@ -17,7 +18,7 @@
       id="ammo"
       name="Ammo"
       position="300.0,300.0"
-      size="20,20"
+      size="40,30"
       effect="ammo"
     />
   </items>
@@ -26,8 +27,8 @@
     <enemy
       id="enemy1"
       name="Zumbi"
-      position="300.0,100.0"
-      size="32,32"
+      position="400.0,100.0"
+      size="68,153"
       speed="2.0"
       health="50"
       status="alive"
@@ -36,8 +37,6 @@
       <weapon
         id="bite"
         name="Bite"
-        position="0.0,0.0"
-        size="16,16"
         damage="5"
         max_ammo="0"
       />
@@ -57,7 +56,7 @@
     id="player1"
     name="Herói"
     position="100.0,100.0"
-    size="32,32"
+    size="56,56"
     speed="250"
     health="100"
     ammo="1000"
@@ -66,8 +65,6 @@
     <weapon
       id="pistol"
       name="Pistol"
-      position="0.0,0.0"
-      size="32,32"
       damage="10"
       max_ammo="1000"
     />
