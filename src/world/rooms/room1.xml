@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<room
+    id="room1"
+    size="1280,720"
+    cleared="false"
+    visited="false"
+    background="room1.png"
+>
+  <items>
+    <item
+      id="medkit1"
+      name="Medkit"
+      position="600.0,380.0"
+      size="32,32"
+      effect="heal"
+    />
+    <item
+      id="ammo"
+      name="Ammo"
+      position="300.0,300.0"
+      size="40,30"
+      effect="ammo"
+    />
+  </items>
+
+  <enemies>
+    <enemy
+      id="enemy1"
+      name="Zumbi"
+      position="400.0,100.0"
+      size="68,153"
+      speed="2.0"
+      health="50"
+      status="alive"
+      ammo="5"
+    >
+      <weapon
+        id="bite"
+        name="Bite"
+        damage="5"
+        max_ammo="0"
+      />
+    </enemy>
+  </enemies>
+
+  <doors>
+    <door
+      id="door1"
+      position="750.0,250.0"
+      size="50,100"
+      locked="false"
+    />
+  </doors>
+
+  <player
+    id="player1"
+    name="Herói"
+    position="100.0,100.0"
+    size="56,56"
+    speed="250"
+    health="100"
+    ammo="1000"
+    status="alive"
+  >
+    <weapon
+      id="pistol"
+      name="Pistol"
+      damage="10"
+      max_ammo="1000"
+    />
+  </player>
+</room>

@@ -1,0 +1,6 @@
+# Ignorar diretórios __pycache__
+__pycache__/
+
+# Ignorar arquivos compilados do Python
+*.py[cod]
+*$py.class
