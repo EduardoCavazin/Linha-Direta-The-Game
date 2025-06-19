@@ -1,0 +1,38 @@
+{
+  "Door": {
+    "name": "Porta Normal",
+    "sprite": "assets/sprites/door.png",
+    "size": [32, 48],
+    "locked": false,
+    "destination": "next_room",
+    "sound": {
+      "open": "assets/sounds/door_open.wav"
+    }
+  },
+  "LockedDoor": {
+    "name": "Porta Trancada",
+    "sprite": "assets/sprites/locked_door.png",
+    "size": [32, 48],
+    "locked": true,
+    "key_item": "KeyCard",
+    "destination": "secure_room",
+    "sound": {
+      "open": "assets/sounds/door_open.wav",
+      "locked": "assets/sounds/door_locked.wav",
+      "unlock": "assets/sounds/door_unlock.wav"
+    }
+  },
+  "ExitDoor": {
+    "name": "Saída",
+    "sprite": "assets/sprites/exit_door.png",
+    "size": [48, 48],
+    "locked": true,
+    "key_item": "Evidence",
+    "required_count": 3,
+    "destination": "next_level",
+    "sound": {
+      "open": "assets/sounds/exit_open.wav",
+      "locked": "assets/sounds/exit_locked.wav"
+    }
+  }
+}

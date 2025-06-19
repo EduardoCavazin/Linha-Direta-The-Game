@@ -13,7 +13,7 @@ class GameWorld:
         self.height: int = height
         
         self.game_map: Map = Map("src/world/rooms")
-        self.game_map.generate_seed(1)
+        self.game_map.generate_seed_test()  # Usar apenas Mapa1 para teste
         self.current_room = self.game_map.current_room
         self.player = self.current_room.player
         

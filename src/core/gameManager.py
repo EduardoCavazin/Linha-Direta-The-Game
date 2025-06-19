@@ -4,8 +4,8 @@ from enum import Enum, auto
 from src.world.gameWorld import GameWorld
 
 
-WIDTH: int = 1280
-HEIGHT: int = 720
+WIDTH: int = 960
+HEIGHT: int = 960
 TARGET_FPS: int = 60
 
 class GameState(Enum):

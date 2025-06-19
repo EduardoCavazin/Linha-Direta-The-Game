@@ -1,0 +1,74 @@
+{
+  "Player": {
+    "health": 100,
+    "speed": 200,
+    "damage": 25,
+    "size": [32, 32],
+    "hitbox_size": [24, 24],
+    "sprite": {
+      "path": "assets/sprites/Player_Movement.png",
+      "frames": 4,
+      "animation_speed": 0.2,
+      "directions": ["up", "right", "down", "left"]
+    },
+    "weapon": "Pistol",
+    "start_ammo": 30
+  },
+  "BasicEnemy": {
+    "health": 50,
+    "speed": 80,
+    "damage": 10,
+    "size": [32, 32],
+    "hitbox_size": [24, 24],
+    "detection_range": 250,
+    "sprite": {
+      "path": "assets/sprites/zombie.png",
+      "frames": 4,
+      "animation_speed": 0.15
+    },
+    "drops": [
+      {"item": "AmmoPack", "chance": 0.3},
+      {"item": "HealthPack", "chance": 0.2}
+    ],
+    "behavior": "chase"
+  },
+  "StrongEnemy": {
+    "health": 100,
+    "speed": 70,
+    "damage": 20,
+    "size": [32, 32],
+    "hitbox_size": [24, 24],
+    "detection_range": 300,
+    "sprite": {
+      "path": "assets/sprites/strong_enemy.png",
+      "frames": 4,
+      "animation_speed": 0.15
+    },
+    "weapon": "Shotgun",
+    "drops": [
+      {"item": "AmmoPack", "chance": 0.5},
+      {"item": "HealthPack", "chance": 0.4}
+    ],
+    "behavior": "patrol_and_chase"
+  },
+  "BossEnemy": {
+    "health": 300,
+    "speed": 60,
+    "damage": 30,
+    "size": [48, 48],
+    "hitbox_size": [40, 40],
+    "detection_range": 400,
+    "sprite": {
+      "path": "assets/sprites/boss.png",
+      "frames": 6,
+      "animation_speed": 0.2
+    },
+    "weapon": "Rifle",
+    "drops": [
+      {"item": "KeyCard", "chance": 1.0},
+      {"item": "HealthPack", "chance": 1.0}
+    ],
+    "behavior": "boss_pattern",
+    "special_attacks": ["area_attack", "summon_minions"]
+  }
+}
