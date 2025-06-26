@@ -17,7 +17,6 @@ class Player(Entity):
         ammo: int,
         status: str
     ) -> None:
-        topleft: Tuple[float, float] = (position[0] - size[0] // 2, position[1] - size[1] // 2)
         
         self.spritesheet: pygame.Surface = load_image('Player_Movement.png')
         self.frame_count: int = 3  
@@ -31,19 +30,16 @@ class Player(Entity):
         self.animation_timer: float = 0
         
         self.base_player_image: pygame.Surface = self.frames[0]
-        self.base_player_rect: pygame.Rect = self.base_player_image.get_rect(topleft=topleft)
+        self.base_player_rect: pygame.Rect = self.base_player_image.get_rect(topleft=position)
         
         self.image: pygame.Surface = self.base_player_image
-        self.rect: pygame.Rect = self.image.get_rect(topleft=topleft)
+        self.rect: pygame.Rect = self.image.get_rect(topleft=position)
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         self.moving: bool = False
         
-        self.screen_width: int = 800
-        self.screen_height: int = 600
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
         
-        super().__init__(id, name, topleft, size, speed, health, weapon, ammo, self.image, status)
-        
-        self._position: pygame.Vector2 = pygame.Vector2(topleft)
+        self._position: pygame.Vector2 = pygame.Vector2(position)
     
     def _load_animation_frames(self, size: Tuple[int, int]) -> List[pygame.Surface]:
         frames = []
@@ -82,52 +78,40 @@ class Player(Entity):
         self,
         direction: str,
         delta_time: float,
-        obstacles: Optional[list] = None
+        obstacles: Optional[list] = None,
+        screen_bounds: Optional[Tuple[int, int]] = None
     ) -> None:
         self.moving = True
-        super().move(direction, delta_time, obstacles, self.screen_width, self.screen_height)
-    
+        if screen_bounds:
+            super().move(direction, delta_time, obstacles, screen_bounds[0], screen_bounds[1])
+        else:
+            super().move(direction, delta_time, obstacles)
+
     def reload(self) -> None:
         if self.weapon:
             self.ammo = self.weapon.max_ammo
 
-    def calculate_rotation(self) -> float:
-        mouse_coords: Tuple[int, int] = pygame.mouse.get_pos()
-        player_center: Tuple[float, float] = (self.position.x + self.size[0] / 2,
-                                               self.position.y + self.size[1] / 2)
-        dx: float = mouse_coords[0] - player_center[0]
-        dy: float = mouse_coords[1] - player_center[1]
-        if dx == 0 and dy == 0:
-            self.direction = pygame.Vector2(0, 1)
-            return 0.0
-        self.direction = pygame.Vector2(dx, dy).normalize()
-    
-    def update_sprite(self, angle: float) -> None:
-        rotated_image: pygame.Surface = pygame.transform.rotate(self.base_player_image, angle)
-        player_center: Tuple[float, float] = (self.position.x + self.size[0] / 2,
-                                               self.position.y + self.size[1] / 2)
-        self.image = rotated_image
-        self.rect = rotated_image.get_rect(center=player_center)
-    
-    def update(self, delta_time: float) -> None:
-        self.update_animation(delta_time)
-
     def draw(self, screen: pygame.Surface) -> None:
-        angle: float = -math.degrees(math.atan2(self.direction.y, self.direction.x)) - 90
-        self.update_sprite(angle)
+        self.update_animation(0)  
         screen.blit(self.image, self.rect.topleft)
         self.moving = False
-        
-    def handle_key_press(self, key: str, delta_time: float, obstacles: Optional[list] = None) -> None:
+
+    def handle_key_press(
+        self, 
+        key: str, 
+        delta_time: float, 
+        obstacles: Optional[list] = None,
+        screen_bounds: Optional[Tuple[int, int]] = None
+    ) -> None:
         if key in ["up", "down", "left", "right"]:
-            self.move(key, delta_time, obstacles)
-    
+            self.move(key, delta_time, obstacles, screen_bounds)
+
     def handle_mouse_click(self):
         return self.shoot()
     
     def rotate_to_mouse(self, mouse_pos: Tuple[int, int]) -> None:
+        
         self.rotate_towards(mouse_pos)
         
-        if hasattr(self, '_original_image') and self._original_image:
-            self._image = pygame.transform.rotate(self._original_image, -self.rotation)
-            self._rect = self._image.get_rect(center=self._rect.center)
+        self.image = pygame.transform.rotate(self.base_player_image, -self.rotation)
+        self.rect = self.image.get_rect(center=self.rect.center)
