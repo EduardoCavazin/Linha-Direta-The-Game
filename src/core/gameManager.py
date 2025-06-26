@@ -56,22 +56,27 @@ class GameManager:
                     self.toggle_pause()
 
     def _process_keyboard_input(self) -> None:
-        """Processa entrada do teclado para movimento do jogador e ações do sistema"""
+        """Processa entrada do teclado - responsabilidade única de I/O"""
         keys = pygame.key.get_pressed()
         
-        # Apenas processar movimentos se o jogo estiver rodando
         if self.state == GameState.RUNNING:
-            # Movimento do jogador
-            if keys[pygame.K_w]:
-                self.game_world.handle_player_key_press("up")
-            if keys[pygame.K_s]:
-                self.game_world.handle_player_key_press("down")
-            if keys[pygame.K_a]:
-                self.game_world.handle_player_key_press("left")
-            if keys[pygame.K_d]:
-                self.game_world.handle_player_key_press("right")
+            # Detectar múltiplas direções para movimento diagonal suave
+            directions = []
             
-        # Ações do sistema (funcionam mesmo pausado)
+            if keys[pygame.K_w]:
+                directions.append("up")
+            if keys[pygame.K_s]:
+                directions.append("down")
+            if keys[pygame.K_a]:
+                directions.append("left")
+            if keys[pygame.K_d]:
+                directions.append("right")
+            
+            # Enviar todas as direções pressionadas para o GameWorld
+            for direction in directions:
+                self.game_world.handle_player_key_press(direction)
+        
+        # Ações do sistema
         if keys[pygame.K_ESCAPE]:
             self.state = GameState.GAME_OVER
     

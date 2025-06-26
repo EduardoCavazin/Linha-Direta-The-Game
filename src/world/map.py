@@ -16,22 +16,15 @@ from src.world.tiledLoader import TiledLoader  # Importar nossa classe TiledLoad
 
 class Map:
     def __init__(self, rooms_folder: str) -> None:
-        """
-        Inicializa o gerenciador de mapas.
-        
-        Args:
-            rooms_folder: Pasta contendo os arquivos TMX/XML
-        """
         self.rooms_folder: str = rooms_folder
         self.config: Dict[str, Dict] = self._load_configs()
         self.rooms: List[Room] = self.load_rooms()
         self.current_room: Optional[Room] = None
         self.sequence: List[Room] = []
         
-        print(f"🗺️ Carregadas {len(self.rooms)} salas!")
+        print(f"Carregadas {len(self.rooms)} salas!")
     
     def _load_configs(self) -> Dict[str, Dict]:
-        """Carrega as configurações de JSONs."""
         configs = {}
         config_files = {
             "entities": "src/config/entities.json",
@@ -52,23 +45,22 @@ class Map:
                     
                     if content.strip():
                         configs[key] = json.loads(content)
-                        print(f"✅ Carregado {filepath}")
+                        print(f"Carregado {filepath}")
                     else:
-                        print(f"⚠️ Arquivo vazio: {filepath}")
+                        print(f"Arquivo vazio: {filepath}")
                         configs[key] = {}
             except Exception as e:
-                print(f"❌ Erro ao carregar {filepath}: {e}")
+                print(f"Erro ao carregar {filepath}: {e}")
                 configs[key] = {}
         
         return configs
 
     def load_rooms(self) -> List[Room]:
-        """Carrega todas as salas dos arquivos TMX ou XML na pasta rooms_folder."""
         rooms: List[Room] = []
         
         # Verificar se a pasta existe
         if not os.path.exists(self.rooms_folder):
-            print(f"❌ Pasta de salas não encontrada: {self.rooms_folder}")
+            print(f"Pasta de salas não encontrada: {self.rooms_folder}")
             return rooms
             
         # Para cada arquivo na pasta
@@ -81,9 +73,9 @@ class Map:
                     room = self._load_tmx_room(file_path)
                     if room:
                         rooms.append(room)
-                        print(f"✅ Carregada sala TMX: {room.id}")
+                        print(f"Carregada sala TMX: {room.id}")
                 except Exception as e:
-                    print(f"❌ Erro ao carregar sala TMX {filename}: {e}")
+                    print(f"Erro ao carregar sala TMX {filename}: {e}")
                     import traceback
                     traceback.print_exc()
             
@@ -95,35 +87,29 @@ class Map:
                     room = self._parse_room_element(root)
                     if room:
                         rooms.append(room)
-                        print(f"✅ Carregada sala XML: {room.id}")
+                        print(f"Carregada sala XML: {room.id}")
                 except Exception as e:
-                    print(f"❌ Erro ao carregar sala XML {filename}: {e}")
+                    print(f"Erro ao carregar sala XML {filename}: {e}")
         
         if not rooms:
-            print("⚠️ Nenhuma sala carregada!")
+            print("Nenhuma sala carregada!")
         
         return rooms
     
     def _load_tmx_room(self, tmx_path: str) -> Optional[Room]:
-        """
-        Carrega uma sala a partir de um arquivo TMX do Tiled.
-        
-        Args:
-            tmx_path: Caminho para o arquivo TMX
-        
-        Returns:
-            Room criada a partir do TMX ou None se falhar
-        """
         try:
             # Carregar o TMX usando nosso TiledLoader
-            print(f"🔄 Carregando TMX: {tmx_path}")
+            print(f"Carregando TMX: {tmx_path}")
             tmx_loader = TiledLoader(tmx_path)
             
             # Extrair ID e tamanho da sala
             room_id = os.path.splitext(os.path.basename(tmx_path))[0]
             room_size = tmx_loader.get_map_size_pixels()
             
-            print(f"📏 Tamanho da sala: {room_size[0]}x{room_size[1]} pixels")
+            print(f"Tamanho da sala: {room_size[0]}x{room_size[1]} pixels")
+            
+            collision_matrix = tmx_loader.get_collision_matrix()
+            print(f"Matriz de colisão extraída: {len(collision_matrix)}x{len(collision_matrix[0]) if collision_matrix else 0}")
             
             # Inicializar listas vazias
             items = []
@@ -132,7 +118,7 @@ class Map:
             player = None
             
             # Processar objetos do mapa
-            print(f"🔍 Processando {len(tmx_loader.objects)} objetos")
+            print(f"Processando {len(tmx_loader.objects)} objetos")
             for obj in tmx_loader.objects:
                 obj_name = obj["name"]
                 obj_type = obj["type"]
@@ -140,48 +126,47 @@ class Map:
                 obj_y = obj["y"]
                 obj_props = obj["properties"]
                 
-                print(f"  📌 Objeto: {obj_name} ({obj_type}) em ({obj_x}, {obj_y})")
+                print(f"Objeto: {obj_name} ({obj_type}) em ({obj_x}, {obj_y})")
                 
                 # Player
                 if obj_name == "Player":
                     player = self._create_player((obj_x, obj_y), obj_props)
                     if player:
-                        print(f"👤 Player criado em ({obj_x}, {obj_y})")
+                        print(f"Player criado em ({obj_x}, {obj_y})")
                 
                 # Inimigos
                 elif obj_name in self.config["entities"] and obj_name != "Player":
                     enemy = self._create_enemy(obj_name, (obj_x, obj_y), obj_props)
                     if enemy:
                         enemies.append(enemy)
-                        print(f"👹 Inimigo {obj_name} criado em ({obj_x}, {obj_y})")
+                        print(f" Inimigo {obj_name} criado em ({obj_x}, {obj_y})")
                 
                 # Items
                 elif obj_name in self.config["items"]:
                     item = self._create_item(obj_name, (obj_x, obj_y), obj_props)
                     if item:
                         items.append(item)
-                        print(f"🎁 Item {obj_name} criado em ({obj_x}, {obj_y})")
+                        print(f"Item {obj_name} criado em ({obj_x}, {obj_y})")
                 
                 # Portas
                 elif obj_name in self.config["doors"] or obj_name == "Door":
                     door = self._create_door(obj_name, (obj_x, obj_y), obj_props)
                     if door:
                         doors.append(door)
-                        print(f"🚪 Porta {obj_name} criada em ({obj_x}, {obj_y})")
+                        print(f"Porta {obj_name} criada em ({obj_x}, {obj_y})")
                 
                 else:
-                    print(f"⚠️ Objeto desconhecido: {obj_name}")
+                    print(f"Objeto desconhecido: {obj_name}")
             
             # Criar background usando o método do TiledLoader
-            print("🎨 Criando background com tiles reais")
+            print("Criando background com tiles reais")
             background = tmx_loader.create_background()
             
-            # Criar e retornar a sala
-            print("✅ Sala criada com sucesso")
+            print("Sala criada com sucesso")
             return Room(
                 id=room_id,
                 size=room_size,
-                objects=[],  # Compatibilidade com código existente
+                objects=[], 
                 enemies=enemies,
                 items=items,
                 doors=doors,
@@ -189,20 +174,20 @@ class Map:
                 cleared=False,
                 visited=False,
                 background=background,
+                collision_matrix=collision_matrix 
             )
         
         except Exception as e:
-            print(f"❌ Erro ao carregar TMX {tmx_path}: {e}")
+            print(f"Erro ao carregar TMX {tmx_path}: {e}")
             import traceback
             traceback.print_exc()
             return None
     
     def _create_player(self, position: Tuple[float, float], properties: Dict) -> Optional[Player]:
-        """Cria o player baseado na config e propriedades do TMX."""
         try:
             config = self.config["entities"].get("Player", {})
             if not config:
-                print("❌ Configuração do Player não encontrada!")
+                print("Configuração do Player não encontrada!")
                 return None
             
             # Configurar arma do player
@@ -233,17 +218,16 @@ class Map:
             return player
             
         except Exception as e:
-            print(f"❌ Erro ao criar Player: {e}")
+            print(f"Erro ao criar Player: {e}")
             import traceback
             traceback.print_exc()
             return None
     
     def _create_enemy(self, enemy_type: str, position: Tuple[float, float], properties: Dict) -> Optional[Enemy]:
-        """Cria um inimigo baseado na config e propriedades do TMX."""
         try:
             config = self.config["entities"].get(enemy_type, {})
             if not config:
-                print(f"❌ Configuração do inimigo {enemy_type} não encontrada!")
+                print(f"Configuração do inimigo {enemy_type} não encontrada!")
                 return None
             
             # Configurar arma do inimigo
@@ -274,15 +258,14 @@ class Map:
             return enemy
             
         except Exception as e:
-            print(f"❌ Erro ao criar inimigo {enemy_type}: {e}")
+            print(f"Erro ao criar inimigo {enemy_type}: {e}")
             return None
     
     def _create_item(self, item_type: str, position: Tuple[float, float], properties: Dict) -> Optional[Item]:
-        """Cria um item baseado na config e propriedades do TMX."""
         try:
             config = self.config["items"].get(item_type, {})
             if not config:
-                print(f"❌ Configuração do item {item_type} não encontrada!")
+                print(f"Configuração do item {item_type} não encontrada!")
                 return None
             
             # Criar item
@@ -301,15 +284,14 @@ class Map:
             return item
             
         except Exception as e:
-            print(f"❌ Erro ao criar item {item_type}: {e}")
+            print(f"Erro ao criar item {item_type}: {e}")
             return None
     
     def _create_door(self, door_type: str, position: Tuple[float, float], properties: Dict) -> Optional[Door]:
-        """Cria uma porta baseada na config e propriedades do TMX."""
         try:
             config = self.config["doors"].get(door_type, {})
             if not config:
-                print(f"❌ Configuração da porta {door_type} não encontrada!")
+                print(f"Configuração da porta {door_type} não encontrada!")
                 # Usar configuração padrão se específica não existir
                 config = self.config["doors"].get("Door", {})
                 if not config:
@@ -340,7 +322,7 @@ class Map:
             return door
             
         except Exception as e:
-            print(f"❌ Erro ao criar porta {door_type}: {e}")
+            print(f"Erro ao criar porta {door_type}: {e}")
             return None
     
     # Métodos existentes permanecem inalterados
@@ -350,7 +332,7 @@ class Map:
 
     def generate_seed(self, num_rooms: int = 5) -> None:
         """Gera uma sequência de salas para o jogo."""
-        print("🎲 Gerando sequência de salas...")
+        print("Gerando sequência de salas...")
         
         # Encontrar sala inicial (com player)
         start_room = next((r for r in self.rooms if r.player is not None), None)
@@ -364,11 +346,11 @@ class Map:
 
         # Verificar se temos salas suficientes
         if len(normal) < num_rooms - 1:
-            print(f"⚠️ Aviso: Apenas {len(normal)} salas normais disponíveis, mas {num_rooms - 1} solicitadas")
+            print(f"Aviso: Apenas {len(normal)} salas normais disponíveis, mas {num_rooms - 1} solicitadas")
             num_rooms = len(normal) + 1  # Ajustar para o número disponível
         
         if not bosses:
-            print("⚠️ Aviso: Nenhuma sala de boss encontrada!")
+            print("Aviso: Nenhuma sala de boss encontrada!")
             # Usar sala normal como boss se necessário
             if normal:
                 bosses = [normal.pop()]
@@ -385,14 +367,14 @@ class Map:
         self.sequence = [start_room] + selected_normal + [random.choice(bosses)]
         self.current_room = self.sequence[0]
         
-        print(f"✅ Sequência gerada: {len(self.sequence)} salas")
+        print(f"Sequência gerada: {len(self.sequence)} salas")
         for i, room in enumerate(self.sequence):
             print(f"  {i+1}. {room.id}")
 
     # Adicione este método temporário para testes
     def generate_seed_test(self) -> None:
         """Gera uma sequência de teste com apenas o Mapa1."""
-        print("🎲 Gerando sequência de teste...")
+        print("Gerando sequência de teste...")
         
         # Encontrar o mapa1
         mapa1 = next((r for r in self.rooms if r.id == "Mapa1"), None)
@@ -403,11 +385,10 @@ class Map:
         self.sequence = [mapa1]
         self.current_room = mapa1
         
-        print(f"✅ Sequência de teste gerada: {len(self.sequence)} salas")
+        print(f"Sequência de teste gerada: {len(self.sequence)} salas")
         print(f"  1. {mapa1.id}")
 
     def get_next_room(self) -> Optional[Room]:
-        """Obtém a próxima sala na sequência."""
         if not self.current_room or not self.sequence:
             return None
             
@@ -419,7 +400,6 @@ class Map:
         return None
 
     def is_complete(self) -> bool:
-        """Verifica se todas as salas da sequência foram visitadas."""
         return all(room.visited for room in self.sequence)
 
     def __str__(self) -> str:

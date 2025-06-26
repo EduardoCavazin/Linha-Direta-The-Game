@@ -4,34 +4,24 @@ import pygame
 from typing import Dict, List, Tuple, Optional, Any
 
 class TiledLoader:
-    """
-    Carregador de mapas TMX do Tiled sem dependências externas.
-    Lê arquivos TMX e TSX diretamente usando o parser XML nativo do Python.
-    """
     
     def __init__(self, tmx_path: str):
-        """
-        Inicializa o carregador de mapas TMX.
-        
-        Args:
-            tmx_path: Caminho para o arquivo TMX do Tiled
-        """
         self.path = tmx_path
         self.base_dir = os.path.dirname(tmx_path)
         
         # Propriedades do mapa
-        self.width = 0         # Largura do mapa em tiles
-        self.height = 0        # Altura do mapa em tiles
-        self.tilewidth = 0     # Largura de cada tile em pixels
-        self.tileheight = 0    # Altura de cada tile em pixels
+        self.width = 0         
+        self.height = 0        
+        self.tilewidth = 0     
+        self.tileheight = 0    
         
         # Camadas e objetos
-        self.layers = []       # Camadas de tiles
-        self.objects = []      # Objetos do mapa
+        self.layers = []       
+        self.objects = []      
         
         # Tilesets
-        self.tilesets = []     # Informações sobre tilesets
-        self.tile_images = {}  # Dicionário de imagens de tiles por GID
+        self.tilesets = []     
+        self.tile_images = {}  
         
         # Carregar arquivo TMX
         self._load_tmx()
@@ -40,7 +30,6 @@ class TiledLoader:
         self._load_tilesets()
     
     def _load_tmx(self) -> None:
-        """Carrega e parseia o arquivo TMX."""
         try:
             # Verificar se o arquivo existe
             if not os.path.exists(self.path):
@@ -50,7 +39,6 @@ class TiledLoader:
             tree = ET.parse(self.path)
             root = tree.getroot()
             
-            # Extrair propriedades básicas do mapa
             self.width = int(root.get("width", 0))
             self.height = int(root.get("height", 0))
             self.tilewidth = int(root.get("tilewidth", 0))
@@ -139,33 +127,28 @@ class TiledLoader:
                     
                     self.objects.append(obj_data)
             
-            print(f"✅ TMX carregado: {self.width}x{self.height} tiles, {len(self.objects)} objetos")
+            print(f"TMX carregado: {self.width}x{self.height} tiles, {len(self.objects)} objetos")
         
         except Exception as e:
-            print(f"❌ Erro ao carregar TMX {self.path}: {e}")
+            print(f"Erro ao carregar TMX {self.path}: {e}")
             import traceback
             traceback.print_exc()
     
     def _load_tilesets(self) -> None:
-        """Carrega os tilesets referenciados no mapa."""
         try:
             for tileset in self.tilesets:
-                # Se o tileset tem um source externo (arquivo .tsx)
                 if tileset["source"]:
                     tsx_path = os.path.join(self.base_dir, tileset["source"])
                     self._load_tsx(tileset, tsx_path)
                 
                 # Carregar a imagem do tileset
                 if tileset["image_source"]:
-                    # Ajustar caminho relativo
                     img_path = tileset["image_source"]
                     if not os.path.isabs(img_path):
-                        # Se o caminho no TSX é relativo, usar o mesmo diretório do TSX
                         if tileset["source"]:
                             tsx_dir = os.path.dirname(os.path.join(self.base_dir, tileset["source"]))
                             img_path = os.path.join(tsx_dir, img_path)
                         else:
-                            # Se não tiver TSX externo, usar o diretório do TMX
                             img_path = os.path.join(self.base_dir, img_path)
                     
                     # Tentar carregar a imagem
@@ -176,31 +159,30 @@ class TiledLoader:
                             img_path = os.path.join(self.base_dir, "..", os.path.basename(img_path))
                             
                             if not os.path.exists(img_path):
-                                print(f"⚠️ Imagem não encontrada: {img_path}")
+                                print(f"Imagem não encontrada: {img_path}")
                                 continue
                         
                         # Carregar a imagem com Pygame
                         tileset["image"] = pygame.image.load(img_path).convert_alpha()
-                        print(f"✅ Imagem carregada: {img_path}")
+                        print(f"Imagem carregada: {img_path}")
                         
                         # Recortar os tiles da imagem e armazená-los
                         self._slice_tileset(tileset)
                         
                     except Exception as e:
-                        print(f"❌ Erro ao carregar imagem {img_path}: {e}")
+                        print(f"Erro ao carregar imagem {img_path}: {e}")
                         tileset["image"] = None
         
         except Exception as e:
-            print(f"❌ Erro ao carregar tilesets: {e}")
+            print(f"Erro ao carregar tilesets: {e}")
             import traceback
             traceback.print_exc()
     
     def _load_tsx(self, tileset: Dict, tsx_path: str) -> None:
-        """Carrega um arquivo TSX externo."""
         try:
             # Verificar se o arquivo existe
             if not os.path.exists(tsx_path):
-                print(f"⚠️ Arquivo TSX não encontrado: {tsx_path}")
+                print(f"Arquivo TSX não encontrado: {tsx_path}")
                 return
             
             # Parsear XML
@@ -221,13 +203,12 @@ class TiledLoader:
                 tileset["image_width"] = int(image.get("width", 0))
                 tileset["image_height"] = int(image.get("height", 0))
             
-            print(f"✅ TSX carregado: {tsx_path}")
+            print(f"TSX carregado: {tsx_path}")
         
         except Exception as e:
-            print(f"❌ Erro ao carregar TSX {tsx_path}: {e}")
+            print(f"Erro ao carregar TSX {tsx_path}: {e}")
     
     def _slice_tileset(self, tileset: Dict) -> None:
-        """Recorta os tiles de um tileset e os armazena no dicionário tile_images."""
         if "image" not in tileset or tileset["image"] is None:
             return
         
@@ -253,32 +234,24 @@ class TiledLoader:
             self.tile_images[firstgid + i] = tile_img
     
     def get_map_size_pixels(self) -> Tuple[int, int]:
-        """Retorna o tamanho do mapa em pixels."""
         return (self.width * self.tilewidth, self.height * self.tileheight)
     
     def get_map_size_tiles(self) -> Tuple[int, int]:
-        """Retorna o tamanho do mapa em tiles."""
         return (self.width, self.height)
     
     def get_tile_size(self) -> Tuple[int, int]:
-        """Retorna o tamanho de cada tile."""
         return (self.tilewidth, self.tileheight)
     
     def get_objects_by_name(self, name: str) -> List[Dict]:
-        """Retorna todos os objetos com o nome especificado."""
         return [obj for obj in self.objects if obj["name"] == name]
     
     def get_objects_by_type(self, obj_type: str) -> List[Dict]:
-        """Retorna todos os objetos com o tipo especificado."""
         return [obj for obj in self.objects if obj["type"] == obj_type]
     
     def create_background(self) -> pygame.Surface:
-        """
-        Cria um background renderizando as camadas de tiles.
-        """
         width, height = self.get_map_size_pixels()
         background = pygame.Surface((width, height), pygame.SRCALPHA)
-        background.fill((40, 40, 40))  # Cor de fundo base
+        background.fill((40, 40, 40)) 
         
         # Renderizar cada camada
         for layer in self.layers:
@@ -286,7 +259,7 @@ class TiledLoader:
                 continue
                 
             layer_name = layer["name"]
-            print(f"🎨 Renderizando camada: {layer_name}")
+            print(f"Renderizando camada: {layer_name}")
             
             # Percorrer os tiles da camada
             for y, row in enumerate(layer["data"]):
@@ -338,8 +311,28 @@ class TiledLoader:
         
         return background
     
+    def get_collision_matrix(self) -> List[List[bool]]:
+        # Inicializar matriz vazia com todos os tiles livres (False)
+        collision_matrix = [[False for _ in range(self.width)] for _ in range(self.height)]
+        
+        # Procurar a camada de colisão
+        for layer in self.layers:
+            if layer["name"].lower() == "colisão" or layer["name"].lower() == "colisao":
+                print(f"Processando camada de colisão: {layer['name']}")
+                
+                # Preencher a matriz de colisão
+                for y, row in enumerate(layer["data"]):
+                    for x, gid in enumerate(row):
+                        # Se o tile não for vazio (gid > 0), é um tile de colisão
+                        if gid > 0:
+                            collision_matrix[y][x] = True
+                
+                print(f"Matriz de colisão criada: {sum(row.count(True) for row in collision_matrix)} tiles bloqueados")
+                break
+        
+        return collision_matrix
+    
     def __str__(self) -> str:
-        """Representação em string do mapa carregado."""
         return (f"TiledMap: {os.path.basename(self.path)}\n"
                 f"  Size: {self.width}x{self.height} tiles ({self.tilewidth}x{self.tileheight} px)\n"
                 f"  Layers: {len(self.layers)}\n"
