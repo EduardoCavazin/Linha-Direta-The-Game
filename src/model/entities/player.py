@@ -9,15 +9,13 @@ class Player(Entity):
         self,
         id: str,
         name: str,
-        position: Tuple[float, float],  
+        position: Tuple[float, float],
         size: Tuple[int, int],
         speed: float,
         health: int,
         weapon: Optional[Any],
         ammo: int,
-        status: str,
-        screen_width: int = 800,
-        screen_height: int = 600
+        status: str
     ) -> None:
         topleft: Tuple[float, float] = (position[0] - size[0] // 2, position[1] - size[1] // 2)
         
@@ -40,8 +38,8 @@ class Player(Entity):
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         self.moving: bool = False
         
-        self.screen_width: int = screen_width
-        self.screen_height: int = screen_height
+        self.screen_width: int = 800
+        self.screen_height: int = 600
         
         super().__init__(id, name, topleft, size, speed, health, weapon, ammo, self.image, status)
         
@@ -60,16 +58,13 @@ class Player(Entity):
         return frames
     
     @property
-    def position(self) -> pygame.Vector2:
-        return self._position
+    def position(self) -> Tuple[float, float]:
+        return (self._position.x, self._position.y)
     
     @position.setter
     def position(self, value: Tuple[float, float]) -> None:
         self._position = pygame.Vector2(value)
-        if hasattr(self, 'hitbox'):
-            self.hitbox.topleft = (self._position.x, self._position.y)
-        if hasattr(self, 'base_player_rect'):
-            self.base_player_rect.topleft = (self._position.x, self._position.y)
+        self._rect.topleft = (int(self._position.x), int(self._position.y))
     
     def update_animation(self, delta_time: float) -> None:
         if not self.moving:
@@ -129,3 +124,10 @@ class Player(Entity):
     
     def handle_mouse_click(self):
         return self.shoot()
+    
+    def rotate_to_mouse(self, mouse_pos: Tuple[int, int]) -> None:
+        self.rotate_towards(mouse_pos)
+        
+        if hasattr(self, '_original_image') and self._original_image:
+            self._image = pygame.transform.rotate(self._original_image, -self.rotation)
+            self._rect = self._image.get_rect(center=self._rect.center)
