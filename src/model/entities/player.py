@@ -3,6 +3,8 @@ import pygame
 from typing import Tuple, Optional, Any, List
 from src.model.entities.entity import Entity
 from src.core.utils import load_image
+from src.model.objects.bullet import Bullet
+
 
 class Player(Entity):
     def __init__(
@@ -82,14 +84,73 @@ class Player(Entity):
         screen_bounds: Optional[Tuple[int, int]] = None
     ) -> None:
         self.moving = True
-        if screen_bounds:
-            super().move(direction, delta_time, obstacles, screen_bounds[0], screen_bounds[1])
-        else:
-            super().move(direction, delta_time, obstacles)
+        
+        speed = self.speed * delta_time
+        current_pos = self.position
+        
+        new_pos = current_pos
+        if direction == "up":
+            new_pos = (current_pos[0], current_pos[1] - speed)
+        elif direction == "down":
+            new_pos = (current_pos[0], current_pos[1] + speed)
+        elif direction == "left":
+            new_pos = (current_pos[0] - speed, current_pos[1])
+        elif direction == "right":
+            new_pos = (current_pos[0] + speed, current_pos[1])
+        
+        if not self._check_collision(new_pos, obstacles):
+            self.position = new_pos
+            
+            if screen_bounds:
+                self._clamp_to_bounds(screen_bounds)
+
+    def _check_collision(self, new_pos: Tuple[float, float], obstacles: Optional[list]) -> bool:
+        if not obstacles:
+            return False
+        
+        temp_rect = pygame.Rect(new_pos[0], new_pos[1], self.size[0], self.size[1])
+        
+        for obstacle in obstacles:
+            if temp_rect.colliderect(obstacle):
+                return True
+        return False
+
+    def _clamp_to_bounds(self, screen_bounds: Tuple[int, int]) -> None:
+        max_x = screen_bounds[0] - self.size[0]
+        max_y = screen_bounds[1] - self.size[1]
+        
+        x, y = self.position
+        x = max(0, min(x, max_x))
+        y = max(0, min(y, max_y))
+        self.position = (x, y)
 
     def reload(self) -> None:
         if self.weapon:
             self.ammo = self.weapon.max_ammo
+
+    def shoot(self) -> Optional['Bullet']:
+        if not self.weapon or self.ammo <= 0:
+            return None
+        
+        self.ammo -= 1
+        
+        from src.model.objects.bullet import Bullet
+        
+        bullet_pos = (
+            self.position[0] + self.size[0] / 2,
+            self.position[1] + self.size[1] / 2
+        )
+        
+        bullet = Bullet(
+            id=f"bullet_{id(self)}_{self.ammo}",
+            position=bullet_pos,
+            size=(8, 8),
+            speed=500,
+            damage=self.weapon.damage,
+            rotation=self.rotation
+        )
+        
+        return bullet
 
     def draw(self, screen: pygame.Surface) -> None:
         self.update_animation(0)  
