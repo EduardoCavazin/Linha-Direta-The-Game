@@ -79,12 +79,14 @@ class Entity(MovableObject):
         else:
             super().draw(screen)
 
-    def rotate_towards(self, target_pos: Tuple[float, float]) -> None:
-        dx = target_pos[0] - self.position[0]
-        dy = target_pos[1] - self.position[1]
+    def rotate_towards(self, target_pos: Tuple[int, int]) -> None:
+        player_x, player_y = self.position
+        target_x, target_y = target_pos
         
-        angle_rad = math.atan2(dy, dx)
-        self.rotation = math.degrees(angle_rad)
+        angle_rad = math.atan2(target_y - player_y, target_x - player_x)
+        angle_deg = math.degrees(angle_rad)
+        
+        self.rotation = angle_deg + 90
     
     def get_direction_vector(self) -> Tuple[float, float]:
         angle_rad = math.radians(self.rotation)

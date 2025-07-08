@@ -20,7 +20,7 @@ class Player(Entity):
         status: str
     ) -> None:
         
-        self.spritesheet: pygame.Surface = load_image('Player_Movement.png')
+        self.spritesheet: pygame.Surface = load_image('sprites/Player_Movement.png')
         self.frame_count: int = 3  
         self.frame_width: int = self.spritesheet.get_width() // self.frame_count
         self.frame_height: int = self.spritesheet.get_height() // 2  
@@ -32,17 +32,19 @@ class Player(Entity):
         self.animation_timer: float = 0
         
         self.base_player_image: pygame.Surface = self.frames[0]
-        self.base_player_rect: pygame.Rect = self.base_player_image.get_rect(topleft=position)
         
         self.image: pygame.Surface = self.base_player_image
-        self.rect: pygame.Rect = self.image.get_rect(topleft=position)
+        self.rect: pygame.Rect = self.image.get_rect(center=position)
+        
+        self._rect: pygame.Rect = self.rect.copy()
+        
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         self.moving: bool = False
         
-        super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
-        
         self._position: pygame.Vector2 = pygame.Vector2(position)
-    
+        
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
+
     def _load_animation_frames(self, size: Tuple[int, int]) -> List[pygame.Surface]:
         frames = []
         for y in range(2):
@@ -62,8 +64,9 @@ class Player(Entity):
     @position.setter
     def position(self, value: Tuple[float, float]) -> None:
         self._position = pygame.Vector2(value)
-        self._rect.topleft = (int(self._position.x), int(self._position.y))
-    
+        self.rect.center = (int(self._position.x), int(self._position.y))
+        self._rect.center = (int(self._position.x), int(self._position.y))
+
     def update_animation(self, delta_time: float) -> None:
         if not self.moving:
             self.current_frame = 0
@@ -108,7 +111,8 @@ class Player(Entity):
         if not obstacles:
             return False
         
-        temp_rect = pygame.Rect(new_pos[0], new_pos[1], self.size[0], self.size[1])
+        temp_rect = pygame.Rect(0, 0, self.size[0], self.size[1])
+        temp_rect.center = (int(new_pos[0]), int(new_pos[1]))
         
         for obstacle in obstacles:
             if temp_rect.colliderect(obstacle):
@@ -116,12 +120,17 @@ class Player(Entity):
         return False
 
     def _clamp_to_bounds(self, screen_bounds: Tuple[int, int]) -> None:
-        max_x = screen_bounds[0] - self.size[0]
-        max_y = screen_bounds[1] - self.size[1]
+        half_width = self.size[0] // 2
+        half_height = self.size[1] // 2
+        
+        min_x = half_width
+        min_y = half_height
+        max_x = screen_bounds[0] - half_width
+        max_y = screen_bounds[1] - half_height
         
         x, y = self.position
-        x = max(0, min(x, max_x))
-        y = max(0, min(y, max_y))
+        x = max(min_x, min(x, max_x))
+        y = max(min_y, min(y, max_y))
         self.position = (x, y)
 
     def reload(self) -> None:
@@ -136,25 +145,45 @@ class Player(Entity):
         
         from src.model.objects.bullet import Bullet
         
-        bullet_pos = (
-            self.position[0] + self.size[0] / 2,
-            self.position[1] + self.size[1] / 2
-        )
+        mouse_pos = pygame.mouse.get_pos()
+        player_x, player_y = self.position
+        mouse_x, mouse_y = mouse_pos
+        
+        dx = mouse_x - player_x
+        dy = mouse_y - player_y
+        distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance == 0:
+            dx, dy = 1, 0
+        else:
+            dx = dx / distance
+            dy = dy / distance
+        
+        offset = 25 
+        bullet_x = player_x + (dx * offset)
+        bullet_y = player_y + (dy * offset)
+        
+        bullet_angle = math.degrees(math.atan2(mouse_y - player_y, mouse_x - player_x))
         
         bullet = Bullet(
             id=f"bullet_{id(self)}_{self.ammo}",
-            position=bullet_pos,
+            position=(bullet_x, bullet_y),
             size=(8, 8),
             speed=500,
             damage=self.weapon.damage,
-            rotation=self.rotation
+            rotation=bullet_angle
         )
         
         return bullet
 
+    def update(self, delta_time: float) -> None:
+        mouse_pos = pygame.mouse.get_pos()
+        self.rotate_to_mouse(mouse_pos)
+        
+        self.update_animation(delta_time)
+
     def draw(self, screen: pygame.Surface) -> None:
-        self.update_animation(0)  
-        screen.blit(self.image, self.rect.topleft)
+        screen.blit(self.image, self.rect)
         self.moving = False
 
     def handle_key_press(
@@ -171,8 +200,8 @@ class Player(Entity):
         return self.shoot()
     
     def rotate_to_mouse(self, mouse_pos: Tuple[int, int]) -> None:
-        
         self.rotate_towards(mouse_pos)
         
+        old_center = self.rect.center
         self.image = pygame.transform.rotate(self.base_player_image, -self.rotation)
-        self.rect = self.image.get_rect(center=self.rect.center)
+        self.rect = self.image.get_rect(center=old_center) 

@@ -1,7 +1,7 @@
 import pygame
 import sys
 from enum import Enum, auto
-from src.world.gameWorld import GameWorld
+from src.world.core.gameWorld import GameWorld
 
 
 WIDTH: int = 960
@@ -44,6 +44,8 @@ class GameManager:
         
         if self.state == GameState.RUNNING:
             self.game_world.process_player_input(keys)
+            mouse_pos = pygame.mouse.get_pos()
+            self.game_world.process_player_mouse_movement(mouse_pos)
         
         if keys[pygame.K_ESCAPE]:
             self.state = GameState.GAME_OVER
