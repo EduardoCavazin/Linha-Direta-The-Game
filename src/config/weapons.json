@@ -1,0 +1,64 @@
+{
+  "Pistol": {
+    "name": "Pistola",
+    "damage": 25,
+    "fire_rate": 2.0,
+    "ammo_capacity": 15,
+    "reload_time": 1.5,
+    "sprite": "assets/sprites/pistol.png",
+    "bullet": {
+      "speed": 400,
+      "size": [8, 8],
+      "sprite": "assets/sprites/bullet.png",
+      "lifetime": 1.0,
+      "penetration": false
+    },
+    "sound": {
+      "fire": "assets/sounds/pistol_fire.wav",
+      "reload": "assets/sounds/pistol_reload.wav",
+      "empty": "assets/sounds/gun_empty.wav"
+    }
+  },
+  "Shotgun": {
+    "name": "Espingarda",
+    "damage": 15,
+    "fire_rate": 0.8,
+    "ammo_capacity": 8,
+    "reload_time": 2.0,
+    "sprite": "assets/sprites/shotgun.png",
+    "bullet": {
+      "speed": 350,
+      "size": [8, 8],
+      "sprite": "assets/sprites/bullet.png",
+      "lifetime": 0.5,
+      "count": 5,
+      "spread": 30,
+      "penetration": false
+    },
+    "sound": {
+      "fire": "assets/sounds/shotgun_fire.wav",
+      "reload": "assets/sounds/shotgun_reload.wav",
+      "empty": "assets/sounds/gun_empty.wav"
+    }
+  },
+  "Rifle": {
+    "name": "Rifle",
+    "damage": 40,
+    "fire_rate": 1.0,
+    "ammo_capacity": 10,
+    "reload_time": 2.0,
+    "sprite": "assets/sprites/rifle.png",
+    "bullet": {
+      "speed": 500,
+      "size": [8, 8],
+      "sprite": "assets/sprites/bullet.png",
+      "lifetime": 2.0,
+      "penetration": true
+    },
+    "sound": {
+      "fire": "assets/sounds/rifle_fire.wav",
+      "reload": "assets/sounds/rifle_reload.wav",
+      "empty": "assets/sounds/gun_empty.wav"
+    }
+  }
+}

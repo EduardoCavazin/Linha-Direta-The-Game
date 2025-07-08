@@ -1,8 +1,8 @@
 import pygame
+import math
 from typing import Tuple, Optional, Any
 from src.model.objects.bullet import Bullet
 from src.model.objects.movableObject import MovableObject
-import math
 
 class Entity(MovableObject):
     def __init__(
@@ -78,3 +78,23 @@ class Entity(MovableObject):
             screen.blit(self.image, (self.position.x, self.position.y))
         else:
             super().draw(screen)
+
+    def rotate_towards(self, target_pos: Tuple[int, int]) -> None:
+        player_x, player_y = self.position
+        target_x, target_y = target_pos
+        
+        angle_rad = math.atan2(target_y - player_y, target_x - player_x)
+        angle_deg = math.degrees(angle_rad)
+        
+        self.rotation = angle_deg + 90
+    
+    def get_direction_vector(self) -> Tuple[float, float]:
+        angle_rad = math.radians(self.rotation)
+        return (math.cos(angle_rad), math.sin(angle_rad))
+    
+    def get_facing_position(self, distance: float = 1.0) -> Tuple[float, float]:
+        direction = self.get_direction_vector()
+        return (
+            self.position[0] + direction[0] * distance,
+            self.position[1] + direction[1] * distance
+        )

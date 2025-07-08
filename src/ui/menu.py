@@ -7,8 +7,8 @@ from src.core.utils import load_image
 
 pygame.init()
 
-screen_width: int = 1280
-screen_height: int = 800
+screen_width: int = 960
+screen_height: int = 960
 screen: pygame.Surface = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Main Menu")
 
