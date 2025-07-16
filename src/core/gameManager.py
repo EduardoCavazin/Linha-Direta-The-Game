@@ -2,6 +2,7 @@ import pygame
 import sys
 from enum import Enum, auto
 from src.world.core.gameWorld import GameWorld
+from src.core.audioManager import AudioManager  
 
 
 WIDTH: int = 960
@@ -17,6 +18,9 @@ class GameState(Enum):
 class GameManager:
     def __init__(self, width: int = WIDTH, height: int = HEIGHT, fps: int = TARGET_FPS) -> None:
         pygame.init()
+        
+        pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+        
         self.width: int = width
         self.height: int = height
         self.screen: pygame.Surface = pygame.display.set_mode((width, height))
@@ -27,6 +31,13 @@ class GameManager:
         self.state: GameState = GameState.RUNNING
         
         self.game_world: GameWorld = GameWorld(self.screen, self.clock, self.width, self.height)
+        
+        self.audio_manager = AudioManager()
+        
+        self.footstep_timer = 0
+        
+        self.audio_manager.play_background_music()
+        
 
     def toggle_pause(self) -> None:
         if self.state == GameState.RUNNING:
@@ -46,6 +57,22 @@ class GameManager:
             self.game_world.process_player_input(keys)
             mouse_pos = pygame.mouse.get_pos()
             self.game_world.process_player_mouse_movement(mouse_pos)
+            
+            if keys[pygame.K_w] or keys[pygame.K_a] or keys[pygame.K_s] or keys[pygame.K_d]:
+                self.footstep_timer += 1
+                if self.footstep_timer >= 20:
+                    self.audio_manager.play_sound('footstep')
+                    self.footstep_timer = 0
+            else:
+                self.footstep_timer = 0
+        
+        if keys[pygame.K_KP_PLUS]:  # + no teclado numérico
+            current_vol = self.audio_manager.music_volume
+            self.audio_manager.set_music_volume(current_vol + 0.01)
+        
+        if keys[pygame.K_KP_MINUS]:  # - no teclado numérico
+            current_vol = self.audio_manager.music_volume
+            self.audio_manager.set_music_volume(current_vol - 0.01)
         
         if keys[pygame.K_ESCAPE]:
             self.state = GameState.GAME_OVER
@@ -57,6 +84,9 @@ class GameManager:
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.state == GameState.RUNNING:
                 mouse_pos = pygame.mouse.get_pos()
                 self.game_world.process_player_mouse(mouse_pos)
+                
+                self.audio_manager.play_sound('shoot')
+                
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     self.toggle_pause()
