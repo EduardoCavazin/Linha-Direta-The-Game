@@ -5,6 +5,7 @@ from src.model.entities.enemy import Enemy
 from src.model.objects.bullet import Bullet
 from src.world.core.map import Map
 from src.world.core.room import Room
+from src.core.camera import Camera
 
 
 class GameWorld:
@@ -16,6 +17,10 @@ class GameWorld:
         
         self.map: Map = Map()
         
+        # Inicializa a câmera - por agora assumindo um mapa grande
+        # Será atualizado quando o mapa real for carregado
+        self.camera: Camera = Camera(width, height, 2000, 2000)
+        
         self.current_room: Optional[Room] = None
         self.player: Optional[Player] = None
         self.bullets: List[Bullet] = []
@@ -26,6 +31,10 @@ class GameWorld:
     def _initialize_world(self) -> None:
         if self.map.rooms:
             self.current_room = self.map.rooms[0]
+            # Configura os limites da câmera baseado no tamanho da room atual
+            if self.current_room:
+                room_width, room_height = self.current_room.size
+                self.camera.set_world_bounds(room_width, room_height)
             self._spawn_player()
         else:
             print("ERRO: Nenhuma sala carregada!")
@@ -58,7 +67,8 @@ class GameWorld:
         
         delta_time = self.clock.get_time() / 1000.0
         obstacles = self.current_room.get_wall_rects()
-        screen_bounds = (self.width, self.height)
+        # Remove a limitação da tela - o jogador agora pode se mover por todo o mapa
+        world_bounds = self.current_room.size  # Usa o tamanho da room como limite
         
         directions = []
         if keys[pygame.K_w]: directions.append("up")
@@ -67,7 +77,7 @@ class GameWorld:
         if keys[pygame.K_d]: directions.append("right")
         
         for direction in directions:
-            self.player.move(direction, delta_time, obstacles, screen_bounds)
+            self.player.move(direction, delta_time, obstacles, world_bounds)
         
         if keys[pygame.K_r]:
             self.player.reload()
@@ -76,13 +86,17 @@ class GameWorld:
         if not self.player:
             return
         
-        self.player.rotate_to_mouse(mouse_pos)
+        # Converte a posição do mouse da tela para o mundo
+        world_mouse_pos = self.camera.screen_to_world(mouse_pos)
+        self.player.rotate_to_mouse(world_mouse_pos)
 
     def process_player_mouse(self, mouse_pos: Tuple[int, int]) -> None:
         if not self.player:
             return
         
-        bullet = self.player.shoot()
+        # Converte a posição do mouse da tela para o mundo
+        world_mouse_pos = self.camera.screen_to_world(mouse_pos)
+        bullet = self.player.shoot(world_mouse_pos)
         if bullet:
             self.bullets.append(bullet)
 
@@ -96,6 +110,8 @@ class GameWorld:
         
         if self.player:
             self.player.update(delta_time)
+            # Atualiza a câmera para seguir o jogador
+            self.camera.follow_target(self.player)
     
         self._update_enemies()
         self._update_bullets()
@@ -121,8 +137,12 @@ class GameWorld:
         
         dt = self.clock.get_time() / 1000.0
         
+        # Usa as dimensões do mundo em vez da tela
+        world_width = self.current_room.size[0] if self.current_room else self.width
+        world_height = self.current_room.size[1] if self.current_room else self.height
+        
         for bullet in self.bullets[:]:
-            if not bullet.update(dt, self.width, self.height):
+            if not bullet.update(dt, world_width, world_height):
                 self.bullets.remove(bullet)
                 continue
             
@@ -170,13 +190,60 @@ class GameWorld:
         self.render_queue.extend(self.bullets)
         
     def render(self) -> None:
-        if self.current_room and self.current_room.background:
-            self.screen.blit(self.current_room.background, (0, 0))
-        else:
-            self.screen.fill((88, 71, 71))
+        # Limpa a tela
+        self.screen.fill((88, 71, 71))
         
+        # Renderiza o fundo da room com offset da câmera
+        if self.current_room and self.current_room.background:
+            bg_pos = self.camera.world_to_screen((0, 0))
+            self.screen.blit(self.current_room.background, bg_pos)
+        
+        # Renderiza todos os objetos aplicando o offset da câmera
         for obj in self.render_queue:
-            obj.draw(self.screen)
+            self._render_object_with_camera(obj)
+
+    def _render_object_with_camera(self, obj) -> None:
+        """Renderiza um objeto aplicando a transformação da câmera."""
+        if not hasattr(obj, 'position'):
+            return
+        
+        # Converte pygame.Vector2 para tupla se necessário
+        obj_pos = obj.position
+        if hasattr(obj_pos, 'x') and hasattr(obj_pos, 'y'):
+            obj_pos = (obj_pos.x, obj_pos.y)
+            
+        # Verifica se o objeto está visível na câmera
+        obj_size = getattr(obj, 'size', (32, 32))
+        if hasattr(obj, 'rect'):
+            obj_size = (obj.rect.width, obj.rect.height)
+        elif hasattr(obj, 'hitbox'):
+            obj_size = (obj.hitbox.width, obj.hitbox.height)
+            
+        if not self.camera.is_visible(obj_pos, obj_size):
+            return
+            
+        # Calcula a posição na tela baseada na câmera
+        screen_pos = self.camera.world_to_screen(obj_pos)
+        
+        # Para objetos que têm rect (como entidades), renderiza usando o rect
+        if hasattr(obj, 'rect') and hasattr(obj, 'image'):
+            # Cria um rect temporário na posição da tela
+            screen_rect = obj.rect.copy()
+            screen_rect.center = screen_pos
+            self.screen.blit(obj.image, screen_rect)
+        elif hasattr(obj, 'hitbox'):
+            # Para objetos com hitbox (como balas), desenha o hitbox na posição da tela
+            screen_hitbox = obj.hitbox.copy()
+            screen_hitbox.topleft = screen_pos
+            pygame.draw.rect(self.screen, (255, 0, 0), screen_hitbox)
+        else:
+            # Para outros objetos, chama o método draw com posição ajustada
+            if hasattr(obj, 'draw'):
+                # Salva a posição original
+                original_pos = obj.position
+                obj.position = screen_pos
+                obj.draw(self.screen)
+                obj.position = original_pos
         
 
     # ==========================================
@@ -187,6 +254,10 @@ class GameWorld:
     def change_room(self, room_index: int) -> None:
         if 0 <= room_index < len(self.map.rooms):
             self.current_room = self.map.rooms[room_index]
+            # Atualiza os limites da câmera para a nova room
+            if self.current_room:
+                room_width, room_height = self.current_room.size
+                self.camera.set_world_bounds(room_width, room_height)
             if self.player:
                 self.player.position = self.current_room.spawn_position
         else:

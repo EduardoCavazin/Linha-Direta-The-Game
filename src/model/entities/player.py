@@ -84,7 +84,7 @@ class Player(Entity):
         direction: str,
         delta_time: float,
         obstacles: Optional[list] = None,
-        screen_bounds: Optional[Tuple[int, int]] = None
+        world_bounds: Optional[Tuple[int, int]] = None
     ) -> None:
         self.moving = True
         
@@ -104,8 +104,8 @@ class Player(Entity):
         if not self._check_collision(new_pos, obstacles):
             self.position = new_pos
             
-            if screen_bounds:
-                self._clamp_to_bounds(screen_bounds)
+            if world_bounds:
+                self._clamp_to_bounds(world_bounds)
 
     def _check_collision(self, new_pos: Tuple[float, float], obstacles: Optional[list]) -> bool:
         if not obstacles:
@@ -119,14 +119,14 @@ class Player(Entity):
                 return True
         return False
 
-    def _clamp_to_bounds(self, screen_bounds: Tuple[int, int]) -> None:
+    def _clamp_to_bounds(self, world_bounds: Tuple[int, int]) -> None:
         half_width = self.size[0] // 2
         half_height = self.size[1] // 2
         
         min_x = half_width
         min_y = half_height
-        max_x = screen_bounds[0] - half_width
-        max_y = screen_bounds[1] - half_height
+        max_x = world_bounds[0] - half_width
+        max_y = world_bounds[1] - half_height
         
         x, y = self.position
         x = max(min_x, min(x, max_x))
@@ -137,7 +137,7 @@ class Player(Entity):
         if self.weapon:
             self.ammo = self.weapon.max_ammo
 
-    def shoot(self) -> Optional['Bullet']:
+    def shoot(self, target_world_pos: Optional[Tuple[float, float]] = None) -> Optional['Bullet']:
         if not self.weapon or self.ammo <= 0:
             return None
         
@@ -145,9 +145,14 @@ class Player(Entity):
         
         from src.model.objects.bullet import Bullet
         
-        mouse_pos = pygame.mouse.get_pos()
+        # Usa a posição do mundo passada como parâmetro, ou pega a posição do mouse se não fornecida
+        if target_world_pos is None:
+            mouse_pos = pygame.mouse.get_pos()
+            mouse_x, mouse_y = mouse_pos
+        else:
+            mouse_x, mouse_y = target_world_pos
+            
         player_x, player_y = self.position
-        mouse_x, mouse_y = mouse_pos
         
         dx = mouse_x - player_x
         dy = mouse_y - player_y
@@ -177,9 +182,8 @@ class Player(Entity):
         return bullet
 
     def update(self, delta_time: float) -> None:
-        mouse_pos = pygame.mouse.get_pos()
-        self.rotate_to_mouse(mouse_pos)
-        
+        # Remove a rotação automática baseada no mouse aqui
+        # A rotação será controlada pelo GameWorld que tem acesso à câmera
         self.update_animation(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
@@ -191,10 +195,10 @@ class Player(Entity):
         key: str, 
         delta_time: float, 
         obstacles: Optional[list] = None,
-        screen_bounds: Optional[Tuple[int, int]] = None
+        world_bounds: Optional[Tuple[int, int]] = None
     ) -> None:
         if key in ["up", "down", "left", "right"]:
-            self.move(key, delta_time, obstacles, screen_bounds)
+            self.move(key, delta_time, obstacles, world_bounds)
 
     def handle_mouse_click(self):
         return self.shoot()
