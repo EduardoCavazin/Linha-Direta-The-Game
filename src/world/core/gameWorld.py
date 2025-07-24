@@ -25,6 +25,7 @@ class GameWorld:
         self.player: Optional[Player] = None
         self.bullets: List[Bullet] = []
         self.render_queue: List = []
+        self.last_teleport_time: float = 0.0  # Para evitar teletransportes múltiplos
         
         self._initialize_world()
     
@@ -116,6 +117,7 @@ class GameWorld:
         self._update_enemies()
         self._update_bullets()
         self._check_item_collisions()
+        self._check_door_collisions()
         
         self._update_render_queue()
     
@@ -168,6 +170,100 @@ class GameWorld:
                 
                 self.current_room.items.remove(item)
 
+    def _check_door_collisions(self) -> None:
+        """Verifica colisões com portas e executa teletransporte"""
+        if not self.player or not self.current_room:
+            return
+        
+        # Verifica se passou tempo suficiente desde o último teletransporte
+        current_time = pygame.time.get_ticks() / 1000.0
+        if current_time - self.last_teleport_time < 1.0:  # 1 segundo de delay
+            return
+        
+        player_rect = pygame.Rect(self.player.position[0], self.player.position[1], 
+                                self.player.size[0], self.player.size[1])
+        
+        for door in self.current_room.doors:
+            door_rect = pygame.Rect(door.position[0], door.position[1], 
+                                  door.size[0], door.size[1])
+            
+            if player_rect.colliderect(door_rect):
+                self._handle_door_teleport(door)
+                self.last_teleport_time = current_time
+                break  # Para evitar múltiplos teletransportes simultâneos
+
+    def _handle_door_teleport(self, door) -> None:
+        """Gerencia o teletransporte baseado no nome da porta"""
+        door_name = getattr(door, 'name', 'Door')
+        current_room_id = self.current_room.id
+        
+        if door_name == "Door" and current_room_id == "Mapa1":
+            # Teletransportar para Mapa2 - usa o spawn point do mapa
+            self._teleport_to_map_spawn("Mapa2")
+        elif door_name == "Door2" and current_room_id == "Mapa2":
+            # Teletransportar para Mapa1 - usa o spawn point do mapa
+            self._teleport_to_map_spawn("Mapa1")
+    
+    def _teleport_to_map_spawn(self, target_map_id: str) -> None:
+        """Executa o teletransporte para o spawn point do mapa especificado"""
+        # Encontra o mapa de destino
+        target_room = None
+        
+        for room in self.map.rooms:
+            if room.id == target_map_id:
+                target_room = room
+                break
+        
+        if target_room:
+            print(f"Teletransportando de {self.current_room.id} para {target_map_id}")
+            
+            # Muda para o novo mapa
+            self.current_room = target_room
+            
+            # Atualiza os limites da câmera
+            room_width, room_height = self.current_room.size
+            self.camera.set_world_bounds(room_width, room_height)
+            
+            # Posiciona o player no spawn point do mapa
+            if self.player:
+                spawn_position = self.current_room.spawn_position
+                self.player.position = spawn_position
+                # Centraliza a câmera no player
+                self.camera.follow_target(self.player)
+                print(f"Player posicionado em: {spawn_position}")
+        else:
+            print(f"Mapa {target_map_id} não encontrado!")
+    
+    def _teleport_to_map(self, target_map_id: str, spawn_position: Tuple[float, float]) -> None:
+        """Executa o teletransporte para o mapa especificado"""
+        # Encontra o mapa de destino
+        target_room = None
+        target_room_index = -1
+        
+        for i, room in enumerate(self.map.rooms):
+            if room.id == target_map_id:
+                target_room = room
+                target_room_index = i
+                break
+        
+        if target_room:
+            print(f"Teletransportando de {self.current_room.id} para {target_map_id}")
+            
+            # Muda para o novo mapa
+            self.current_room = target_room
+            
+            # Atualiza os limites da câmera
+            room_width, room_height = self.current_room.size
+            self.camera.set_world_bounds(room_width, room_height)
+            
+            # Posiciona o player na nova posição
+            if self.player:
+                self.player.position = spawn_position
+                # Centraliza a câmera no player
+                self.camera.follow_target(self.player)
+        else:
+            print(f"Mapa {target_map_id} não encontrado!")
+    
     # ==========================================
     # RENDERING 
     # ==========================================
