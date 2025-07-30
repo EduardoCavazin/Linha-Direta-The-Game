@@ -2,7 +2,6 @@
   "Door": {
     "name": "Porta Normal",
     "sprite": "assets/sprites/door.png",
-    "size": [32, 48],
     "locked": false,
     "destination": "next_room",
     "sound": {
@@ -12,7 +11,6 @@
   "Door2": {
     "name": "Porta do Mapa 2",
     "sprite": "assets/sprites/door.png",
-    "size": [32, 48],
     "locked": false,
     "destination": "Mapa1",
     "sound": {
@@ -22,7 +20,6 @@
   "LockedDoor": {
     "name": "Porta Trancada",
     "sprite": "assets/sprites/locked_door.png",
-    "size": [32, 48],
     "locked": true,
     "key_item": "KeyCard",
     "destination": "secure_room",
@@ -35,7 +32,6 @@
   "ExitDoor": {
     "name": "Saída",
     "sprite": "assets/sprites/exit_door.png",
-    "size": [48, 48],
     "locked": true,
     "key_item": "Evidence",
     "required_count": 3,

@@ -76,7 +76,7 @@ class EntityFactory:
             return self.create_item(obj_name, position, properties)
         
         elif obj_name in self.configs["doors"] or obj_name == "Door" or obj_name == "Door2":
-            return self.create_door(obj_name, position, properties)
+            return self.create_door(obj_name, position, obj_data.get("width", 32), obj_data.get("height", 48), properties)
         
         else:
             print(f"Tipo de entidade desconhecido: {obj_name}")
@@ -170,32 +170,36 @@ class EntityFactory:
             print(f"Erro ao criar item {item_type}: {e}")
             return None
     
-    def create_door(self, door_type: str, position: Tuple[float, float], properties: Dict = None) -> Optional[Door]:
+    def create_door(self, door_type: str, position: Tuple[float, float], width: float, height: float, properties: Dict = None) -> Optional[Door]:
         try:
             config = self.configs["doors"].get(door_type, {})
             if not config:
                 config = self.configs["doors"].get("Door", {})
                 if not config:
                     return None
-            
+
             properties = properties or {}
             locked = properties.get("locked", config.get("locked", False))
-            
+
             door = Door(
                 id=f"{door_type.lower()}_{id(position)}",
                 position=position,
-                size=tuple(config.get("size", [32, 48])),
+                size=(width, height),
                 locked=locked,
                 name=door_type 
             )
-            
+
             door.destination = properties.get("destination", config.get("destination", "next_room"))
-            
+
             return door
-            
+
         except Exception as e:
             print(f"Erro ao criar porta {door_type}: {e}")
             return None
+                
+        except Exception as e:
+                print(f"Erro ao criar porta {door_type}: {e}")
+                return None
     
     def _create_weapon_for_entity(self, entity_type: str, entity_config: Dict) -> Optional[Weapon]:
         weapon_name = entity_config.get("weapon")

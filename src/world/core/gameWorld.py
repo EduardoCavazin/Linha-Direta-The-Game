@@ -1,3 +1,4 @@
+import random
 import pygame
 from typing import List, Tuple, Optional
 from src.model.entities.player import Player
@@ -184,62 +185,25 @@ class GameWorld:
                 break  
 
     def _handle_door_teleport(self, door) -> None:
-        door_name = getattr(door, 'name', 'Door')
-        current_room_id = self.current_room.id
-        
-        if door_name == "Door" and current_room_id == "Mapa1":
-            self._teleport_to_map_spawn("Mapa2")
-        elif door_name == "Door2" and current_room_id == "Mapa2":
-            self._teleport_to_map_spawn("Mapa1")
+        possible_rooms = [room for room in self.map.rooms if room != self.current_room]
+        if not possible_rooms:
+            print("Nenhuma outra sala disponível para teleporte!")
+            return
+
+        target_room = random.choice(possible_rooms)
+        print(f"Teletransportando de {self.current_room.id} para {target_room.id}")
+
+        self.current_room = target_room
+        room_width, room_height = self.current_room.size
+        self.camera.set_world_bounds(room_width, room_height)
+
+        if self.player:
+            spawn_position = self.current_room.spawn_position
+            self.player.position = spawn_position
+            self.camera.follow_target(self.player)
+            print(f"Player posicionado em: {spawn_position}")
     
-    def _teleport_to_map_spawn(self, target_map_id: str) -> None:
-        target_room = None
-        
-        for room in self.map.rooms:
-            if room.id == target_map_id:
-                target_room = room
-                break
-        
-        if target_room:
-            print(f"Teletransportando de {self.current_room.id} para {target_map_id}")
-            
-            self.current_room = target_room
-            
-            room_width, room_height = self.current_room.size
-            self.camera.set_world_bounds(room_width, room_height)
-            
-            if self.player:
-                spawn_position = self.current_room.spawn_position
-                self.player.position = spawn_position
-                self.camera.follow_target(self.player)
-                print(f"Player posicionado em: {spawn_position}")
-        else:
-            print(f"Mapa {target_map_id} não encontrado!")
-    
-    def _teleport_to_map(self, target_map_id: str, spawn_position: Tuple[float, float]) -> None:
-        target_room = None
-        target_room_index = -1
-        
-        for i, room in enumerate(self.map.rooms):
-            if room.id == target_map_id:
-                target_room = room
-                target_room_index = i
-                break
-        
-        if target_room:
-            print(f"Teletransportando de {self.current_room.id} para {target_map_id}")
-            
-            self.current_room = target_room
-            
-            room_width, room_height = self.current_room.size
-            self.camera.set_world_bounds(room_width, room_height)
-            
-            if self.player:
-                self.player.position = spawn_position
-                self.camera.follow_target(self.player)
-        else:
-            print(f"Mapa {target_map_id} não encontrado!")
-    
+
     # ==========================================
     # RENDERING 
     # ==========================================
