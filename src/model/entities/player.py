@@ -145,7 +145,6 @@ class Player(Entity):
         
         from src.model.objects.bullet import Bullet
         
-        # Usa a posição do mundo passada como parâmetro, ou pega a posição do mouse se não fornecida
         if target_world_pos is None:
             mouse_pos = pygame.mouse.get_pos()
             mouse_x, mouse_y = mouse_pos

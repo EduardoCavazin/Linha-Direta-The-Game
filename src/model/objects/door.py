@@ -6,8 +6,8 @@ class Door(GameObject):
         super().__init__(id, position, size)
         self.locked: bool = locked
         self.opened: bool = False
-        self.name: str = name  # Nome da porta para identificação
-        self.destination: str = "next_room"  # Destino padrão
+        self.name: str = name  
+        self.destination: str = "next_room" 
 
     @property
     def position(self) -> Tuple[float, float]:

@@ -9,7 +9,6 @@ class AudioManager:
         self._load_sounds()
         
     def _load_sounds(self) -> None:
-        """Carregar todos os arquivos de som"""
         sound_files = {
             'shoot': 'assets/audio/sfx/pistol_sound.wav',
             'footstep': 'assets/audio/sfx/footstep.mp3',

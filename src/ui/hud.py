@@ -8,7 +8,7 @@ class Hud:
         self.clock: pygame.time.Clock = clock
         self.font: pygame.font.Font = pygame.font.Font(None, 36)
 
-    def draw(self) -> None:
+    def draw(self, elapsed_time=None) -> None:
         health_text: pygame.Surface = self.font.render(
             f"Health: {self.player.health}", True, (255, 255, 255)
         )
@@ -26,6 +26,13 @@ class Hud:
         x = self.screen.get_width() - fps_text.get_width() - 10
         y = 10
         self.screen.blit(fps_text, (x, y))
+        
+        if elapsed_time is not None:
+            seconds = elapsed_time // 1000
+            millis = elapsed_time % 1000
+            timer_text = self.font.render(f" {seconds}:{millis:03d}", True, (255, 255, 255))
+            self.screen.blit(timer_text, (10, 90))
+        
 
     def draw_debug_info(self, game_manager) -> None:
         if not getattr(game_manager, '_show_debug_info', False):

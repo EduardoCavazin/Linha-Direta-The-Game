@@ -186,7 +186,7 @@ class EntityFactory:
                 position=position,
                 size=tuple(config.get("size", [32, 48])),
                 locked=locked,
-                name=door_type  # Passa o nome da porta
+                name=door_type 
             )
             
             door.destination = properties.get("destination", config.get("destination", "next_room"))
