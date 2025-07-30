@@ -75,7 +75,7 @@ class EntityFactory:
         elif obj_name in self.configs["items"]:
             return self.create_item(obj_name, position, properties)
         
-        elif obj_name in self.configs["doors"] or obj_name == "Door":
+        elif obj_name in self.configs["doors"] or obj_name == "Door" or obj_name == "Door2":
             return self.create_door(obj_name, position, properties)
         
         else:
@@ -89,7 +89,7 @@ class EntityFactory:
             entities["enemies"].append(entity)
         elif obj_name in self.configs["items"]:
             entities["items"].append(entity)
-        elif obj_name in self.configs["doors"] or obj_name == "Door":
+        elif obj_name in self.configs["doors"] or obj_name == "Door" or obj_name == "Door2":
             entities["doors"].append(entity)
     
     def create_player(self, position: Tuple[float, float], properties: Dict = None) -> Optional[Player]:
@@ -185,7 +185,8 @@ class EntityFactory:
                 id=f"{door_type.lower()}_{id(position)}",
                 position=position,
                 size=tuple(config.get("size", [32, 48])),
-                locked=locked
+                locked=locked,
+                name=door_type  # Passa o nome da porta
             )
             
             door.destination = properties.get("destination", config.get("destination", "next_room"))
