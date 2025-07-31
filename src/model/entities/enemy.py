@@ -17,7 +17,7 @@ class Enemy(Entity):
         ammo: int,
         status: str
     ) -> None:
-        self.base_enemy_image: pygame.Surface = load_image("player.png", size)
+        self.base_enemy_image: pygame.Surface = load_image("sprites/Player_Movement.png", size)
         self.base_enemy_rect: pygame.Rect = self.base_enemy_image.get_rect(topleft=position)
         
         self.image: pygame.Surface = self.base_enemy_image

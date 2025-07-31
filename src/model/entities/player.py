@@ -81,29 +81,33 @@ class Player(Entity):
     
     def move(
         self,
-        direction: str,
+        directions: List[str],  # Agora recebe uma lista de strings!
         delta_time: float,
         obstacles: Optional[list] = None,
         world_bounds: Optional[Tuple[int, int]] = None
     ) -> None:
         self.moving = True
-        
+
+        direction_vector = pygame.Vector2(0, 0)
+        for direction in directions:
+            if direction == "up":
+                direction_vector.y -= 1
+            if direction == "down":
+                direction_vector.y += 1
+            if direction == "left":
+                direction_vector.x -= 1
+            if direction == "right":
+                direction_vector.x += 1
+
+        if direction_vector.length() > 0:
+            direction_vector = direction_vector.normalize()
+
         speed = self.speed * delta_time
-        current_pos = self.position
-        
-        new_pos = current_pos
-        if direction == "up":
-            new_pos = (current_pos[0], current_pos[1] - speed)
-        elif direction == "down":
-            new_pos = (current_pos[0], current_pos[1] + speed)
-        elif direction == "left":
-            new_pos = (current_pos[0] - speed, current_pos[1])
-        elif direction == "right":
-            new_pos = (current_pos[0] + speed, current_pos[1])
-        
+        move_vec = direction_vector * speed
+        new_pos = (self.position[0] + move_vec.x, self.position[1] + move_vec.y)
+
         if not self._check_collision(new_pos, obstacles):
             self.position = new_pos
-            
             if world_bounds:
                 self._clamp_to_bounds(world_bounds)
 
@@ -207,4 +211,4 @@ class Player(Entity):
         
         old_center = self.rect.center
         self.image = pygame.transform.rotate(self.base_player_image, -self.rotation)
-        self.rect = self.image.get_rect(center=old_center) 
+        self.rect = self.image.get_rect(center=old_center)

@@ -64,20 +64,20 @@ class GameWorld:
     def process_player_input(self, keys: pygame.key.ScancodeWrapper) -> None:
         if not self.player or not self.current_room:
             return
-        
+
         delta_time = self.clock.get_time() / 1000.0
         obstacles = self.current_room.get_wall_rects()
         world_bounds = self.current_room.size  
-        
+
         directions = []
         if keys[pygame.K_w]: directions.append("up")
         if keys[pygame.K_s]: directions.append("down")
         if keys[pygame.K_a]: directions.append("left")
         if keys[pygame.K_d]: directions.append("right")
-        
-        for direction in directions:
-            self.player.move(direction, delta_time, obstacles, world_bounds)
-        
+
+        # Chame move apenas uma vez, passando todas as direções
+        self.player.move(directions, delta_time, obstacles, world_bounds)
+
         if keys[pygame.K_r]:
             self.player.reload()
     

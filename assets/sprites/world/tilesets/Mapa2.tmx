@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="3">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="4">
  <tileset firstgid="1" source="../../Assets.tsx"/>
  <tileset firstgid="1" source="Pisos.tsx"/>
  <tileset firstgid="451" source="Colisao.tsx"/>
@@ -109,6 +109,9 @@
  </layer>
  <objectgroup id="4" name="Objetos 2">
   <object id="2" name="Player" x="833.334" y="878.667">
+   <point/>
+  </object>
+  <object id="3" name="BasicEnemy" x="299.617" y="490.282">
    <point/>
   </object>
  </objectgroup>
