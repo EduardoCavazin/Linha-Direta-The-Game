@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<<<<<<< HEAD
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="60" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="6">
+=======
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="60" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="3">
+>>>>>>> a358e3904fa8e2d7e56e95e4ff3fe0b8ba499159
  <tileset firstgid="1" source="Colisao.tsx"/>
  <tileset firstgid="451" source="Pisos.tsx"/>
  <tileset firstgid="901" source="Veiculos.tsx"/>
@@ -200,6 +204,9 @@
   <object id="1" name="Player" x="417.333" y="1906.67">
    <point/>
   </object>
+<<<<<<< HEAD
   <object id="3" name="Door 3" x="706.333" y="2" width="220.667" height="30.3333"/>
+=======
+>>>>>>> a358e3904fa8e2d7e56e95e4ff3fe0b8ba499159
  </objectgroup>
 </map>
