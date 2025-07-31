@@ -1,15 +1,16 @@
 import pygame
 import sys
 from enum import Enum, auto
-from src.world.gameWorld import GameWorld
+from src.world.core.gameWorld import GameWorld
+from src.core.audioManager import AudioManager 
+from src.ui.hud import Hud
 
 
-WIDTH: int = 1280
-HEIGHT: int = 720
+WIDTH: int = 950
+HEIGHT: int = 800
 TARGET_FPS: int = 60
 
 class GameState(Enum):
-    """Estados possíveis para o jogo"""
     RUNNING = auto()
     PAUSED = auto()
     GAME_OVER = auto()
@@ -18,6 +19,9 @@ class GameState(Enum):
 class GameManager:
     def __init__(self, width: int = WIDTH, height: int = HEIGHT, fps: int = TARGET_FPS) -> None:
         pygame.init()
+        
+        pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+        
         self.width: int = width
         self.height: int = height
         self.screen: pygame.Surface = pygame.display.set_mode((width, height))
@@ -25,66 +29,98 @@ class GameManager:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.target_fps: int = fps
         
-        # Usar o GameState em vez de boolean para controlar o estado do jogo
         self.state: GameState = GameState.RUNNING
         
         self.game_world: GameWorld = GameWorld(self.screen, self.clock, self.width, self.height)
+        
+        self.audio_manager = AudioManager()
+        
+        self.footstep_timer = 0
+        
+        self.audio_manager.play_background_music()
+        self.hud = Hud(self.screen, self.game_world.player, self.clock)
+        
+        self.timer_running = True
+        self.timer_start = pygame.time.get_ticks()
+        self.timer_paused_at = 0
+        self.elapsed_time = 0
+        
 
     def toggle_pause(self) -> None:
-        """Alterna entre os estados pausado e rodando"""
         if self.state == GameState.RUNNING:
             self.state = GameState.PAUSED
+            self.timer_runnig = False
+            self.timer_paused_at = pygame.time.get_ticks()
         elif self.state == GameState.PAUSED:
             self.state = GameState.RUNNING
+            self.timer_runnig = True
+            pause_duration = pygame.time.get_ticks() - self.timer_paused_at
+            self.timer_start += pause_duration
 
     def handle_events(self) -> None:
-        # Processar eventos do sistema
         self._process_system_events()
         
-        # Processar entrada do teclado
         self._process_keyboard_input()
 
+    def _process_keyboard_input(self) -> None:
+        keys = pygame.key.get_pressed()
+        
+        if self.state == GameState.RUNNING:
+            self.game_world.process_player_input(keys)
+            mouse_pos = pygame.mouse.get_pos()
+            self.game_world.process_player_mouse_movement(mouse_pos)
+            
+            if keys[pygame.K_w] or keys[pygame.K_a] or keys[pygame.K_s] or keys[pygame.K_d]:
+                self.footstep_timer += 1
+                if self.footstep_timer >= 20:
+                    self.audio_manager.play_sound('footstep')
+                    self.footstep_timer = 0
+            else:
+                self.footstep_timer = 0
+        
+        if keys[pygame.K_KP_PLUS]: 
+            current_vol = self.audio_manager.music_volume
+            self.audio_manager.set_music_volume(current_vol + 0.01)
+        
+        if keys[pygame.K_KP_MINUS]: 
+            current_vol = self.audio_manager.music_volume
+            self.audio_manager.set_music_volume(current_vol - 0.01)
+        
+        if keys[pygame.K_ESCAPE]:
+            self.state = GameState.GAME_OVER
+        
+        if keys[pygame.K_1]:  # Tecla 1 - ativa suavização rápida
+            self.set_camera_smoothing(True, 0.5)
+        
+        if keys[pygame.K_2]:  # Tecla 2 - ativa suavização lenta
+            self.set_camera_smoothing(True, 0.1)
+        
+        if keys[pygame.K_3]:  # Tecla 3 - desativa suavização
+            self.set_camera_smoothing(False)
+        
+        if keys[pygame.K_F1]:  # F1 - mostra informações de debug
+            self._show_debug_info = not getattr(self, '_show_debug_info', False)
+
     def _process_system_events(self) -> None:
-        """Processa eventos do sistema como fechar o jogo"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.state = GameState.GAME_OVER
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.state == GameState.RUNNING:
-                self.game_world.handle_player_mouse_click()
+                mouse_pos = pygame.mouse.get_pos()
+                self.game_world.process_player_mouse(mouse_pos)
+                
+                self.audio_manager.play_sound('shoot')
+                
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:  # Tecla P para pausar
+                if event.key == pygame.K_p:
                     self.toggle_pause()
 
-    def _process_keyboard_input(self) -> None:
-        """Processa entrada do teclado para movimento do jogador e ações do sistema"""
-        keys = pygame.key.get_pressed()
-        
-        # Apenas processar movimentos se o jogo estiver rodando
-        if self.state == GameState.RUNNING:
-            # Movimento do jogador
-            if keys[pygame.K_w]:
-                self.game_world.handle_player_key_press("up")
-            if keys[pygame.K_s]:
-                self.game_world.handle_player_key_press("down")
-            if keys[pygame.K_a]:
-                self.game_world.handle_player_key_press("left")
-            if keys[pygame.K_d]:
-                self.game_world.handle_player_key_press("right")
-            
-        # Ações do sistema (funcionam mesmo pausado)
-        if keys[pygame.K_ESCAPE]:
-            self.state = GameState.GAME_OVER
-    
     def _draw_pause_overlay(self) -> None:
-        """Desenha um overlay quando o jogo está pausado"""
-        # Criar uma superfície semi-transparente
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 128))  # Preto com 50% de transparência
+        overlay.fill((0, 0, 0, 128))
         
-        # Desenhar o overlay
         self.screen.blit(overlay, (0, 0))
         
-        # Criar texto de pausa
         try:
             font = pygame.font.Font("assets/fonts/techno_hideo.ttf", 64)
         except:
@@ -92,39 +128,55 @@ class GameManager:
             
         pause_text = font.render("PAUSADO", True, (255, 255, 255))
         
-        # Centralizar o texto
         text_rect = pause_text.get_rect(center=(self.width // 2, self.height // 2))
         
-        # Desenhar o texto
         self.screen.blit(pause_text, text_rect)
 
+    # ==========================================
+    # Camera
+    # ==========================================
+    
+    def set_camera_smoothing(self, enabled: bool, factor: float = 0.1) -> None:
+        if hasattr(self.game_world, 'camera'):
+            self.game_world.camera.set_smoothing(enabled, factor)
+    
+    def get_camera_position(self) -> tuple:
+        if hasattr(self.game_world, 'camera'):
+            return (self.game_world.camera.x, self.game_world.camera.y)
+        return (0, 0)
+    
+    def get_player_position(self) -> tuple:
+        if self.game_world.player:
+            return self.game_world.player.position
+        return (0, 0)
+
     def run(self) -> None:
-        """Loop principal do jogo"""
         try:
             while self.state != GameState.GAME_OVER:
-                # Calcular o delta time para atualizações consistentes
                 delta_time: float = self.clock.tick(self.target_fps) / 1000.0
                 
-                # Processar eventos de entrada (em qualquer estado)
                 self.handle_events()
                 
-                # Atualizar o jogo apenas se estiver rodando
+                if self.timer_running:
+                    self.elapsed_time = pygame.time.get_ticks() - self.timer_start
+                
                 if self.state == GameState.RUNNING:
                     self.game_world.update(delta_time)
-                
-                # Renderizar o jogo
+
                 self.game_world.render()
+
+                if self.state == GameState.RUNNING:
+                    self.hud.player = self.game_world.player
+                    self.hud.draw(elapsed_time=self.elapsed_time)
                 
-                # Renderizar overlay de pausa se necessário
                 if self.state == GameState.PAUSED:
                     self._draw_pause_overlay()
                 
-                # Atualizar a tela
+                self.hud.draw_debug_info(self) 
+                
                 pygame.display.flip()
         except Exception as e:
             print(f"Erro no jogo: {e}")
-            # Poderia salvar o erro em um arquivo de log aqui
         finally:
-            # Encerramento limpo, executado mesmo em caso de erro
             pygame.quit()
             sys.exit()

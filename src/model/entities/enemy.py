@@ -34,22 +34,14 @@ class Enemy(Entity):
     def position(self, value: Tuple[float, float]) -> None:
         self._position = pygame.Vector2(value)
     
-    def update_rotation(self, player_position: pygame.Vector2) -> None:
-        direction: pygame.Vector2 = pygame.Vector2(
-            player_position.x - self.position.x,
-            player_position.y - self.position.y
-        )
-        if direction.length() != 0:
-            direction = direction.normalize()
-        self.direction = direction
-        self.rotation = -math.degrees(math.atan2(direction.y, direction.x))
+    def update(self, player_pos: Tuple[float, float]) -> None:
+        self.rotate_towards(player_pos)
         
-        self.image = pygame.transform.rotate(self.base_enemy_image, self.rotation)
-        self.rect = self.image.get_rect(topleft=self.position)
-    
-    def update(self, player_position: pygame.Vector2) -> None:
-        if self.is_alive():
-            self.update_rotation(player_position)
+        angle_rad = math.radians(self.rotation)
+        self.direction = pygame.Vector2(math.cos(angle_rad), math.sin(angle_rad))
+        
+        self.image = pygame.transform.rotate(self.base_enemy_image, -self.rotation)
+        self.rect = self.image.get_rect(center=self.rect.center)
     
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.image, self.rect.topleft)
@@ -59,7 +51,7 @@ class Enemy(Entity):
         
         try:
             self.base_enemy_image = load_image("dead_enemy.png", self.size)
-            self.image = pygame.transform.rotate(self.base_enemy_image, self.rotation)
+            self.image = pygame.transform.rotate(self.base_enemy_image, -self.rotation)
             old_center = self.rect.center
             self.rect = self.image.get_rect()
             self.rect.center = old_center
