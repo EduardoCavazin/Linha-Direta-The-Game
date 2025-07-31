@@ -1,18 +1,18 @@
 {
   "Door": {
-    "name": "Porta Normal",
+    "name": "Porta para Próximo Mapa",
     "sprite": "assets/sprites/door.png",
     "locked": false,
-    "destination": "next_room",
+    "destination": "next_map",
     "sound": {
       "open": "assets/sounds/door_open.wav"
     }
   },
   "Door2": {
-    "name": "Porta do Mapa 2",
+    "name": "Porta do Mapa 3",
     "sprite": "assets/sprites/door.png",
     "locked": false,
-    "destination": "Mapa1",
+    "destination": "Mapa 3",
     "sound": {
       "open": "assets/sounds/door_open.wav"
     }

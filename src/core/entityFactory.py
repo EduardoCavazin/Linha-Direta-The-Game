@@ -180,26 +180,22 @@ class EntityFactory:
 
             properties = properties or {}
             locked = properties.get("locked", config.get("locked", False))
+            destination = properties.get("destination", config.get("destination", "next_room"))
 
             door = Door(
                 id=f"{door_type.lower()}_{id(position)}",
                 position=position,
                 size=(width, height),
                 locked=locked,
-                name=door_type 
+                name=door_type,
+                destination=destination
             )
-
-            door.destination = properties.get("destination", config.get("destination", "next_room"))
 
             return door
 
         except Exception as e:
             print(f"Erro ao criar porta {door_type}: {e}")
             return None
-                
-        except Exception as e:
-                print(f"Erro ao criar porta {door_type}: {e}")
-                return None
     
     def _create_weapon_for_entity(self, entity_type: str, entity_config: Dict) -> Optional[Weapon]:
         weapon_name = entity_config.get("weapon")
