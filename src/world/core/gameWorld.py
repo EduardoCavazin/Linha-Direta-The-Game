@@ -24,7 +24,8 @@ class GameWorld:
         
         self.current_room: Optional[Room] = None
         self.player: Optional[Player] = None
-        self.bullets: List[Bullet] = []
+        self.bullets: List[Bullet] = []         # Balas do jogador
+        self.enemy_bullets: List[Bullet] = []   # Balas dos inimigos
         self.render_queue: List = []
         self.last_teleport_time: float = 0.0 
         self.start_time = pygame.time.get_ticks()
@@ -126,6 +127,7 @@ class GameWorld:
     
         self._update_enemies()
         self._update_bullets()
+        self._update_enemy_bullets()
         self._check_item_collisions()
         self._check_door_collisions()
         
@@ -136,13 +138,18 @@ class GameWorld:
             return
         
         player_pos = self.player.position
+        delta_time = self.clock.get_time() / 1000.0
         
         # Armazena o número de inimigos vivos antes do update
         enemies_alive_before = self.current_room.get_alive_enemies_count()
         
         for enemy in self.current_room.enemies[:]:
             if enemy.is_alive():
-                enemy.update(player_pos)
+                # Update do inimigo que pode retornar uma bala
+                enemy_bullet = enemy.update(player_pos, delta_time)
+                if enemy_bullet:
+                    self.enemy_bullets.append(enemy_bullet)
+                    print(f"🔫 Inimigo {enemy.id} atirou!")
             else:
                 self.current_room.enemies.remove(enemy)
         
@@ -308,6 +315,7 @@ class GameWorld:
         self.render_queue.extend(self.current_room.items)
         self.render_queue.extend(self.current_room.doors)
         self.render_queue.extend(self.bullets)
+        self.render_queue.extend(self.enemy_bullets)  # Adiciona balas inimigas também
         
         # Debug: mostra quantos itens estão sendo renderizados (apenas quando há mudança)
         if len(self.current_room.items) > 0 and not hasattr(self, '_last_items_count'):
@@ -397,7 +405,38 @@ class GameWorld:
             "doors": len(self.current_room.doors)
         }
     
+    def _update_enemy_bullets(self) -> None:
+        """Atualiza as balas inimigas e verifica colisões"""
+        if not self.current_room or not self.player:
+            return
+        
+        delta_time = self.clock.get_time() / 1000.0
+        
+        for bullet in self.enemy_bullets[:]:
+            # Atualiza a bala com delta_time
+            if not bullet.update(delta_time, self.width, self.height):
+                self.enemy_bullets.remove(bullet)
+                continue
+            
+            # Verifica colisão com paredes usando o método check_collision da room
+            bullet_pos = (bullet.position.x, bullet.position.y)
+            bullet_size = (bullet.hitbox.width, bullet.hitbox.height)
+            if self.current_room.check_collision(bullet_pos, bullet_size):
+                self.enemy_bullets.remove(bullet)
+                continue
+            
+            # Verifica colisão com o jogador
+            if bullet.hitbox.colliderect(self.player.rect):
+                # Player toma dano
+                damage = bullet.damage
+                self.player.take_damage(damage)
+                print(f"💥 Player tomou {damage} de dano! Vida: {self.player.health}")
+                
+                # Remove a bala
+                self.enemy_bullets.remove(bullet)
+    
     def cleanup(self) -> None:
         self.bullets.clear()
+        self.enemy_bullets.clear()  # Limpa balas inimigas também
         self.render_queue.clear()
         print("GameWorld limpo")

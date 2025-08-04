@@ -238,3 +238,22 @@ class Player(Entity):
             print(f"🔫 +{actual_ammo} munições! Munição atual: {self.ammo}/{max_ammo}")
         else:
             print("🔸 Munição já está no máximo!")
+    
+    def take_damage(self, damage: int) -> None:
+        """Faz o jogador tomar dano"""
+        if damage <= 0:
+            return
+            
+        old_health = self.health
+        self.health = max(0, self.health - damage)
+        actual_damage = old_health - self.health
+        
+        if actual_damage > 0:
+            print(f"💥 -{actual_damage} de vida! Vida atual: {self.health}/100")
+            
+            # Verifica se o jogador morreu
+            if self.health <= 0:
+                self.alive = False
+                print("💀 Game Over!")
+        else:
+            print("🛡️ Nenhum dano recebido!")
