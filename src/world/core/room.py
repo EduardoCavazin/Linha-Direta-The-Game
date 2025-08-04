@@ -106,15 +106,15 @@ class Room:
     # BULLET COLLISION 
     # ==========================================
     
-    def handle_bullet_collisions(self, bullets: List[Bullet]) -> None:
+    def handle_bullet_collisions(self, bullets: List[Bullet], on_enemy_death_callback=None) -> None:
         if not bullets or not self.enemies:
             return
         
         for bullet in bullets[:]:
-            if self._process_bullet_collision(bullet, bullets):
+            if self._process_bullet_collision(bullet, bullets, on_enemy_death_callback):
                 break  
 
-    def _process_bullet_collision(self, bullet: Bullet, bullets: List[Bullet]) -> bool:
+    def _process_bullet_collision(self, bullet: Bullet, bullets: List[Bullet], on_enemy_death_callback=None) -> bool:
         bullet_rect = pygame.Rect(bullet.position.x, bullet.position.y, 8, 8)
         
         for enemy in self.enemies[:]:
@@ -135,8 +135,18 @@ class Room:
                     bullets.remove(bullet)
                 
                 if not enemy.is_alive():
+                    # Converte posição para tupla se necessário
+                    if hasattr(enemy.position, 'x') and hasattr(enemy.position, 'y'):
+                        enemy_position = (enemy.position.x, enemy.position.y)
+                    else:
+                        enemy_position = enemy.position
+                        
                     enemy.set_dead_state()
                     print(f"Inimigo {enemy.id} eliminado!")
+                    
+                    # Chama o callback para gerar drop de item se fornecido
+                    if on_enemy_death_callback:
+                        on_enemy_death_callback(enemy_position)
                 
                 return True
         

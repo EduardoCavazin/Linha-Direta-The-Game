@@ -7,6 +7,7 @@ from src.model.objects.bullet import Bullet
 from src.world.core.map import Map
 from src.world.core.room import Room
 from src.core.camera import Camera
+from src.core.entityFactory import EntityFactory
 
 
 class GameWorld:
@@ -17,6 +18,7 @@ class GameWorld:
         self.height: int = height
         
         self.map: Map = Map()
+        self.entity_factory: EntityFactory = EntityFactory()
         
         self.camera: Camera = Camera(width, height, 2000, 2000)
         
@@ -161,6 +163,39 @@ class GameWorld:
         for door in self.current_room.doors:
             door.unlock()
     
+    def _generate_enemy_drop(self, enemy_position: Tuple[float, float]) -> None:
+        """Gera um item aleatório na posição do inimigo morto com 50/50 de chance entre heal e ammo"""
+        if not self.current_room:
+            return
+        
+        # 50% de chance de dropar heal, 50% de chance de dropar ammo
+        drop_type = random.choice(["HealthPack", "AmmoPack"])
+        
+        # Adiciona um pequeno offset aleatório para evitar sobreposição
+        offset_x = random.uniform(-15, 15)
+        offset_y = random.uniform(-15, 15)
+        drop_position = (enemy_position[0] + offset_x, enemy_position[1] + offset_y)
+        
+        print(f"🎯 Gerando drop na posição: {drop_position}")
+        
+        dropped_item = self.entity_factory.create_item(drop_type, drop_position)
+        
+        if dropped_item:
+            # Configura os valores dos itens baseado no tipo
+            if drop_type == "HealthPack":
+                dropped_item.effect = "heal"
+                dropped_item.value = 25  # Cura 25 de vida
+            elif drop_type == "AmmoPack":
+                dropped_item.effect = "ammo"
+                dropped_item.value = 8   # Adiciona 8 munições
+            
+            self.current_room.items.append(dropped_item)
+            
+            item_name = "Kit Médico" if drop_type == "HealthPack" else "Munição"
+            print(f"💎 {item_name} foi dropado!")
+        else:
+            print("❌ Falha ao criar o item dropado!")
+    
     def _update_bullets(self) -> None:
         if not self.bullets:
             return
@@ -179,7 +214,8 @@ class GameWorld:
                 self.bullets.remove(bullet)
                 continue
         
-        self.current_room.handle_bullet_collisions(self.bullets)
+        # Passa o callback para gerar drops quando inimigos morrerem
+        self.current_room.handle_bullet_collisions(self.bullets, self._generate_enemy_drop)
     
     def _check_item_collisions(self) -> None:
         if not self.player or not self.current_room:
@@ -272,6 +308,14 @@ class GameWorld:
         self.render_queue.extend(self.current_room.items)
         self.render_queue.extend(self.current_room.doors)
         self.render_queue.extend(self.bullets)
+        
+        # Debug: mostra quantos itens estão sendo renderizados (apenas quando há mudança)
+        if len(self.current_room.items) > 0 and not hasattr(self, '_last_items_count'):
+            self._last_items_count = len(self.current_room.items)
+            print(f"🎨 Renderizando {len(self.current_room.items)} itens na tela")
+        elif len(self.current_room.items) != getattr(self, '_last_items_count', 0):
+            self._last_items_count = len(self.current_room.items)
+            print(f"🎨 Renderizando {len(self.current_room.items)} itens na tela")
         
     def render(self) -> None:
         self.screen.fill((88, 71, 71))

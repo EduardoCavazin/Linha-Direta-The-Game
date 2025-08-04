@@ -153,12 +153,23 @@ class EntityFactory:
                 print(f"Configuração do item {item_type} não encontrada")
                 return None
             
+            # Mapeia os tipos de item para os sprites corretos com variações aleatórias
+            import random
+            sprite_mapping = {
+                "HealthPack": random.choice(["sprites/medkit1.png", "sprites/medkit2.png"]),
+                "AmmoPack": random.choice(["sprites/ammo.png", "sprites/ammo2.png"]),
+                "KeyCard": "sprites/keycard.png"  # Caso exista
+            }
+            
+            sprite_name = sprite_mapping.get(item_type, f"{item_type.lower()}.png")
+            
             item = Item(
                 id=f"{item_type.lower()}_{id(position)}",
                 name=config.get("name", item_type),
                 position=position,
-                size=tuple(config.get("size", [16, 16])),
-                effect=config.get("effect", "")
+                size=tuple(config.get("size", [24, 24])),  # Aumentei de 16x16 para 24x24
+                effect=config.get("effect", ""),
+                sprite_name=sprite_name
             )
             
             if "value" in config:
