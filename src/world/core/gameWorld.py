@@ -35,9 +35,22 @@ class GameWorld:
             if self.current_room:
                 room_width, room_height = self.current_room.size
                 self.camera.set_world_bounds(room_width, room_height)
+                # Trava todas as portas no início
+                self._lock_room_doors()
+                # Se a sala inicial não tem inimigos, desbloqueia as portas
+                if self.current_room.get_alive_enemies_count() == 0:
+                    self._unlock_room_doors()
             self._spawn_player()
         else:
             print("ERRO: Nenhuma sala carregada!")
+    
+    def _lock_room_doors(self) -> None:
+        """Trava todas as portas da sala atual"""
+        if not self.current_room:
+            return
+            
+        for door in self.current_room.doors:
+            door.lock()
     
     def _spawn_player(self) -> None:
         spawn_pos = self.current_room.spawn_position if self.current_room else (100, 100)
@@ -122,11 +135,31 @@ class GameWorld:
         
         player_pos = self.player.position
         
+        # Armazena o número de inimigos vivos antes do update
+        enemies_alive_before = self.current_room.get_alive_enemies_count()
+        
         for enemy in self.current_room.enemies[:]:
             if enemy.is_alive():
                 enemy.update(player_pos)
             else:
                 self.current_room.enemies.remove(enemy)
+        
+        # Verifica se a sala foi limpa após eliminar inimigos
+        enemies_alive_after = self.current_room.get_alive_enemies_count()
+        
+        # Se havia inimigos antes e agora não há mais, a sala foi limpa
+        if enemies_alive_before > 0 and enemies_alive_after == 0:
+            self.current_room.mark_cleared()
+            self._unlock_room_doors()
+            print("🎉 Sala limpa! As portas foram desbloqueadas.")
+    
+    def _unlock_room_doors(self) -> None:
+        """Desbloqueia todas as portas da sala atual"""
+        if not self.current_room:
+            return
+            
+        for door in self.current_room.doors:
+            door.unlock()
     
     def _update_bullets(self) -> None:
         if not self.bullets:
@@ -180,6 +213,12 @@ class GameWorld:
                                   door.size[0], door.size[1])
             
             if player_rect.colliderect(door_rect):
+                # Verifica se a sala está limpa antes de permitir o teleporte
+                if not self.current_room.is_clear():
+                    enemies_remaining = self.current_room.get_alive_enemies_count()
+                    print(f"Não é possível avançar! Elimine os {enemies_remaining} inimigos restantes.")
+                    return
+                
                 self._handle_door_teleport(door)
                 self.last_teleport_time = current_time
                 break  
@@ -196,6 +235,15 @@ class GameWorld:
         self.current_room = target_room
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
+        
+        # Configura o estado das portas da nova sala
+        self._lock_room_doors()
+        if self.current_room.is_clear():
+            self._unlock_room_doors()
+            print("Sala já estava limpa - portas desbloqueadas.")
+        else:
+            enemies_count = self.current_room.get_alive_enemies_count()
+            print(f"Nova sala com {enemies_count} inimigos - elimine todos para desbloquear as portas.")
 
         if self.player:
             spawn_position = self.current_room.spawn_position
@@ -282,6 +330,12 @@ class GameWorld:
             if self.current_room:
                 room_width, room_height = self.current_room.size
                 self.camera.set_world_bounds(room_width, room_height)
+                
+                # Configura o estado das portas da nova sala
+                self._lock_room_doors()
+                if self.current_room.is_clear():
+                    self._unlock_room_doors()
+                
             if self.player:
                 self.player.position = self.current_room.spawn_position
         else:
