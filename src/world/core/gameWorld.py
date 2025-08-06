@@ -34,7 +34,29 @@ class GameWorld:
     
     def _initialize_world(self) -> None:
         if self.map.rooms:
-            self.current_room = self.map.rooms[0]
+            # Procura primeiro por uma sala chamada "Mapa1" para começar a sequência
+            start_room = None
+            
+            # Prioridade 1: Mapa1 para começar a sequência
+            for room in self.map.rooms:
+                if room.id == "Mapa1":
+                    start_room = room
+                    break
+            
+            # Prioridade 2: Sala com player
+            if not start_room:
+                for room in self.map.rooms:
+                    if room.player is not None:
+                        start_room = room
+                        break
+            
+            # Fallback: primeira sala
+            if not start_room:
+                start_room = self.map.rooms[0]
+            
+            self.current_room = start_room
+            print(f"Sala inicial selecionada: {self.current_room.id}")
+            
             if self.current_room:
                 room_width, room_height = self.current_room.size
                 self.camera.set_world_bounds(room_width, room_height)
@@ -264,14 +286,66 @@ class GameWorld:
                 break  
 
     def _handle_door_teleport(self, door) -> None:
+        # Verifica se a porta tem um destino específico
+        destination = getattr(door, 'destination', None)
+        
+        # Lógica de progressão sequencial para "next_map"
+        if destination == "next_map":
+            target_room = self._get_next_map()
+            if target_room:
+                print(f"Teletransportando de {self.current_room.id} para {target_room.id} (progressão sequencial)")
+                self._teleport_to_room(target_room)
+                return
+        
+        # Destino específico (como "Mapa 3")
+        elif destination and destination != "next_room":
+            target_room = None
+            for room in self.map.rooms:
+                if room.id == destination:
+                    target_room = room
+                    break
+            
+            if target_room:
+                print(f"Teletransportando de {self.current_room.id} para {target_room.id} (destino específico)")
+                self._teleport_to_room(target_room)
+                return
+            else:
+                print(f"Sala de destino '{destination}' não encontrada!")
+        
+        # Comportamento padrão: teleporte aleatório
         possible_rooms = [room for room in self.map.rooms if room != self.current_room]
         if not possible_rooms:
             print("Nenhuma outra sala disponível para teleporte!")
             return
 
         target_room = random.choice(possible_rooms)
-        print(f"Teletransportando de {self.current_room.id} para {target_room.id}")
+        print(f"Teletransportando de {self.current_room.id} para {target_room.id} (aleatório)")
+        self._teleport_to_room(target_room)
 
+    def _get_next_map(self) -> Optional[Room]:
+        """Retorna o próximo mapa na sequência: Mapa1 -> Mapa2 -> Mapa 3"""
+        current_id = self.current_room.id
+        
+        if current_id == "Mapa1":
+            next_id = "Mapa2"
+        elif current_id == "Mapa2":
+            next_id = "Mapa 3"
+        elif current_id == "Mapa 3":
+            next_id = "Mapa1"  # Loop de volta para o início
+        else:
+            # Se não é um dos mapas principais, vai para Mapa1
+            next_id = "Mapa1"
+        
+        # Busca o próximo mapa
+        for room in self.map.rooms:
+            if room.id == next_id:
+                return room
+        
+        print(f"Próximo mapa '{next_id}' não encontrado!")
+        return None
+
+    def _teleport_to_room(self, target_room: Room) -> None:
+        """Realiza o teletransporte para a sala especificada"""
         self.current_room = target_room
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
