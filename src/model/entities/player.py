@@ -81,7 +81,7 @@ class Player(Entity):
     
     def move(
         self,
-        directions: List[str],  # Agora recebe uma lista de strings!
+        directions: List[str],  
         delta_time: float,
         obstacles: Optional[list] = None,
         world_bounds: Optional[Tuple[int, int]] = None
@@ -185,8 +185,6 @@ class Player(Entity):
         return bullet
 
     def update(self, delta_time: float) -> None:
-        # Remove a rotação automática baseada no mouse aqui
-        # A rotação será controlada pelo GameWorld que tem acesso à câmera
         self.update_animation(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
@@ -214,33 +212,30 @@ class Player(Entity):
         self.rect = self.image.get_rect(center=old_center)
     
     def heal(self, amount: int) -> None:
-        """Cura o jogador por uma quantidade específica"""
         old_health = self.health
-        self.health = min(self.health + amount, 100)  # Máximo de 100 de vida
+        self.health = min(self.health + amount, 100) 
         actual_heal = self.health - old_health
         if actual_heal > 0:
-            print(f"❤️ +{actual_heal} de vida! Vida atual: {self.health}/100")
+            print(f" +{actual_heal} de vida! Vida atual: {self.health}/100")
         else:
-            print("🔸 Vida já está no máximo!")
+            print("Vida já está no máximo!")
     
     def add_ammo(self, amount: int) -> None:
-        """Adiciona munição ao jogador"""
         if not self.weapon:
-            print("🔸 Não há arma equipada!")
+            print(" Não há arma equipada!")
             return
             
         old_ammo = self.ammo
-        max_ammo = getattr(self.weapon, 'max_ammo', 100)  # Use max_ammo da arma ou 100 como padrão
+        max_ammo = getattr(self.weapon, 'max_ammo', 100)  
         self.ammo = min(self.ammo + amount, max_ammo)
         actual_ammo = self.ammo - old_ammo
         
         if actual_ammo > 0:
-            print(f"🔫 +{actual_ammo} munições! Munição atual: {self.ammo}/{max_ammo}")
+            print(f"+{actual_ammo} munições! Munição atual: {self.ammo}/{max_ammo}")
         else:
-            print("🔸 Munição já está no máximo!")
+            print(" Munição já está no máximo!")
     
     def take_damage(self, damage: int) -> None:
-        """Faz o jogador tomar dano"""
         if damage <= 0:
             return
             
@@ -249,11 +244,11 @@ class Player(Entity):
         actual_damage = old_health - self.health
         
         if actual_damage > 0:
-            print(f"💥 -{actual_damage} de vida! Vida atual: {self.health}/100")
+            print(f" -{actual_damage} de vida! Vida atual: {self.health}/100")
             
             # Verifica se o jogador morreu
             if self.health <= 0:
                 self.alive = False
-                print("💀 Game Over!")
+                print(" Game Over!")
         else:
-            print("🛡️ Nenhum dano recebido!")
+            print(" Nenhum dano recebido!")

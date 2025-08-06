@@ -183,25 +183,24 @@ class GameWorld:
         offset_y = random.uniform(-15, 15)
         drop_position = (enemy_position[0] + offset_x, enemy_position[1] + offset_y)
         
-        print(f"🎯 Gerando drop na posição: {drop_position}")
+        print(f" Gerando drop na posição: {drop_position}")
         
         dropped_item = self.entity_factory.create_item(drop_type, drop_position)
         
         if dropped_item:
-            # Configura os valores dos itens baseado no tipo
             if drop_type == "HealthPack":
                 dropped_item.effect = "heal"
-                dropped_item.value = 25  # Cura 25 de vida
+                dropped_item.value = 25  
             elif drop_type == "AmmoPack":
                 dropped_item.effect = "ammo"
-                dropped_item.value = 8   # Adiciona 8 munições
+                dropped_item.value = 8   
             
             self.current_room.items.append(dropped_item)
             
             item_name = "Kit Médico" if drop_type == "HealthPack" else "Munição"
-            print(f"💎 {item_name} foi dropado!")
+            print(f" {item_name} foi dropado!")
         else:
-            print("❌ Falha ao criar o item dropado!")
+            print(" Falha ao criar o item dropado!")
     
     def _update_bullets(self) -> None:
         if not self.bullets:
@@ -221,7 +220,6 @@ class GameWorld:
                 self.bullets.remove(bullet)
                 continue
         
-        # Passa o callback para gerar drops quando inimigos morrerem
         self.current_room.handle_bullet_collisions(self.bullets, self._generate_enemy_drop)
     
     def _check_item_collisions(self) -> None:
@@ -256,7 +254,6 @@ class GameWorld:
                                   door.size[0], door.size[1])
             
             if player_rect.colliderect(door_rect):
-                # Verifica se a sala está limpa antes de permitir o teleporte
                 if not self.current_room.is_clear():
                     enemies_remaining = self.current_room.get_alive_enemies_count()
                     print(f"Não é possível avançar! Elimine os {enemies_remaining} inimigos restantes.")
@@ -279,7 +276,6 @@ class GameWorld:
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
         
-        # Configura o estado das portas da nova sala
         self._lock_room_doors()
         if self.current_room.is_clear():
             self._unlock_room_doors()
@@ -315,15 +311,12 @@ class GameWorld:
         self.render_queue.extend(self.current_room.items)
         self.render_queue.extend(self.current_room.doors)
         self.render_queue.extend(self.bullets)
-        self.render_queue.extend(self.enemy_bullets)  # Adiciona balas inimigas também
+        self.render_queue.extend(self.enemy_bullets) 
         
-        # Debug: mostra quantos itens estão sendo renderizados (apenas quando há mudança)
         if len(self.current_room.items) > 0 and not hasattr(self, '_last_items_count'):
             self._last_items_count = len(self.current_room.items)
-            print(f"🎨 Renderizando {len(self.current_room.items)} itens na tela")
         elif len(self.current_room.items) != getattr(self, '_last_items_count', 0):
             self._last_items_count = len(self.current_room.items)
-            print(f"🎨 Renderizando {len(self.current_room.items)} itens na tela")
         
     def render(self) -> None:
         self.screen.fill((88, 71, 71))
@@ -336,7 +329,6 @@ class GameWorld:
             self._render_object_with_camera(obj)
 
     def _render_object_with_camera(self, obj) -> None:
-        """Renderiza um objeto aplicando a transformação da câmera."""
         if not hasattr(obj, 'position'):
             return
         
@@ -383,7 +375,6 @@ class GameWorld:
                 room_width, room_height = self.current_room.size
                 self.camera.set_world_bounds(room_width, room_height)
                 
-                # Configura o estado das portas da nova sala
                 self._lock_room_doors()
                 if self.current_room.is_clear():
                     self._unlock_room_doors()
@@ -406,37 +397,30 @@ class GameWorld:
         }
     
     def _update_enemy_bullets(self) -> None:
-        """Atualiza as balas inimigas e verifica colisões"""
         if not self.current_room or not self.player:
             return
         
         delta_time = self.clock.get_time() / 1000.0
         
         for bullet in self.enemy_bullets[:]:
-            # Atualiza a bala com delta_time
             if not bullet.update(delta_time, self.width, self.height):
                 self.enemy_bullets.remove(bullet)
                 continue
             
-            # Verifica colisão com paredes usando o método check_collision da room
             bullet_pos = (bullet.position.x, bullet.position.y)
             bullet_size = (bullet.hitbox.width, bullet.hitbox.height)
             if self.current_room.check_collision(bullet_pos, bullet_size):
                 self.enemy_bullets.remove(bullet)
                 continue
             
-            # Verifica colisão com o jogador
             if bullet.hitbox.colliderect(self.player.rect):
-                # Player toma dano
                 damage = bullet.damage
                 self.player.take_damage(damage)
-                print(f"💥 Player tomou {damage} de dano! Vida: {self.player.health}")
                 
-                # Remove a bala
                 self.enemy_bullets.remove(bullet)
     
     def cleanup(self) -> None:
         self.bullets.clear()
-        self.enemy_bullets.clear()  # Limpa balas inimigas também
+        self.enemy_bullets.clear()  
         self.render_queue.clear()
         print("GameWorld limpo")

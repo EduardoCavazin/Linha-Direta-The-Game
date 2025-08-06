@@ -135,7 +135,6 @@ class Room:
                     bullets.remove(bullet)
                 
                 if not enemy.is_alive():
-                    # Converte posição para tupla se necessário
                     if hasattr(enemy.position, 'x') and hasattr(enemy.position, 'y'):
                         enemy_position = (enemy.position.x, enemy.position.y)
                     else:
@@ -144,7 +143,6 @@ class Room:
                     enemy.set_dead_state()
                     print(f"Inimigo {enemy.id} eliminado!")
                     
-                    # Chama o callback para gerar drop de item se fornecido
                     if on_enemy_death_callback:
                         on_enemy_death_callback(enemy_position)
                 

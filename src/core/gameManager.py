@@ -132,10 +132,6 @@ class GameManager:
         
         self.screen.blit(pause_text, text_rect)
 
-    # ==========================================
-    # Camera
-    # ==========================================
-    
     def set_camera_smoothing(self, enabled: bool, factor: float = 0.1) -> None:
         if hasattr(self.game_world, 'camera'):
             self.game_world.camera.set_smoothing(enabled, factor)
