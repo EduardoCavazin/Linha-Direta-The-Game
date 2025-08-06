@@ -34,23 +34,19 @@ class GameWorld:
     
     def _initialize_world(self) -> None:
         if self.map.rooms:
-            # Procura primeiro por uma sala chamada "Mapa1" para começar a sequência
             start_room = None
             
-            # Prioridade 1: Mapa1 para começar a sequência
             for room in self.map.rooms:
                 if room.id == "Mapa1":
                     start_room = room
                     break
             
-            # Prioridade 2: Sala com player
             if not start_room:
                 for room in self.map.rooms:
                     if room.player is not None:
                         start_room = room
                         break
             
-            # Fallback: primeira sala
             if not start_room:
                 start_room = self.map.rooms[0]
             
@@ -60,9 +56,9 @@ class GameWorld:
             if self.current_room:
                 room_width, room_height = self.current_room.size
                 self.camera.set_world_bounds(room_width, room_height)
-                # Trava todas as portas no início
+                
                 self._lock_room_doors()
-                # Se a sala inicial não tem inimigos, desbloqueia as portas
+                
                 if self.current_room.get_alive_enemies_count() == 0:
                     self._unlock_room_doors()
             self._spawn_player()
@@ -70,7 +66,6 @@ class GameWorld:
             print("ERRO: Nenhuma sala carregada!")
     
     def _lock_room_doors(self) -> None:
-        """Trava todas as portas da sala atual"""
         if not self.current_room:
             return
             
@@ -113,7 +108,6 @@ class GameWorld:
         if keys[pygame.K_a]: directions.append("left")
         if keys[pygame.K_d]: directions.append("right")
 
-        # Chame move apenas uma vez, passando todas as direções
         self.player.move(directions, delta_time, obstacles, world_bounds)
 
         if keys[pygame.K_r]:
@@ -162,30 +156,25 @@ class GameWorld:
         player_pos = self.player.position
         delta_time = self.clock.get_time() / 1000.0
         
-        # Armazena o número de inimigos vivos antes do update
         enemies_alive_before = self.current_room.get_alive_enemies_count()
         
         for enemy in self.current_room.enemies[:]:
             if enemy.is_alive():
-                # Update do inimigo que pode retornar uma bala
                 enemy_bullet = enemy.update(player_pos, delta_time)
                 if enemy_bullet:
                     self.enemy_bullets.append(enemy_bullet)
-                    print(f"🔫 Inimigo {enemy.id} atirou!")
+                    print(f"Inimigo {enemy.id} atirou!")
             else:
                 self.current_room.enemies.remove(enemy)
         
-        # Verifica se a sala foi limpa após eliminar inimigos
         enemies_alive_after = self.current_room.get_alive_enemies_count()
         
-        # Se havia inimigos antes e agora não há mais, a sala foi limpa
         if enemies_alive_before > 0 and enemies_alive_after == 0:
             self.current_room.mark_cleared()
             self._unlock_room_doors()
-            print("🎉 Sala limpa! As portas foram desbloqueadas.")
+            print("Sala limpa! As portas foram desbloqueadas.")
     
     def _unlock_room_doors(self) -> None:
-        """Desbloqueia todas as portas da sala atual"""
         if not self.current_room:
             return
             
@@ -193,14 +182,11 @@ class GameWorld:
             door.unlock()
     
     def _generate_enemy_drop(self, enemy_position: Tuple[float, float]) -> None:
-        """Gera um item aleatório na posição do inimigo morto com 50/50 de chance entre heal e ammo"""
         if not self.current_room:
             return
         
-        # 50% de chance de dropar heal, 50% de chance de dropar ammo
         drop_type = random.choice(["HealthPack", "AmmoPack"])
         
-        # Adiciona um pequeno offset aleatório para evitar sobreposição
         offset_x = random.uniform(-15, 15)
         offset_y = random.uniform(-15, 15)
         drop_position = (enemy_position[0] + offset_x, enemy_position[1] + offset_y)
@@ -286,10 +272,8 @@ class GameWorld:
                 break  
 
     def _handle_door_teleport(self, door) -> None:
-        # Verifica se a porta tem um destino específico
         destination = getattr(door, 'destination', None)
         
-        # Lógica de progressão sequencial para "next_map"
         if destination == "next_map":
             target_room = self._get_next_map()
             if target_room:
@@ -297,7 +281,6 @@ class GameWorld:
                 self._teleport_to_room(target_room)
                 return
         
-        # Destino específico (como "Mapa 3")
         elif destination and destination != "next_room":
             target_room = None
             for room in self.map.rooms:
@@ -312,7 +295,6 @@ class GameWorld:
             else:
                 print(f"Sala de destino '{destination}' não encontrada!")
         
-        # Comportamento padrão: teleporte aleatório
         possible_rooms = [room for room in self.map.rooms if room != self.current_room]
         if not possible_rooms:
             print("Nenhuma outra sala disponível para teleporte!")
@@ -323,7 +305,6 @@ class GameWorld:
         self._teleport_to_room(target_room)
 
     def _get_next_map(self) -> Optional[Room]:
-        """Retorna o próximo mapa na sequência: Mapa1 -> Mapa2 -> Mapa 3"""
         current_id = self.current_room.id
         
         if current_id == "Mapa1":
@@ -331,12 +312,10 @@ class GameWorld:
         elif current_id == "Mapa2":
             next_id = "Mapa 3"
         elif current_id == "Mapa 3":
-            next_id = "Mapa1"  # Loop de volta para o início
+            next_id = "Mapa1"  
         else:
-            # Se não é um dos mapas principais, vai para Mapa1
             next_id = "Mapa1"
         
-        # Busca o próximo mapa
         for room in self.map.rooms:
             if room.id == next_id:
                 return room
@@ -345,7 +324,6 @@ class GameWorld:
         return None
 
     def _teleport_to_room(self, target_room: Room) -> None:
-        """Realiza o teletransporte para a sala especificada"""
         self.current_room = target_room
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)

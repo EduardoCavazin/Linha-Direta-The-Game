@@ -153,26 +153,21 @@ class EntityFactory:
                 print(f"Configuração do item {item_type} não encontrada")
                 return None
             
-            import random
-            sprite_mapping = {
-                "HealthPack": random.choice(["sprites/medkit1.png", "sprites/medkit2.png"]),
-                "AmmoPack": random.choice(["sprites/ammo.png", "sprites/ammo2.png"]),
-                "KeyCard": "sprites/keycard.png"  # Caso exista
-            }
+            sprite_name = config.get("sprite", f"assets/sprites/{item_type.lower()}.png")
             
-            sprite_name = sprite_mapping.get(item_type, f"{item_type.lower()}.png")
+            print(f"Criando item {item_type} com sprite: {sprite_name}")
             
             item = Item(
                 id=f"{item_type.lower()}_{id(position)}",
                 name=config.get("name", item_type),
                 position=position,
                 size=tuple(config.get("size", [24, 24])),  
-                effect=config.get("effect", ""),
+                effect=config.get("effect", {}).get("type", ""),
                 sprite_name=sprite_name
             )
             
-            if "value" in config:
-                item.value = config["value"]
+            if "effect" in config and "value" in config["effect"]:
+                item.value = config["effect"]["value"]
             
             return item
             

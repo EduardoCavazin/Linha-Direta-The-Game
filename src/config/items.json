@@ -3,7 +3,7 @@
     "name": "Kit Médico",
     "description": "Recupera 50 de saúde",
     "size": [16, 16],
-    "sprite": "assets/sprites/health_pack.png",
+    "sprite": "assets/sprites/medkit1.png",
     "effect": {
       "type": "heal",
       "value": 50
