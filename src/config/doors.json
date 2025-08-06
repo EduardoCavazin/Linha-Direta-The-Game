@@ -1,20 +1,18 @@
 {
   "Door": {
-    "name": "Porta Normal",
+    "name": "Porta para Próximo Mapa",
     "sprite": "assets/sprites/door.png",
-    "size": [32, 48],
     "locked": false,
-    "destination": "next_room",
+    "destination": "next_map",
     "sound": {
       "open": "assets/sounds/door_open.wav"
     }
   },
   "Door2": {
-    "name": "Porta do Mapa 2",
+    "name": "Porta do Mapa 3",
     "sprite": "assets/sprites/door.png",
-    "size": [32, 48],
     "locked": false,
-    "destination": "Mapa1",
+    "destination": "Mapa 3",
     "sound": {
       "open": "assets/sounds/door_open.wav"
     }
@@ -22,7 +20,6 @@
   "LockedDoor": {
     "name": "Porta Trancada",
     "sprite": "assets/sprites/locked_door.png",
-    "size": [32, 48],
     "locked": true,
     "key_item": "KeyCard",
     "destination": "secure_room",
@@ -35,7 +32,6 @@
   "ExitDoor": {
     "name": "Saída",
     "sprite": "assets/sprites/exit_door.png",
-    "size": [48, 48],
     "locked": true,
     "key_item": "Evidence",
     "required_count": 3,

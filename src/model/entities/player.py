@@ -81,29 +81,33 @@ class Player(Entity):
     
     def move(
         self,
-        direction: str,
+        directions: List[str],  
         delta_time: float,
         obstacles: Optional[list] = None,
         world_bounds: Optional[Tuple[int, int]] = None
     ) -> None:
         self.moving = True
-        
+
+        direction_vector = pygame.Vector2(0, 0)
+        for direction in directions:
+            if direction == "up":
+                direction_vector.y -= 1
+            if direction == "down":
+                direction_vector.y += 1
+            if direction == "left":
+                direction_vector.x -= 1
+            if direction == "right":
+                direction_vector.x += 1
+
+        if direction_vector.length() > 0:
+            direction_vector = direction_vector.normalize()
+
         speed = self.speed * delta_time
-        current_pos = self.position
-        
-        new_pos = current_pos
-        if direction == "up":
-            new_pos = (current_pos[0], current_pos[1] - speed)
-        elif direction == "down":
-            new_pos = (current_pos[0], current_pos[1] + speed)
-        elif direction == "left":
-            new_pos = (current_pos[0] - speed, current_pos[1])
-        elif direction == "right":
-            new_pos = (current_pos[0] + speed, current_pos[1])
-        
+        move_vec = direction_vector * speed
+        new_pos = (self.position[0] + move_vec.x, self.position[1] + move_vec.y)
+
         if not self._check_collision(new_pos, obstacles):
             self.position = new_pos
-            
             if world_bounds:
                 self._clamp_to_bounds(world_bounds)
 
@@ -145,7 +149,6 @@ class Player(Entity):
         
         from src.model.objects.bullet import Bullet
         
-        # Usa a posição do mundo passada como parâmetro, ou pega a posição do mouse se não fornecida
         if target_world_pos is None:
             mouse_pos = pygame.mouse.get_pos()
             mouse_x, mouse_y = mouse_pos
@@ -182,8 +185,6 @@ class Player(Entity):
         return bullet
 
     def update(self, delta_time: float) -> None:
-        # Remove a rotação automática baseada no mouse aqui
-        # A rotação será controlada pelo GameWorld que tem acesso à câmera
         self.update_animation(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
@@ -208,4 +209,46 @@ class Player(Entity):
         
         old_center = self.rect.center
         self.image = pygame.transform.rotate(self.base_player_image, -self.rotation)
-        self.rect = self.image.get_rect(center=old_center) 
+        self.rect = self.image.get_rect(center=old_center)
+    
+    def heal(self, amount: int) -> None:
+        old_health = self.health
+        self.health = min(self.health + amount, 100) 
+        actual_heal = self.health - old_health
+        if actual_heal > 0:
+            print(f" +{actual_heal} de vida! Vida atual: {self.health}/100")
+        else:
+            print("Vida já está no máximo!")
+    
+    def add_ammo(self, amount: int) -> None:
+        if not self.weapon:
+            print(" Não há arma equipada!")
+            return
+            
+        old_ammo = self.ammo
+        max_ammo = getattr(self.weapon, 'max_ammo', 100)  
+        self.ammo = min(self.ammo + amount, max_ammo)
+        actual_ammo = self.ammo - old_ammo
+        
+        if actual_ammo > 0:
+            print(f"+{actual_ammo} munições! Munição atual: {self.ammo}/{max_ammo}")
+        else:
+            print(" Munição já está no máximo!")
+    
+    def take_damage(self, damage: int) -> None:
+        if damage <= 0:
+            return
+            
+        old_health = self.health
+        self.health = max(0, self.health - damage)
+        actual_damage = old_health - self.health
+        
+        if actual_damage > 0:
+            print(f" -{actual_damage} de vida! Vida atual: {self.health}/100")
+            
+            # Verifica se o jogador morreu
+            if self.health <= 0:
+                self.alive = False
+                print(" Game Over!")
+        else:
+            print(" Nenhum dano recebido!")

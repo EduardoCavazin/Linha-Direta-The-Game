@@ -2,12 +2,12 @@ from typing import Tuple
 from src.model.objects.gameObject import GameObject
 
 class Door(GameObject):
-    def __init__(self, id: str, position: Tuple[float, float], size: Tuple[int, int], locked: bool = False, name: str = "Door") -> None:
+    def __init__(self, id: str, position: Tuple[float, float], size: Tuple[int, int], locked: bool = False, name: str = "Door", destination: str = "next_room") -> None:
         super().__init__(id, position, size)
         self.locked: bool = locked
         self.opened: bool = False
-        self.name: str = name  # Nome da porta para identificação
-        self.destination: str = "next_room"  # Destino padrão
+        self.name: str = name  
+        self.destination: str = destination 
 
     @property
     def position(self) -> Tuple[float, float]:

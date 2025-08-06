@@ -2,7 +2,8 @@ import pygame
 import sys
 from enum import Enum, auto
 from src.world.core.gameWorld import GameWorld
-from src.core.audioManager import AudioManager  
+from src.core.audioManager import AudioManager 
+from src.ui.hud import Hud
 
 
 WIDTH: int = 950
@@ -37,13 +38,24 @@ class GameManager:
         self.footstep_timer = 0
         
         self.audio_manager.play_background_music()
+        self.hud = Hud(self.screen, self.game_world.player, self.clock)
+        
+        self.timer_running = True
+        self.timer_start = pygame.time.get_ticks()
+        self.timer_paused_at = 0
+        self.elapsed_time = 0
         
 
     def toggle_pause(self) -> None:
         if self.state == GameState.RUNNING:
             self.state = GameState.PAUSED
+            self.timer_runnig = False
+            self.timer_paused_at = pygame.time.get_ticks()
         elif self.state == GameState.PAUSED:
             self.state = GameState.RUNNING
+            self.timer_runnig = True
+            pause_duration = pygame.time.get_ticks() - self.timer_paused_at
+            self.timer_start += pause_duration
 
     def handle_events(self) -> None:
         self._process_system_events()
@@ -66,18 +78,17 @@ class GameManager:
             else:
                 self.footstep_timer = 0
         
-        if keys[pygame.K_KP_PLUS]:  # + no teclado numérico
+        if keys[pygame.K_KP_PLUS]: 
             current_vol = self.audio_manager.music_volume
             self.audio_manager.set_music_volume(current_vol + 0.01)
         
-        if keys[pygame.K_KP_MINUS]:  # - no teclado numérico
+        if keys[pygame.K_KP_MINUS]: 
             current_vol = self.audio_manager.music_volume
             self.audio_manager.set_music_volume(current_vol - 0.01)
         
         if keys[pygame.K_ESCAPE]:
             self.state = GameState.GAME_OVER
         
-        # Controles de debug da câmera
         if keys[pygame.K_1]:  # Tecla 1 - ativa suavização rápida
             self.set_camera_smoothing(True, 0.5)
         
@@ -121,64 +132,16 @@ class GameManager:
         
         self.screen.blit(pause_text, text_rect)
 
-    def _draw_debug_info(self) -> None:
-        """Desenha informações de debug na tela."""
-        if not getattr(self, '_show_debug_info', False):
-            return
-            
-        try:
-            font = pygame.font.Font(None, 24)
-        except:
-            return
-            
-        # Informações da câmera
-        camera_pos = self.get_camera_position()
-        player_pos = self.get_player_position()
-        
-        # Posição do mouse no mundo
-        mouse_screen_pos = pygame.mouse.get_pos()
-        mouse_world_pos = (0, 0)
-        if hasattr(self.game_world, 'camera'):
-            mouse_world_pos = self.game_world.camera.screen_to_world(mouse_screen_pos)
-        
-        debug_lines = [
-            f"Camera: ({camera_pos[0]:.0f}, {camera_pos[1]:.0f})",
-            f"Player: ({player_pos[0]:.0f}, {player_pos[1]:.0f})",
-            f"Mouse (Screen): ({mouse_screen_pos[0]}, {mouse_screen_pos[1]})",
-            f"Mouse (World): ({mouse_world_pos[0]:.0f}, {mouse_world_pos[1]:.0f})",
-            f"Bullets: {len(self.game_world.bullets)}",
-            f"FPS: {self.clock.get_fps():.0f}",
-            "Controls:",
-            "1/2/3 - Camera smoothing",
-            "F1 - Toggle debug info"
-        ]
-        
-        y_offset = 10
-        for line in debug_lines:
-            text = font.render(line, True, (255, 255, 255))
-            # Fundo preto semi-transparente
-            bg_rect = pygame.Rect(10, y_offset, text.get_width() + 10, text.get_height())
-            pygame.draw.rect(self.screen, (0, 0, 0, 128), bg_rect)
-            self.screen.blit(text, (15, y_offset))
-            y_offset += 25
-
-    # ==========================================
-    # CAMERA CONTROLS (for debugging/testing)
-    # ==========================================
-    
     def set_camera_smoothing(self, enabled: bool, factor: float = 0.1) -> None:
-        """Define as configurações de suavização da câmera."""
         if hasattr(self.game_world, 'camera'):
             self.game_world.camera.set_smoothing(enabled, factor)
     
     def get_camera_position(self) -> tuple:
-        """Retorna a posição atual da câmera."""
         if hasattr(self.game_world, 'camera'):
             return (self.game_world.camera.x, self.game_world.camera.y)
         return (0, 0)
     
     def get_player_position(self) -> tuple:
-        """Retorna a posição atual do jogador."""
         if self.game_world.player:
             return self.game_world.player.position
         return (0, 0)
@@ -190,15 +153,22 @@ class GameManager:
                 
                 self.handle_events()
                 
+                if self.timer_running:
+                    self.elapsed_time = pygame.time.get_ticks() - self.timer_start
+                
                 if self.state == GameState.RUNNING:
                     self.game_world.update(delta_time)
-                
+
                 self.game_world.render()
+
+                if self.state == GameState.RUNNING:
+                    self.hud.player = self.game_world.player
+                    self.hud.draw(elapsed_time=self.elapsed_time)
                 
                 if self.state == GameState.PAUSED:
                     self._draw_pause_overlay()
                 
-                self._draw_debug_info()  # Desenha informações de debug a cada quadro
+                self.hud.draw_debug_info(self) 
                 
                 pygame.display.flip()
         except Exception as e:
