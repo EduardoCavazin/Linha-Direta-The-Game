@@ -42,4 +42,9 @@ class Item(GameObject):
                 target.ammo = min(target.ammo + 10, target.weapon.max_ammo)
 
     def draw(self, screen: pygame.Surface) -> None:
-        screen.blit(self.image, self.hitbox.topleft)
+        if hasattr(self, 'image') and self.image is not None:
+            print(f"Desenhando item {self.name} - Imagem: {self.image.get_size()}")
+            screen.blit(self.image, self.hitbox.topleft)
+        else:
+            print(f"ERRO: Item {self.name} não tem imagem válida!")
+            pygame.draw.rect(screen, (255, 0, 255), self.hitbox, 2)

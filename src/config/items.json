@@ -20,27 +20,5 @@
       "value": 15
     },
     "collectible": true
-  },
-  "KeyCard": {
-    "name": "Cartão de Acesso",
-    "description": "Abre portas trancadas",
-    "size": [16, 16],
-    "sprite": "assets/sprites/keycard.png",
-    "effect": {
-      "type": "key",
-      "door_type": "LockedDoor"
-    },
-    "collectible": true
-  },
-  "Evidence": {
-    "name": "Evidência",
-    "description": "Uma pista importante",
-    "size": [16, 16],
-    "sprite": "assets/sprites/evidence.png",
-    "effect": {
-      "type": "progress",
-      "value": 1
-    },
-    "collectible": true
   }
 }

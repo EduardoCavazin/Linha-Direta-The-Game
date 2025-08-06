@@ -120,7 +120,7 @@ class Enemy(Entity):
         self.status = "dead"
         
         try:
-            self.base_enemy_image = load_image("dead_enemy.png", self.size)
+            self.base_enemy_image = load_image("sprites/dead_enemy.png", self.size)
             self.image = pygame.transform.rotate(self.base_enemy_image, -self.rotation)
             old_center = self.rect.center
             self.rect = self.image.get_rect()

@@ -111,12 +111,6 @@
    <point/>
   </object>
   <object id="7" name="Door" x="770.941" y="69.9778" width="124.537" height="43.8844"/>
-  <object id="9" name="BasicEnemy" x="371.107" y="315.354" visible="0">
-   <point/>
-  </object>
-  <object id="10" name="BasicEnemy" x="552.305" y="296.189" visible="0">
-   <point/>
-  </object>
   <object id="12" name="BasicEnemy" x="374.592" y="346.715">
    <point/>
   </object>

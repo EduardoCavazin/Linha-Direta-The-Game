@@ -399,10 +399,15 @@ class GameWorld:
             
         screen_pos = self.camera.world_to_screen(obj_pos)
         
-        if hasattr(obj, 'rect') and hasattr(obj, 'image'):
-            screen_rect = obj.rect.copy()
-            screen_rect.center = screen_pos
-            self.screen.blit(obj.image, screen_rect)
+        if hasattr(obj, 'image') and obj.image is not None:
+            if hasattr(obj, 'rect'):
+                screen_rect = obj.rect.copy()
+                screen_rect.center = screen_pos
+                self.screen.blit(obj.image, screen_rect)
+            elif hasattr(obj, 'hitbox'):
+                self.screen.blit(obj.image, screen_pos)
+            else:
+                self.screen.blit(obj.image, screen_pos)
         elif hasattr(obj, 'hitbox'):
             screen_hitbox = obj.hitbox.copy()
             screen_hitbox.topleft = screen_pos
