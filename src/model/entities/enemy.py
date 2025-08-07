@@ -18,8 +18,27 @@ class Enemy(Entity):
         health: int,
         weapon: Optional[Any],
         ammo: int,
-        status: str
+        status: str,
+        sprite_config: dict = None,
+        detection_range: float = 250,
+        drops: list = None
     ) -> None:
+        # Usar configurações do JSON
+        sprite_config = sprite_config or {}
+        sprite_path = sprite_config.get("path", "sprites/enemy.png")  # Sprite genérico como fallback
+        
+        image = load_image(sprite_path, size)
+        
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status)
+        
+        # Configurações específicas do inimigo
+        self.detection_range = detection_range
+        self.drops = drops or []
+        
+        # Configurações de animação (se implementar no futuro)
+        self.frame_count = sprite_config.get("frames", 1)
+        self.animation_speed = sprite_config.get("animation_speed", 0.15)
+        
         self.base_enemy_image: pygame.Surface = load_image("sprites/Player_Movement.png", size)
         self.base_enemy_rect: pygame.Rect = self.base_enemy_image.get_rect(topleft=position)
         
@@ -28,14 +47,11 @@ class Enemy(Entity):
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         
         # Atributos de combate
-        self.detection_range: float = 200.0  
         self.attack_range: float = 120.0     
         self.attack_cooldown: float = 0.0    
         self.attack_interval: float = 1.2    
         self.last_attack_time: float = 0.0
         
-        super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
-    
     @property
     def position(self) -> pygame.Vector2:
         return self._position

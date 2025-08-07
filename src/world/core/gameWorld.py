@@ -75,20 +75,19 @@ class GameWorld:
     def _spawn_player(self) -> None:
         spawn_pos = self.current_room.spawn_position if self.current_room else (100, 100)
         
-        from src.model.objects.weapon import Weapon
-        weapon = Weapon("pistol", "Pistola", 25, 12)
+        # CORREÇÃO: Usar EntityFactory em vez de criar manualmente
+        self.player = self.entity_factory.create_player(spawn_pos)
         
-        self.player = Player(
-            id="player_main",
-            name="Jogador",
-            position=spawn_pos,
-            size=(32, 32),
-            speed=200,
-            health=100,
-            weapon=weapon,
-            ammo=12,
-            status="alive"
-        )
+        if self.player:
+            # Configurar arma (se necessário)
+            from src.model.objects.weapon import Weapon
+            weapon = Weapon("pistol", "Pistola", 25, 12)
+            self.player.weapon = weapon
+            self.player.ammo = 12
+            
+            print(f"Player principal criado com EntityFactory: {self.player.id}")
+        else:
+            print("ERRO: Falha ao criar player principal com EntityFactory!")
         
     # ==========================================
     # INPUT PROCESSING 
@@ -137,17 +136,63 @@ class GameWorld:
         if not self.current_room:
             return
         
-        if self.player:
-            self.player.update(delta_time)
-            self.camera.follow_target(self.player)
-    
-        self._update_enemies()
-        self._update_bullets()
-        self._update_enemy_bullets()
-        self._check_item_collisions()
-        self._check_door_collisions()
+        try:
+            if self.player:
+                self.player.update(delta_time)
+                self.camera.follow_target(self.player)
+        except AttributeError as e:
+            print(f"ERRO no player.update(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
         
-        self._update_render_queue()
+        try:
+            self._update_enemies()
+        except AttributeError as e:
+            print(f"ERRO no _update_enemies(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._update_bullets()
+        except AttributeError as e:
+            print(f"ERRO no _update_bullets(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._update_enemy_bullets()
+        except AttributeError as e:
+            print(f"ERRO no _update_enemy_bullets(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._check_item_collisions()
+        except AttributeError as e:
+            print(f"ERRO no _check_item_collisions(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._check_door_collisions()
+        except AttributeError as e:
+            print(f"ERRO no _check_door_collisions(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._update_render_queue()
+        except AttributeError as e:
+            print(f"ERRO no _update_render_queue(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
     
     def _update_enemies(self) -> None:
         if not self.player or not self.current_room:
@@ -234,16 +279,14 @@ class GameWorld:
         if not self.player or not self.current_room:
             return
         
-        player_rect = pygame.Rect(self.player.position[0], self.player.position[1], 
-                                self.player.size[0], self.player.size[1])
-        
+        # CORREÇÃO: Usar o hitbox do player em vez de criar um Rect manual
         for item in self.current_room.items[:]:
-            if player_rect.colliderect(item.hitbox):
+            if self.player.hitbox.colliderect(item.hitbox):
                 if item.effect == "heal":
                     self.player.heal(item.value)
                 elif item.effect == "ammo":
                     self.player.add_ammo(item.value)
-                
+            
                 self.current_room.items.remove(item)
 
     def _check_door_collisions(self) -> None:
@@ -254,14 +297,12 @@ class GameWorld:
         if current_time - self.last_teleport_time < 1.0:  
             return
         
-        player_rect = pygame.Rect(self.player.position[0], self.player.position[1], 
-                                self.player.size[0], self.player.size[1])
-        
+        # CORREÇÃO: Usar o hitbox do player
         for door in self.current_room.doors:
             door_rect = pygame.Rect(door.position[0], door.position[1], 
                                   door.size[0], door.size[1])
-            
-            if player_rect.colliderect(door_rect):
+        
+            if self.player.hitbox.colliderect(door_rect):
                 if not self.current_room.is_clear():
                     enemies_remaining = self.current_room.get_alive_enemies_count()
                     print(f"Não é possível avançar! Elimine os {enemies_remaining} inimigos restantes.")
@@ -389,9 +430,9 @@ class GameWorld:
             obj_pos = (obj_pos.x, obj_pos.y)
             
         obj_size = getattr(obj, 'size', (32, 32))
-        if hasattr(obj, 'rect'):
+        if hasattr(obj, 'rect') and obj.rect is not None:
             obj_size = (obj.rect.width, obj.rect.height)
-        elif hasattr(obj, 'hitbox'):
+        elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
             obj_size = (obj.hitbox.width, obj.hitbox.height)
             
         if not self.camera.is_visible(obj_pos, obj_size):
@@ -399,25 +440,31 @@ class GameWorld:
             
         screen_pos = self.camera.world_to_screen(obj_pos)
         
+        # Renderizar baseado no que o objeto realmente tem
         if hasattr(obj, 'image') and obj.image is not None:
-            if hasattr(obj, 'rect'):
+            if hasattr(obj, 'rect') and obj.rect is not None:
                 screen_rect = obj.rect.copy()
                 screen_rect.center = screen_pos
                 self.screen.blit(obj.image, screen_rect)
-            elif hasattr(obj, 'hitbox'):
+            elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
+                # Para objetos com hitbox (como Player, Enemy, Item)
                 self.screen.blit(obj.image, screen_pos)
             else:
+                # Fallback para objetos só com imagem
                 self.screen.blit(obj.image, screen_pos)
-        elif hasattr(obj, 'hitbox'):
+        elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
+            # Fallback: desenha retângulo vermelho apenas se não tiver imagem
             screen_hitbox = obj.hitbox.copy()
             screen_hitbox.topleft = screen_pos
             pygame.draw.rect(self.screen, (255, 0, 0), screen_hitbox)
         else:
+            # Último fallback para objetos com método draw customizado
             if hasattr(obj, 'draw'):
-                original_pos = obj.position
+                original_pos = obj.position if hasattr(obj, 'position') else None
                 obj.position = screen_pos
                 obj.draw(self.screen)
-                obj.position = original_pos
+                if original_pos:
+                    obj.position = original_pos
         
 
     # ==========================================
@@ -470,7 +517,8 @@ class GameWorld:
                 self.enemy_bullets.remove(bullet)
                 continue
             
-            if bullet.hitbox.colliderect(self.player.rect):
+            # CORREÇÃO: Usar hitbox em vez de rect
+            if bullet.hitbox.colliderect(self.player.hitbox):
                 damage = bullet.damage
                 self.player.take_damage(damage)
                 
