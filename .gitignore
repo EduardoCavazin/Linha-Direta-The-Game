@@ -13,6 +13,7 @@ __pycache__/
 .idea/
 *.swp
 *.swo
+.claude
 
 # Sistema
 .DS_Store

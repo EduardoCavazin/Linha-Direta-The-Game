@@ -16,7 +16,8 @@ class Room:
         visited: bool,
         background: pygame.Surface,
         collision_matrix: Optional[List[List[bool]]] = None,
-        tile_size: Tuple[int, int] = (32, 32)
+        tile_size: Tuple[int, int] = (32, 32),
+        tmx_objects_data: Optional[List[dict]] = None
     ) -> None:
         self.id: str = id
         self.size: Tuple[int, int] = size
@@ -24,6 +25,37 @@ class Room:
         self.tile_size: Tuple[int, int] = tile_size
         
         self.cleared: bool = cleared
+        self.visited: bool = visited
+        
+        self.objects: List[Any] = objects or []
+        self.enemies: List[Any] = enemies or []
+        self.items: List[Any] = items or []
+        self.doors: List[Any] = doors or []
+        
+        self.collision_matrix: Optional[List[List[bool]]] = collision_matrix
+        self._wall_rects_cache: Optional[List[pygame.Rect]] = None
+        
+        # Armazenar dados do TMX para buscar spawn point
+        self.tmx_objects_data = tmx_objects_data
+        self.spawn_position: Tuple[float, float] = self._extract_spawn_position(player)
+        
+    def _extract_spawn_position(self, player: Optional[Any]) -> Tuple[float, float]:
+        # Primeiro, tentar encontrar spawn point no TMX
+        if self.tmx_objects_data:
+            for obj in self.tmx_objects_data:
+                if obj.get("name") == "Player":
+                    spawn_x = obj.get("x", 100.0)
+                    spawn_y = obj.get("y", 100.0)
+                    print(f"🎯 Spawn do TMX encontrado: ({spawn_x}, {spawn_y})")
+                    return (spawn_x, spawn_y)
+        
+        # Fallback: posição atual do player ou padrão
+        if player and hasattr(player, 'position'):
+            print(f"⚠️ Usando posição atual do player: {player.position}")
+            return player.position
+            
+        print(f"⚠️ Usando spawn padrão: (100, 100)")
+        return (100.0, 100.0)
         self.visited: bool = visited
         
         self.objects: List[Any] = objects or []

@@ -61,7 +61,8 @@ class Map:
                 cleared=False,
                 visited=False,
                 background=background,
-                collision_matrix=collision_matrix
+                collision_matrix=collision_matrix,
+                tmx_objects_data=entities_data
             )
             
             return room

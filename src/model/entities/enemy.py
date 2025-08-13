@@ -39,7 +39,7 @@ class Enemy(Entity):
         self.frame_count = sprite_config.get("frames", 1)
         self.animation_speed = sprite_config.get("animation_speed", 0.15)
         
-        self.base_enemy_image: pygame.Surface = load_image("sprites/Player_Movement.png", size)
+        self.base_enemy_image: pygame.Surface = load_image("sprites/Enemy4.png", size)
         self.base_enemy_rect: pygame.Rect = self.base_enemy_image.get_rect(topleft=position)
         
         self.image: pygame.Surface = self.base_enemy_image

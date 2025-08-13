@@ -22,7 +22,7 @@
     "hitbox_size": [24, 24],
     "detection_range": 250,
     "sprite": {
-      "path": "sprites/Player_Movement.png",
+      "path": "sprites/Enemy4.png",
       "frames": 4,
       "animation_speed": 0.15
     },

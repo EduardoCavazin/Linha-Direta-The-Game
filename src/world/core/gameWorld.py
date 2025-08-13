@@ -107,6 +107,10 @@ class GameWorld:
         if keys[pygame.K_a]: directions.append("left")
         if keys[pygame.K_d]: directions.append("right")
 
+        # Debug: mostrar input e posição
+        if directions:
+            print(f"🎹 Teclas: {directions} | Pos: {self.player.position} | Obstacles: {len(obstacles)}")
+
         self.player.move(directions, delta_time, obstacles, world_bounds)
 
         if keys[pygame.K_r]:
@@ -279,9 +283,9 @@ class GameWorld:
         if not self.player or not self.current_room:
             return
         
-        # CORREÇÃO: Usar o hitbox do player em vez de criar um Rect manual
+        # CORREÇÃO: Usar o _rect do player e hitbox do item
         for item in self.current_room.items[:]:
-            if self.player.hitbox.colliderect(item.hitbox):
+            if self.player._rect.colliderect(item.hitbox):
                 if item.effect == "heal":
                     self.player.heal(item.value)
                 elif item.effect == "ammo":
@@ -297,12 +301,12 @@ class GameWorld:
         if current_time - self.last_teleport_time < 1.0:  
             return
         
-        # CORREÇÃO: Usar o hitbox do player
+        # CORREÇÃO: Usar o _rect do player
         for door in self.current_room.doors:
             door_rect = pygame.Rect(door.position[0], door.position[1], 
                                   door.size[0], door.size[1])
         
-            if self.player.hitbox.colliderect(door_rect):
+            if self.player._rect.colliderect(door_rect):
                 if not self.current_room.is_clear():
                     enemies_remaining = self.current_room.get_alive_enemies_count()
                     print(f"Não é possível avançar! Elimine os {enemies_remaining} inimigos restantes.")
@@ -365,6 +369,7 @@ class GameWorld:
         return None
 
     def _teleport_to_room(self, target_room: Room) -> None:
+        print(f"🚪 TELEPORTE: Mudando para {target_room.id}")
         self.current_room = target_room
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
@@ -378,10 +383,64 @@ class GameWorld:
             print(f"Nova sala com {enemies_count} inimigos - elimine todos para desbloquear as portas.")
 
         if self.player:
+            old_position = self.player.position
             spawn_position = self.current_room.spawn_position
+            print(f"🎮 Posição antiga: {old_position}")
+            print(f"🎮 Spawn sugerido: {spawn_position}")
+            
+            # CORREÇÃO: Usar o hitbox _rect para verificar colisão mais precisa
+            temp_rect = pygame.Rect(0, 0, self.player.size[0], self.player.size[1])
+            temp_rect.center = (int(spawn_position[0]), int(spawn_position[1]))
+            
+            obstacles = self.current_room.get_wall_rects()
+            collision = any(temp_rect.colliderect(obs) for obs in obstacles)
+            
+            if collision:
+                print(f"⚠️  SPAWN BLOQUEADO! Buscando posição livre...")
+                # Buscar uma posição livre próxima ao spawn
+                spawn_position = self._find_safe_spawn(spawn_position, obstacles)
+                print(f"🔧 Nova posição: {spawn_position}")
+            
             self.player.position = spawn_position
             self.camera.follow_target(self.player)
-            print(f"Player posicionado em: {spawn_position}")
+            
+            # Força a atualização dos rects
+            self.player.moving = False  # Reset movimento
+            
+            print(f"✅ Player posicionado em: {self.player.position}")
+    
+    def _find_safe_spawn(self, original_spawn: Tuple[float, float], obstacles: List[pygame.Rect]) -> Tuple[float, float]:
+        """Encontra uma posição segura próxima ao spawn original"""
+        # Tentar posições em círculo ao redor do spawn original
+        spawn_x, spawn_y = original_spawn
+        
+        # Tamanhos do player
+        player_w, player_h = self.player.size
+        
+        # Tentar diferentes distâncias do spawn original
+        for distance in [50, 100, 150, 200]:
+            for angle in range(0, 360, 30):  # Cada 30 graus
+                import math
+                rad = math.radians(angle)
+                test_x = spawn_x + distance * math.cos(rad)
+                test_y = spawn_y + distance * math.sin(rad)
+                
+                # Verificar se está dentro dos limites do mapa
+                if (player_w//2 <= test_x <= self.current_room.size[0] - player_w//2 and 
+                    player_h//2 <= test_y <= self.current_room.size[1] - player_h//2):
+                    
+                    # Testar colisão
+                    test_rect = pygame.Rect(0, 0, player_w, player_h)
+                    test_rect.center = (int(test_x), int(test_y))
+                    
+                    collision = any(test_rect.colliderect(obs) for obs in obstacles)
+                    if not collision:
+                        print(f"🎯 Posição livre encontrada: ({test_x:.1f}, {test_y:.1f})")
+                        return (test_x, test_y)
+        
+        # Fallback: centro do mapa
+        print("⚠️ Nenhuma posição livre encontrada, usando centro do mapa")
+        return (self.current_room.size[0] // 2, self.current_room.size[1] // 2)
     
 
     # ==========================================

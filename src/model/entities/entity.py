@@ -86,7 +86,8 @@ class Entity(MovableObject):
         angle_rad = math.atan2(target_y - player_y, target_x - player_x)
         angle_deg = math.degrees(angle_rad)
         
-        self.rotation = angle_deg + 90
+        # Ajustar para sprite virado para baixo (subtrair 90° em vez de somar)
+        self.rotation = angle_deg - 90
     
     def get_direction_vector(self) -> Tuple[float, float]:
         angle_rad = math.radians(self.rotation)
