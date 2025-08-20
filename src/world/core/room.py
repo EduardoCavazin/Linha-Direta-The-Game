@@ -48,29 +48,9 @@ class Room:
                     return (spawn_x, spawn_y)
         
         if player and hasattr(player, 'position'):
-            print(f" Usando posição atual do player: {player.position}")
             return player.position
             
-        print(f" Usando spawn padrão: (100, 100)")
         return (100.0, 100.0)
-        self.visited: bool = visited
-        
-        self.objects: List[Any] = objects or []
-        self.enemies: List[Any] = enemies or []
-        self.items: List[Any] = items or []
-        self.doors: List[Any] = doors or []
-        
-        self.collision_matrix: List[List[bool]] = collision_matrix or []
-        self._wall_rects_cache: Optional[List[pygame.Rect]] = None
-        
-        self.spawn_position: Tuple[float, float] = self._extract_spawn_position(player)
-        
-    def _extract_spawn_position(self, player: Optional[Any]) -> Tuple[float, float]:
-        if player and hasattr(player, 'position'):
-            return player.position
-        return (100.0, 100.0) 
-
-    
 
     # ==========================================
     # COLLISION SYSTEM

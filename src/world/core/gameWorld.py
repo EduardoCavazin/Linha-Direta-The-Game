@@ -9,6 +9,7 @@ from src.world.core.map import Map
 from src.world.core.room import Room
 from src.core.camera import Camera
 from src.core.entityFactory import EntityFactory
+from src.core.constants import World, Player, Enemy, Bullet, Items, Physics, get_random_drop_offset, Physics
 
 
 class GameWorld:
@@ -22,7 +23,7 @@ class GameWorld:
         self.map: Map = Map()
         self.entity_factory: EntityFactory = EntityFactory()
         
-        self.camera: Camera = Camera(width, height, 2000, 2000)
+        self.camera: Camera = Camera(width, height, World.CAMERA_WORLD_WIDTH, World.CAMERA_WORLD_HEIGHT)
         
         self.current_room: Optional[Room] = None
         self.player: Optional[Player] = None
@@ -74,15 +75,15 @@ class GameWorld:
             door.lock()
     
     def _spawn_player(self) -> None:
-        spawn_pos = self.current_room.spawn_position if self.current_room else (100, 100)
+        spawn_pos = self.current_room.spawn_position if self.current_room else (World.DEFAULT_SPAWN_X, World.DEFAULT_SPAWN_Y)
         
         self.player = self.entity_factory.create_player(spawn_pos)
         
         if self.player:
             from src.model.objects.weapon import Weapon
-            weapon = Weapon("pistol", "Pistola", 25, 12)
+            weapon = Weapon("pistol", "Pistola", Player.PISTOL_DAMAGE, Player.PISTOL_MAX_AMMO)
             self.player.weapon = weapon
-            self.player.ammo = 12
+            self.player.ammo = Player.STARTING_AMMO
             
         else:
             print("ERRO: Falha ao criar player principal com EntityFactory!")
@@ -95,7 +96,7 @@ class GameWorld:
         if not self.player or not self.current_room:
             return
 
-        delta_time = self.clock.get_time() / 1000.0
+        delta_time = self.clock.get_time() / Physics.MILLISECONDS_TO_SECONDS
         obstacles = self.current_room.get_wall_rects()
         world_bounds = self.current_room.size  
 
@@ -197,7 +198,7 @@ class GameWorld:
             return
         
         player_pos = self.player.position
-        delta_time = self.clock.get_time() / 1000.0
+        delta_time = self.clock.get_time() / Physics.MILLISECONDS_TO_SECONDS
         
         enemies_alive_before = self.current_room.get_alive_enemies_count()
         
@@ -232,8 +233,7 @@ class GameWorld:
         
         drop_type = random.choice(["HealthPack", "AmmoPack"])
         
-        offset_x = random.uniform(-15, 15)
-        offset_y = random.uniform(-15, 15)
+        offset_x, offset_y = get_random_drop_offset()
         drop_position = (enemy_position[0] + offset_x, enemy_position[1] + offset_y)
         
         
@@ -242,10 +242,10 @@ class GameWorld:
         if dropped_item:
             if drop_type == "HealthPack":
                 dropped_item.effect = "heal"
-                dropped_item.value = 25  
+                dropped_item.value = Items.HEALTH_PACK_VALUE  
             elif drop_type == "AmmoPack":
                 dropped_item.effect = "ammo"
-                dropped_item.value = 8   
+                dropped_item.value = Items.AMMO_PACK_VALUE   
             
             self.current_room.items.append(dropped_item)
             
@@ -258,7 +258,7 @@ class GameWorld:
         if not self.bullets:
             return
         
-        dt = self.clock.get_time() / 1000.0
+        dt = self.clock.get_time() / Physics.MILLISECONDS_TO_SECONDS
         
         world_width = self.current_room.size[0] if self.current_room else self.width
         world_height = self.current_room.size[1] if self.current_room else self.height

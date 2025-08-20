@@ -3,6 +3,7 @@ from typing import Tuple, Optional, Any, List, Dict
 from src.model.entities.entity import Entity
 from src.core.utils import load_image
 from src.model.objects.bullet import Bullet
+from src.core.constants import Player as PlayerConst, Animation
 
 class Player(Entity):
     def __init__(
@@ -26,10 +27,10 @@ class Player(Entity):
     def _setup_player_sprite(self, sprite_config: Optional[Dict], size: Tuple[int, int], position: Tuple[float, float]) -> None:
         if sprite_config:
             sprite_path = sprite_config.get("path", "assets/sprites/player_pixelado.png")
-            self.animation_speed = sprite_config.get("animation_speed", 0.2)
+            self.animation_speed = sprite_config.get("animation_speed", Animation.PLAYER_ANIMATION_SPEED)
         else:
             sprite_path = "assets/sprites/player_pixelado.png"
-            self.animation_speed = 0.2
+            self.animation_speed = Animation.PLAYER_ANIMATION_SPEED
 
         self.spritesheet = load_image(sprite_path)
         
@@ -37,8 +38,8 @@ class Player(Entity):
             self.spritesheet = pygame.Surface((128, 128), pygame.SRCALPHA)
             self.spritesheet.fill((0, 150, 255))
         
-        self.frame_count = 4
-        self.frame_rows = 4
+        self.frame_count = Animation.PLAYER_FRAME_COUNT
+        self.frame_rows = Animation.PLAYER_FRAME_ROWS
         self.frame_width = self.spritesheet.get_width() // self.frame_count
         self.frame_height = self.spritesheet.get_height() // self.frame_rows
 

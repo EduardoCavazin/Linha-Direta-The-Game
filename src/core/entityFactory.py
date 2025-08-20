@@ -6,6 +6,7 @@ from src.model.entities.enemy import Enemy
 from src.model.objects.item import Item
 from src.model.objects.door import Door
 from src.model.objects.weapon import Weapon
+from src.core.constants import Player as PlayerConst, Enemy as EnemyConst
 
 class EntityFactory:
     def __init__(self, config_folder: str = "src/config"):
@@ -101,11 +102,11 @@ class EntityFactory:
                 id="player",
                 name="Jogador",
                 position=position,
-                size=tuple(config.get("size", [32, 32])),
-                speed=config.get("speed", 200),
-                health=config.get("health", 100),
+                size=tuple(config.get("size", PlayerConst.DEFAULT_SIZE)),
+                speed=config.get("speed", PlayerConst.DEFAULT_SPEED),
+                health=config.get("health", PlayerConst.DEFAULT_HEALTH),
                 weapon=None,  
-                ammo=config.get("start_ammo", 30),
+                ammo=config.get("start_ammo", PlayerConst.STARTING_AMMO),
                 status="alive",
                 sprite_config=sprite_config  
             )
@@ -129,14 +130,14 @@ class EntityFactory:
                 id=f"{enemy_type.lower()}_{id(position)}",
                 name=config.get("name", enemy_type),
                 position=position,
-                size=tuple(config.get("size", [32, 32])),
-                speed=config.get("speed", 80),
-                health=config.get("health", 50),
+                size=tuple(config.get("size", EnemyConst.BASIC_ENEMY_SIZE)),
+                speed=config.get("speed", EnemyConst.BASIC_ENEMY_SPEED),
+                health=config.get("health", EnemyConst.BASIC_ENEMY_HEALTH),
                 weapon=None,
                 ammo=0,
                 status="alive",
                 sprite_config=sprite_config,  
-                detection_range=config.get("detection_range", 250),
+                detection_range=config.get("detection_range", EnemyConst.DETECTION_RANGE),
                 drops=config.get("drops", [])
             )
             

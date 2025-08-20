@@ -1,6 +1,7 @@
 import pygame
 from typing import Tuple
 from src.model.objects.movableObject import MovableObject
+from src.core.constants import Rendering, Bullet as BulletConst
 
 class Bullet(MovableObject):
     def __init__(self, id: str, position: Tuple[float, float], size: Tuple[int, int],
@@ -9,7 +10,7 @@ class Bullet(MovableObject):
         self.damage: int = damage
         self.update_velocity()
 
-    def update(self, delta_time: float, screen_width: int = 800, screen_height: int = 600) -> bool:
+    def update(self, delta_time: float, screen_width: int = Rendering.DEFAULT_WINDOW_WIDTH, screen_height: int = Rendering.DEFAULT_WINDOW_HEIGHT) -> bool:
         self.position += self.directedSpeed * delta_time
         self.hitbox.topleft = (self.position.x, self.position.y)
         if (self.position.x < 0 or self.position.x > screen_width or
@@ -18,4 +19,4 @@ class Bullet(MovableObject):
         return True
 
     def draw(self, screen: pygame.Surface) -> None:
-        pygame.draw.rect(screen, (255, 0, 0), self.hitbox)
+        pygame.draw.rect(screen, BulletConst.COLOR, self.hitbox)

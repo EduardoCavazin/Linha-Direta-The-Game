@@ -3,6 +3,7 @@ import pygame
 from typing import Tuple, Optional, Any, TYPE_CHECKING
 from src.model.entities.entity import Entity
 from src.core.utils import load_image
+from src.core.constants import Enemy as EnemyConst, Animation, Bullet as BulletConst
 
 if TYPE_CHECKING:
     from src.model.objects.bullet import Bullet
@@ -20,7 +21,7 @@ class Enemy(Entity):
         ammo: int,
         status: str,
         sprite_config: dict = None,
-        detection_range: float = 250,
+        detection_range: float = EnemyConst.DETECTION_RANGE,
         drops: list = None
     ) -> None:
         sprite_config = sprite_config or {}
@@ -34,7 +35,7 @@ class Enemy(Entity):
         self.drops = drops or []
         
         self.frame_count = sprite_config.get("frames", 1)
-        self.animation_speed = sprite_config.get("animation_speed", 0.15)
+        self.animation_speed = sprite_config.get("animation_speed", Animation.ENEMY_ANIMATION_SPEED)
         
         self.base_enemy_image: pygame.Surface = load_image("sprites/Enemy4.png", size)
         self.base_enemy_rect: pygame.Rect = self.base_enemy_image.get_rect(topleft=position)
@@ -43,9 +44,9 @@ class Enemy(Entity):
         self.rect: pygame.Rect = self.image.get_rect(topleft=position)
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         
-        self.attack_range: float = 120.0     
+        self.attack_range: float = EnemyConst.ATTACK_RANGE     
         self.attack_cooldown: float = 0.0    
-        self.attack_interval: float = 1.2    
+        self.attack_interval: float = EnemyConst.ATTACK_INTERVAL_SECONDS    
         self.last_attack_time: float = 0.0
         
     @property
@@ -106,19 +107,19 @@ class Enemy(Entity):
         dx = dx / distance
         dy = dy / distance
         
-        offset = 20
+        offset = EnemyConst.BULLET_SPAWN_OFFSET
         bullet_x = enemy_x + (dx * offset)
         bullet_y = enemy_y + (dy * offset)
         
         bullet_angle = math.degrees(math.atan2(dy, dx))
         
-        damage = self.weapon.damage if self.weapon else 15
+        damage = self.weapon.damage if self.weapon else EnemyConst.DEFAULT_DAMAGE
         
         bullet = Bullet(
             id=f"enemy_bullet_{id(self)}_{pygame.time.get_ticks()}",
             position=(bullet_x, bullet_y),
-            size=(8, 8),          
-            speed=400,            
+            size=BulletConst.DEFAULT_SIZE,          
+            speed=BulletConst.ENEMY_BULLET_SPEED,            
             damage=damage,
             rotation=bullet_angle
         )
