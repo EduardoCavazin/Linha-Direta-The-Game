@@ -31,9 +31,9 @@ class GameManager:
         
         self.state: GameState = GameState.RUNNING
         
-        self.game_world: GameWorld = GameWorld(self.screen, self.clock, self.width, self.height)
-        
         self.audio_manager = AudioManager()
+        
+        self.game_world: GameWorld = GameWorld(self.screen, self.clock, self.width, self.height, self.audio_manager)
         
         self.footstep_timer = 0
         

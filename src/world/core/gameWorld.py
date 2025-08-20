@@ -12,11 +12,12 @@ from src.core.entityFactory import EntityFactory
 
 
 class GameWorld:
-    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, width: int, height: int) -> None:
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, width: int, height: int, audio_manager=None) -> None:
         self.screen: pygame.Surface = screen
         self.clock: pygame.time.Clock = clock
         self.width: int = width
         self.height: int = height
+        self.audio_manager = audio_manager  # Referência para o AudioManager
         
         self.map: Map = Map()
         self.entity_factory: EntityFactory = EntityFactory()
@@ -205,6 +206,9 @@ class GameWorld:
                 enemy_bullet = enemy.update(player_pos, delta_time)
                 if enemy_bullet:
                     self.enemy_bullets.append(enemy_bullet)
+                    # Tocar som de tiro do inimigo
+                    if self.audio_manager:
+                        self.audio_manager.play_sound('shoot')
             else:
                 self.current_room.enemies.remove(enemy)
         
