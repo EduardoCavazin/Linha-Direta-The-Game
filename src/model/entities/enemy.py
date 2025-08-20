@@ -23,19 +23,16 @@ class Enemy(Entity):
         detection_range: float = 250,
         drops: list = None
     ) -> None:
-        # Usar configurações do JSON
         sprite_config = sprite_config or {}
-        sprite_path = sprite_config.get("path", "sprites/enemy.png")  # Sprite genérico como fallback
+        sprite_path = sprite_config.get("path", "sprites/enemy.png") 
         
         image = load_image(sprite_path, size)
         
         super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status)
         
-        # Configurações específicas do inimigo
         self.detection_range = detection_range
         self.drops = drops or []
         
-        # Configurações de animação (se implementar no futuro)
         self.frame_count = sprite_config.get("frames", 1)
         self.animation_speed = sprite_config.get("animation_speed", 0.15)
         
@@ -46,7 +43,6 @@ class Enemy(Entity):
         self.rect: pygame.Rect = self.image.get_rect(topleft=position)
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         
-        # Atributos de combate
         self.attack_range: float = 120.0     
         self.attack_cooldown: float = 0.0    
         self.attack_interval: float = 1.2    
@@ -121,8 +117,8 @@ class Enemy(Entity):
         bullet = Bullet(
             id=f"enemy_bullet_{id(self)}_{pygame.time.get_ticks()}",
             position=(bullet_x, bullet_y),
-            size=(6, 6),  
-            speed=300,    
+            size=(8, 8),          
+            speed=400,            
             damage=damage,
             rotation=bullet_angle
         )

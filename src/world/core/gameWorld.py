@@ -1,3 +1,4 @@
+import math
 import random
 import pygame
 from typing import List, Tuple, Optional
@@ -24,8 +25,8 @@ class GameWorld:
         
         self.current_room: Optional[Room] = None
         self.player: Optional[Player] = None
-        self.bullets: List[Bullet] = []         # Balas do jogador
-        self.enemy_bullets: List[Bullet] = []   # Balas dos inimigos
+        self.bullets: List[Bullet] = []         
+        self.enemy_bullets: List[Bullet] = []   
         self.render_queue: List = []
         self.last_teleport_time: float = 0.0 
         self.start_time = pygame.time.get_ticks()
@@ -75,11 +76,9 @@ class GameWorld:
     def _spawn_player(self) -> None:
         spawn_pos = self.current_room.spawn_position if self.current_room else (100, 100)
         
-        # CORREÇÃO: Usar EntityFactory em vez de criar manualmente
         self.player = self.entity_factory.create_player(spawn_pos)
         
         if self.player:
-            # Configurar arma (se necessário)
             from src.model.objects.weapon import Weapon
             weapon = Weapon("pistol", "Pistola", 25, 12)
             self.player.weapon = weapon
@@ -106,10 +105,6 @@ class GameWorld:
         if keys[pygame.K_s]: directions.append("down")
         if keys[pygame.K_a]: directions.append("left")
         if keys[pygame.K_d]: directions.append("right")
-
-        # Debug: mostrar input e posição
-        if directions:
-            print(f"🎹 Teclas: {directions} | Pos: {self.player.position} | Obstacles: {len(obstacles)}")
 
         self.player.move(directions, delta_time, obstacles, world_bounds)
 
@@ -283,9 +278,9 @@ class GameWorld:
         if not self.player or not self.current_room:
             return
         
-        # CORREÇÃO: Usar o _rect do player e hitbox do item
         for item in self.current_room.items[:]:
-            if self.player._rect.colliderect(item.hitbox):
+            if self.player.rect.colliderect(item.hitbox):
+                print(f"ITEM COLETADO: {item.name} - {item.effect}")
                 if item.effect == "heal":
                     self.player.heal(item.value)
                 elif item.effect == "ammo":
@@ -301,12 +296,11 @@ class GameWorld:
         if current_time - self.last_teleport_time < 1.0:  
             return
         
-        # CORREÇÃO: Usar o _rect do player
         for door in self.current_room.doors:
             door_rect = pygame.Rect(door.position[0], door.position[1], 
                                   door.size[0], door.size[1])
         
-            if self.player._rect.colliderect(door_rect):
+            if self.player.rect.colliderect(door_rect):
                 if not self.current_room.is_clear():
                     enemies_remaining = self.current_room.get_alive_enemies_count()
                     print(f"Não é possível avançar! Elimine os {enemies_remaining} inimigos restantes.")
@@ -369,7 +363,7 @@ class GameWorld:
         return None
 
     def _teleport_to_room(self, target_room: Room) -> None:
-        print(f"🚪 TELEPORTE: Mudando para {target_room.id}")
+        print(f"TELEPORTE: Mudando para {target_room.id}")
         self.current_room = target_room
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
@@ -383,12 +377,8 @@ class GameWorld:
             print(f"Nova sala com {enemies_count} inimigos - elimine todos para desbloquear as portas.")
 
         if self.player:
-            old_position = self.player.position
             spawn_position = self.current_room.spawn_position
-            print(f"🎮 Posição antiga: {old_position}")
-            print(f"🎮 Spawn sugerido: {spawn_position}")
-            
-            # CORREÇÃO: Usar o hitbox _rect para verificar colisão mais precisa
+
             temp_rect = pygame.Rect(0, 0, self.player.size[0], self.player.size[1])
             temp_rect.center = (int(spawn_position[0]), int(spawn_position[1]))
             
@@ -396,50 +386,39 @@ class GameWorld:
             collision = any(temp_rect.colliderect(obs) for obs in obstacles)
             
             if collision:
-                print(f"⚠️  SPAWN BLOQUEADO! Buscando posição livre...")
-                # Buscar uma posição livre próxima ao spawn
                 spawn_position = self._find_safe_spawn(spawn_position, obstacles)
-                print(f"🔧 Nova posição: {spawn_position}")
             
             self.player.position = spawn_position
             self.camera.follow_target(self.player)
             
-            # Força a atualização dos rects
-            self.player.moving = False  # Reset movimento
+            self.player.moving = False
             
-            print(f"✅ Player posicionado em: {self.player.position}")
+            print(f"Player posicionado em: {self.player.position}")
     
     def _find_safe_spawn(self, original_spawn: Tuple[float, float], obstacles: List[pygame.Rect]) -> Tuple[float, float]:
-        """Encontra uma posição segura próxima ao spawn original"""
-        # Tentar posições em círculo ao redor do spawn original
         spawn_x, spawn_y = original_spawn
         
-        # Tamanhos do player
         player_w, player_h = self.player.size
         
-        # Tentar diferentes distâncias do spawn original
         for distance in [50, 100, 150, 200]:
-            for angle in range(0, 360, 30):  # Cada 30 graus
-                import math
+            for angle in range(0, 360, 30):
+                
                 rad = math.radians(angle)
                 test_x = spawn_x + distance * math.cos(rad)
                 test_y = spawn_y + distance * math.sin(rad)
                 
-                # Verificar se está dentro dos limites do mapa
                 if (player_w//2 <= test_x <= self.current_room.size[0] - player_w//2 and 
                     player_h//2 <= test_y <= self.current_room.size[1] - player_h//2):
                     
-                    # Testar colisão
                     test_rect = pygame.Rect(0, 0, player_w, player_h)
                     test_rect.center = (int(test_x), int(test_y))
                     
                     collision = any(test_rect.colliderect(obs) for obs in obstacles)
                     if not collision:
-                        print(f"🎯 Posição livre encontrada: ({test_x:.1f}, {test_y:.1f})")
+                        print(f"Posição livre encontrada: ({test_x:.1f}, {test_y:.1f})")
                         return (test_x, test_y)
         
-        # Fallback: centro do mapa
-        print("⚠️ Nenhuma posição livre encontrada, usando centro do mapa")
+        print("Nenhuma posição livre encontrada, usando centro do mapa")
         return (self.current_room.size[0] // 2, self.current_room.size[1] // 2)
     
 
@@ -499,25 +478,20 @@ class GameWorld:
             
         screen_pos = self.camera.world_to_screen(obj_pos)
         
-        # Renderizar baseado no que o objeto realmente tem
         if hasattr(obj, 'image') and obj.image is not None:
             if hasattr(obj, 'rect') and obj.rect is not None:
                 screen_rect = obj.rect.copy()
                 screen_rect.center = screen_pos
                 self.screen.blit(obj.image, screen_rect)
             elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
-                # Para objetos com hitbox (como Player, Enemy, Item)
                 self.screen.blit(obj.image, screen_pos)
             else:
-                # Fallback para objetos só com imagem
                 self.screen.blit(obj.image, screen_pos)
         elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
-            # Fallback: desenha retângulo vermelho apenas se não tiver imagem
             screen_hitbox = obj.hitbox.copy()
             screen_hitbox.topleft = screen_pos
             pygame.draw.rect(self.screen, (255, 0, 0), screen_hitbox)
         else:
-            # Último fallback para objetos com método draw customizado
             if hasattr(obj, 'draw'):
                 original_pos = obj.position if hasattr(obj, 'position') else None
                 obj.position = screen_pos
@@ -576,7 +550,6 @@ class GameWorld:
                 self.enemy_bullets.remove(bullet)
                 continue
             
-            # CORREÇÃO: Usar hitbox em vez de rect
             if bullet.hitbox.colliderect(self.player.hitbox):
                 damage = bullet.damage
                 self.player.take_damage(damage)
