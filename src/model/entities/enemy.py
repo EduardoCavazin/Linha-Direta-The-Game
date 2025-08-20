@@ -18,24 +18,36 @@ class Enemy(Entity):
         health: int,
         weapon: Optional[Any],
         ammo: int,
-        status: str
+        status: str,
+        sprite_config: dict = None,
+        detection_range: float = 250,
+        drops: list = None
     ) -> None:
-        self.base_enemy_image: pygame.Surface = load_image("sprites/Player_Movement.png", size)
+        sprite_config = sprite_config or {}
+        sprite_path = sprite_config.get("path", "sprites/enemy.png") 
+        
+        image = load_image(sprite_path, size)
+        
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status)
+        
+        self.detection_range = detection_range
+        self.drops = drops or []
+        
+        self.frame_count = sprite_config.get("frames", 1)
+        self.animation_speed = sprite_config.get("animation_speed", 0.15)
+        
+        self.base_enemy_image: pygame.Surface = load_image("sprites/Enemy4.png", size)
         self.base_enemy_rect: pygame.Rect = self.base_enemy_image.get_rect(topleft=position)
         
         self.image: pygame.Surface = self.base_enemy_image
         self.rect: pygame.Rect = self.image.get_rect(topleft=position)
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         
-        # Atributos de combate
-        self.detection_range: float = 200.0  
         self.attack_range: float = 120.0     
         self.attack_cooldown: float = 0.0    
         self.attack_interval: float = 1.2    
         self.last_attack_time: float = 0.0
         
-        super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
-    
     @property
     def position(self) -> pygame.Vector2:
         return self._position
@@ -105,8 +117,8 @@ class Enemy(Entity):
         bullet = Bullet(
             id=f"enemy_bullet_{id(self)}_{pygame.time.get_ticks()}",
             position=(bullet_x, bullet_y),
-            size=(6, 6),  
-            speed=300,    
+            size=(8, 8),          
+            speed=400,            
             damage=damage,
             rotation=bullet_angle
         )
@@ -120,7 +132,7 @@ class Enemy(Entity):
         self.status = "dead"
         
         try:
-            self.base_enemy_image = load_image("dead_enemy.png", self.size)
+            self.base_enemy_image = load_image("sprites/dead_enemy.png", self.size)
             self.image = pygame.transform.rotate(self.base_enemy_image, -self.rotation)
             old_center = self.rect.center
             self.rect = self.image.get_rect()

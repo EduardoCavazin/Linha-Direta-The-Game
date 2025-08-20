@@ -16,7 +16,6 @@ class Map:
         self.current_room: Optional[Room] = None
         self.sequence: List[Room] = []
         
-        print(f"Map inicializado com {len(self.rooms)} salas")
 
     def _load_rooms(self) -> List[Room]:
         rooms: List[Room] = []
@@ -61,7 +60,8 @@ class Map:
                 cleared=False,
                 visited=False,
                 background=background,
-                collision_matrix=collision_matrix
+                collision_matrix=collision_matrix,
+                tmx_objects_data=entities_data
             )
             
             return room

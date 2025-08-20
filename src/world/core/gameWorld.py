@@ -1,3 +1,4 @@
+import math
 import random
 import pygame
 from typing import List, Tuple, Optional
@@ -11,11 +12,12 @@ from src.core.entityFactory import EntityFactory
 
 
 class GameWorld:
-    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, width: int, height: int) -> None:
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock, width: int, height: int, audio_manager=None) -> None:
         self.screen: pygame.Surface = screen
         self.clock: pygame.time.Clock = clock
         self.width: int = width
         self.height: int = height
+        self.audio_manager = audio_manager  # Referência para o AudioManager
         
         self.map: Map = Map()
         self.entity_factory: EntityFactory = EntityFactory()
@@ -24,8 +26,8 @@ class GameWorld:
         
         self.current_room: Optional[Room] = None
         self.player: Optional[Player] = None
-        self.bullets: List[Bullet] = []         # Balas do jogador
-        self.enemy_bullets: List[Bullet] = []   # Balas dos inimigos
+        self.bullets: List[Bullet] = []         
+        self.enemy_bullets: List[Bullet] = []   
         self.render_queue: List = []
         self.last_teleport_time: float = 0.0 
         self.start_time = pygame.time.get_ticks()
@@ -34,35 +36,30 @@ class GameWorld:
     
     def _initialize_world(self) -> None:
         if self.map.rooms:
-            # Procura primeiro por uma sala chamada "Mapa1" para começar a sequência
             start_room = None
             
-            # Prioridade 1: Mapa1 para começar a sequência
             for room in self.map.rooms:
                 if room.id == "Mapa1":
                     start_room = room
                     break
             
-            # Prioridade 2: Sala com player
             if not start_room:
                 for room in self.map.rooms:
                     if room.player is not None:
                         start_room = room
                         break
             
-            # Fallback: primeira sala
             if not start_room:
                 start_room = self.map.rooms[0]
             
             self.current_room = start_room
-            print(f"Sala inicial selecionada: {self.current_room.id}")
             
             if self.current_room:
                 room_width, room_height = self.current_room.size
                 self.camera.set_world_bounds(room_width, room_height)
-                # Trava todas as portas no início
+                
                 self._lock_room_doors()
-                # Se a sala inicial não tem inimigos, desbloqueia as portas
+                
                 if self.current_room.get_alive_enemies_count() == 0:
                     self._unlock_room_doors()
             self._spawn_player()
@@ -70,7 +67,6 @@ class GameWorld:
             print("ERRO: Nenhuma sala carregada!")
     
     def _lock_room_doors(self) -> None:
-        """Trava todas as portas da sala atual"""
         if not self.current_room:
             return
             
@@ -80,20 +76,16 @@ class GameWorld:
     def _spawn_player(self) -> None:
         spawn_pos = self.current_room.spawn_position if self.current_room else (100, 100)
         
-        from src.model.objects.weapon import Weapon
-        weapon = Weapon("pistol", "Pistola", 25, 12)
+        self.player = self.entity_factory.create_player(spawn_pos)
         
-        self.player = Player(
-            id="player_main",
-            name="Jogador",
-            position=spawn_pos,
-            size=(32, 32),
-            speed=200,
-            health=100,
-            weapon=weapon,
-            ammo=12,
-            status="alive"
-        )
+        if self.player:
+            from src.model.objects.weapon import Weapon
+            weapon = Weapon("pistol", "Pistola", 25, 12)
+            self.player.weapon = weapon
+            self.player.ammo = 12
+            
+        else:
+            print("ERRO: Falha ao criar player principal com EntityFactory!")
         
     # ==========================================
     # INPUT PROCESSING 
@@ -113,7 +105,6 @@ class GameWorld:
         if keys[pygame.K_a]: directions.append("left")
         if keys[pygame.K_d]: directions.append("right")
 
-        # Chame move apenas uma vez, passando todas as direções
         self.player.move(directions, delta_time, obstacles, world_bounds)
 
         if keys[pygame.K_r]:
@@ -143,17 +134,63 @@ class GameWorld:
         if not self.current_room:
             return
         
-        if self.player:
-            self.player.update(delta_time)
-            self.camera.follow_target(self.player)
-    
-        self._update_enemies()
-        self._update_bullets()
-        self._update_enemy_bullets()
-        self._check_item_collisions()
-        self._check_door_collisions()
+        try:
+            if self.player:
+                self.player.update(delta_time)
+                self.camera.follow_target(self.player)
+        except AttributeError as e:
+            print(f"ERRO no player.update(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
         
-        self._update_render_queue()
+        try:
+            self._update_enemies()
+        except AttributeError as e:
+            print(f"ERRO no _update_enemies(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._update_bullets()
+        except AttributeError as e:
+            print(f"ERRO no _update_bullets(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._update_enemy_bullets()
+        except AttributeError as e:
+            print(f"ERRO no _update_enemy_bullets(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._check_item_collisions()
+        except AttributeError as e:
+            print(f"ERRO no _check_item_collisions(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._check_door_collisions()
+        except AttributeError as e:
+            print(f"ERRO no _check_door_collisions(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
+            
+        try:
+            self._update_render_queue()
+        except AttributeError as e:
+            print(f"ERRO no _update_render_queue(): {e}")
+            import traceback
+            traceback.print_exc()
+            return
     
     def _update_enemies(self) -> None:
         if not self.player or not self.current_room:
@@ -162,30 +199,27 @@ class GameWorld:
         player_pos = self.player.position
         delta_time = self.clock.get_time() / 1000.0
         
-        # Armazena o número de inimigos vivos antes do update
         enemies_alive_before = self.current_room.get_alive_enemies_count()
         
         for enemy in self.current_room.enemies[:]:
             if enemy.is_alive():
-                # Update do inimigo que pode retornar uma bala
                 enemy_bullet = enemy.update(player_pos, delta_time)
                 if enemy_bullet:
                     self.enemy_bullets.append(enemy_bullet)
-                    print(f"🔫 Inimigo {enemy.id} atirou!")
+                    # Tocar som de tiro do inimigo
+                    if self.audio_manager:
+                        self.audio_manager.play_sound('shoot')
             else:
                 self.current_room.enemies.remove(enemy)
         
-        # Verifica se a sala foi limpa após eliminar inimigos
         enemies_alive_after = self.current_room.get_alive_enemies_count()
         
-        # Se havia inimigos antes e agora não há mais, a sala foi limpa
         if enemies_alive_before > 0 and enemies_alive_after == 0:
             self.current_room.mark_cleared()
             self._unlock_room_doors()
-            print("🎉 Sala limpa! As portas foram desbloqueadas.")
+            print("Sala limpa! As portas foram desbloqueadas.")
     
     def _unlock_room_doors(self) -> None:
-        """Desbloqueia todas as portas da sala atual"""
         if not self.current_room:
             return
             
@@ -193,19 +227,15 @@ class GameWorld:
             door.unlock()
     
     def _generate_enemy_drop(self, enemy_position: Tuple[float, float]) -> None:
-        """Gera um item aleatório na posição do inimigo morto com 50/50 de chance entre heal e ammo"""
         if not self.current_room:
             return
         
-        # 50% de chance de dropar heal, 50% de chance de dropar ammo
         drop_type = random.choice(["HealthPack", "AmmoPack"])
         
-        # Adiciona um pequeno offset aleatório para evitar sobreposição
         offset_x = random.uniform(-15, 15)
         offset_y = random.uniform(-15, 15)
         drop_position = (enemy_position[0] + offset_x, enemy_position[1] + offset_y)
         
-        print(f" Gerando drop na posição: {drop_position}")
         
         dropped_item = self.entity_factory.create_item(drop_type, drop_position)
         
@@ -248,16 +278,14 @@ class GameWorld:
         if not self.player or not self.current_room:
             return
         
-        player_rect = pygame.Rect(self.player.position[0], self.player.position[1], 
-                                self.player.size[0], self.player.size[1])
-        
         for item in self.current_room.items[:]:
-            if player_rect.colliderect(item.hitbox):
+            if self.player.rect.colliderect(item.hitbox):
+                print(f"ITEM COLETADO: {item.name} - {item.effect}")
                 if item.effect == "heal":
                     self.player.heal(item.value)
                 elif item.effect == "ammo":
                     self.player.add_ammo(item.value)
-                
+            
                 self.current_room.items.remove(item)
 
     def _check_door_collisions(self) -> None:
@@ -268,14 +296,11 @@ class GameWorld:
         if current_time - self.last_teleport_time < 1.0:  
             return
         
-        player_rect = pygame.Rect(self.player.position[0], self.player.position[1], 
-                                self.player.size[0], self.player.size[1])
-        
         for door in self.current_room.doors:
             door_rect = pygame.Rect(door.position[0], door.position[1], 
                                   door.size[0], door.size[1])
-            
-            if player_rect.colliderect(door_rect):
+        
+            if self.player.rect.colliderect(door_rect):
                 if not self.current_room.is_clear():
                     enemies_remaining = self.current_room.get_alive_enemies_count()
                     print(f"Não é possível avançar! Elimine os {enemies_remaining} inimigos restantes.")
@@ -286,10 +311,8 @@ class GameWorld:
                 break  
 
     def _handle_door_teleport(self, door) -> None:
-        # Verifica se a porta tem um destino específico
         destination = getattr(door, 'destination', None)
         
-        # Lógica de progressão sequencial para "next_map"
         if destination == "next_map":
             target_room = self._get_next_map()
             if target_room:
@@ -297,7 +320,6 @@ class GameWorld:
                 self._teleport_to_room(target_room)
                 return
         
-        # Destino específico (como "Mapa 3")
         elif destination and destination != "next_room":
             target_room = None
             for room in self.map.rooms:
@@ -312,7 +334,6 @@ class GameWorld:
             else:
                 print(f"Sala de destino '{destination}' não encontrada!")
         
-        # Comportamento padrão: teleporte aleatório
         possible_rooms = [room for room in self.map.rooms if room != self.current_room]
         if not possible_rooms:
             print("Nenhuma outra sala disponível para teleporte!")
@@ -323,7 +344,6 @@ class GameWorld:
         self._teleport_to_room(target_room)
 
     def _get_next_map(self) -> Optional[Room]:
-        """Retorna o próximo mapa na sequência: Mapa1 -> Mapa2 -> Mapa 3"""
         current_id = self.current_room.id
         
         if current_id == "Mapa1":
@@ -331,12 +351,10 @@ class GameWorld:
         elif current_id == "Mapa2":
             next_id = "Mapa 3"
         elif current_id == "Mapa 3":
-            next_id = "Mapa1"  # Loop de volta para o início
+            next_id = "Mapa1"  
         else:
-            # Se não é um dos mapas principais, vai para Mapa1
             next_id = "Mapa1"
         
-        # Busca o próximo mapa
         for room in self.map.rooms:
             if room.id == next_id:
                 return room
@@ -345,7 +363,7 @@ class GameWorld:
         return None
 
     def _teleport_to_room(self, target_room: Room) -> None:
-        """Realiza o teletransporte para a sala especificada"""
+        print(f"TELEPORTE: Mudando para {target_room.id}")
         self.current_room = target_room
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
@@ -360,9 +378,48 @@ class GameWorld:
 
         if self.player:
             spawn_position = self.current_room.spawn_position
+
+            temp_rect = pygame.Rect(0, 0, self.player.size[0], self.player.size[1])
+            temp_rect.center = (int(spawn_position[0]), int(spawn_position[1]))
+            
+            obstacles = self.current_room.get_wall_rects()
+            collision = any(temp_rect.colliderect(obs) for obs in obstacles)
+            
+            if collision:
+                spawn_position = self._find_safe_spawn(spawn_position, obstacles)
+            
             self.player.position = spawn_position
             self.camera.follow_target(self.player)
-            print(f"Player posicionado em: {spawn_position}")
+            
+            self.player.moving = False
+            
+            print(f"Player posicionado em: {self.player.position}")
+    
+    def _find_safe_spawn(self, original_spawn: Tuple[float, float], obstacles: List[pygame.Rect]) -> Tuple[float, float]:
+        spawn_x, spawn_y = original_spawn
+        
+        player_w, player_h = self.player.size
+        
+        for distance in [50, 100, 150, 200]:
+            for angle in range(0, 360, 30):
+                
+                rad = math.radians(angle)
+                test_x = spawn_x + distance * math.cos(rad)
+                test_y = spawn_y + distance * math.sin(rad)
+                
+                if (player_w//2 <= test_x <= self.current_room.size[0] - player_w//2 and 
+                    player_h//2 <= test_y <= self.current_room.size[1] - player_h//2):
+                    
+                    test_rect = pygame.Rect(0, 0, player_w, player_h)
+                    test_rect.center = (int(test_x), int(test_y))
+                    
+                    collision = any(test_rect.colliderect(obs) for obs in obstacles)
+                    if not collision:
+                        print(f"Posição livre encontrada: ({test_x:.1f}, {test_y:.1f})")
+                        return (test_x, test_y)
+        
+        print("Nenhuma posição livre encontrada, usando centro do mapa")
+        return (self.current_room.size[0] // 2, self.current_room.size[1] // 2)
     
 
     # ==========================================
@@ -411,9 +468,9 @@ class GameWorld:
             obj_pos = (obj_pos.x, obj_pos.y)
             
         obj_size = getattr(obj, 'size', (32, 32))
-        if hasattr(obj, 'rect'):
+        if hasattr(obj, 'rect') and obj.rect is not None:
             obj_size = (obj.rect.width, obj.rect.height)
-        elif hasattr(obj, 'hitbox'):
+        elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
             obj_size = (obj.hitbox.width, obj.hitbox.height)
             
         if not self.camera.is_visible(obj_pos, obj_size):
@@ -421,20 +478,26 @@ class GameWorld:
             
         screen_pos = self.camera.world_to_screen(obj_pos)
         
-        if hasattr(obj, 'rect') and hasattr(obj, 'image'):
-            screen_rect = obj.rect.copy()
-            screen_rect.center = screen_pos
-            self.screen.blit(obj.image, screen_rect)
-        elif hasattr(obj, 'hitbox'):
+        if hasattr(obj, 'image') and obj.image is not None:
+            if hasattr(obj, 'rect') and obj.rect is not None:
+                screen_rect = obj.rect.copy()
+                screen_rect.center = screen_pos
+                self.screen.blit(obj.image, screen_rect)
+            elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
+                self.screen.blit(obj.image, screen_pos)
+            else:
+                self.screen.blit(obj.image, screen_pos)
+        elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
             screen_hitbox = obj.hitbox.copy()
             screen_hitbox.topleft = screen_pos
             pygame.draw.rect(self.screen, (255, 0, 0), screen_hitbox)
         else:
             if hasattr(obj, 'draw'):
-                original_pos = obj.position
+                original_pos = obj.position if hasattr(obj, 'position') else None
                 obj.position = screen_pos
                 obj.draw(self.screen)
-                obj.position = original_pos
+                if original_pos:
+                    obj.position = original_pos
         
 
     # ==========================================
@@ -487,7 +550,7 @@ class GameWorld:
                 self.enemy_bullets.remove(bullet)
                 continue
             
-            if bullet.hitbox.colliderect(self.player.rect):
+            if bullet.hitbox.colliderect(self.player.hitbox):
                 damage = bullet.damage
                 self.player.take_damage(damage)
                 

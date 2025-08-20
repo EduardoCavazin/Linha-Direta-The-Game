@@ -6,7 +6,7 @@
     "size": [32, 32],
     "hitbox_size": [24, 24],
     "sprite": {
-      "path": "assets/sprites/Player_Movement.png",
+      "path": "assets/sprites/player_pixelado.png",
       "frames": 4,
       "animation_speed": 0.2,
       "directions": ["up", "right", "down", "left"]
@@ -22,7 +22,7 @@
     "hitbox_size": [24, 24],
     "detection_range": 250,
     "sprite": {
-      "path": "assets/sprites/zombie.png",
+      "path": "sprites/Enemy4.png",
       "frames": 4,
       "animation_speed": 0.15
     },
@@ -40,7 +40,7 @@
     "hitbox_size": [24, 24],
     "detection_range": 300,
     "sprite": {
-      "path": "assets/sprites/strong_enemy.png",
+      "path": "sprites/Player_Movement.png",
       "frames": 4,
       "animation_speed": 0.15
     },
@@ -59,7 +59,7 @@
     "hitbox_size": [40, 40],
     "detection_range": 400,
     "sprite": {
-      "path": "assets/sprites/boss.png",
+      "path": "sprites/Player_Movement.png",
       "frames": 6,
       "animation_speed": 0.2
     },

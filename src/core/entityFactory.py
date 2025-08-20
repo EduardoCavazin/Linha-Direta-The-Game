@@ -94,50 +94,50 @@ class EntityFactory:
     
     def create_player(self, position: Tuple[float, float], properties: Dict = None) -> Optional[Player]:
         try:
-            config = self.configs["entities"].get("Player", {})
-            if not config:
-                print("Configuração do Player não encontrada!")
-                return None
-            
-            weapon = self._create_weapon_for_entity("Player", config)
-            
+            config = self.configs["entities"]["Player"]
+            sprite_config = config.get("sprite", {})
+
             player = Player(
                 id="player",
-                name="Player",
+                name="Jogador",
                 position=position,
                 size=tuple(config.get("size", [32, 32])),
-                speed=float(config.get("speed", 200.0)),
-                health=int(config.get("health", 100)),
-                weapon=weapon,
-                ammo=int(config.get("ammo", 30)),
-                status="alive"
+                speed=config.get("speed", 200),
+                health=config.get("health", 100),
+                weapon=None,  
+                ammo=config.get("start_ammo", 30),
+                status="alive",
+                sprite_config=sprite_config  
             )
             
             return player
             
         except Exception as e:
-            print(f"Erro ao criar Player: {e}")
+            print(f"Erro ao criar player: {e}")
             return None
     
     def create_enemy(self, enemy_type: str, position: Tuple[float, float], properties: Dict = None) -> Optional[Enemy]:
         try:
             config = self.configs["entities"].get(enemy_type, {})
             if not config:
-                print(f"Configuração do inimigo {enemy_type} não encontrada!")
+                print(f"Configuração do inimigo {enemy_type} não encontrada")
                 return None
             
-            weapon = self._create_weapon_for_entity(enemy_type, config)
+            sprite_config = config.get("sprite", {})
             
             enemy = Enemy(
                 id=f"{enemy_type.lower()}_{id(position)}",
                 name=config.get("name", enemy_type),
                 position=position,
                 size=tuple(config.get("size", [32, 32])),
-                speed=float(config.get("speed", 80.0)),
-                health=int(config.get("health", 50)),
-                weapon=weapon,
-                ammo=int(config.get("ammo", 0)),
-                status=config.get("status", "alive")
+                speed=config.get("speed", 80),
+                health=config.get("health", 50),
+                weapon=None,
+                ammo=0,
+                status="alive",
+                sprite_config=sprite_config,  
+                detection_range=config.get("detection_range", 250),
+                drops=config.get("drops", [])
             )
             
             return enemy
@@ -153,26 +153,19 @@ class EntityFactory:
                 print(f"Configuração do item {item_type} não encontrada")
                 return None
             
-            import random
-            sprite_mapping = {
-                "HealthPack": random.choice(["sprites/medkit1.png", "sprites/medkit2.png"]),
-                "AmmoPack": random.choice(["sprites/ammo.png", "sprites/ammo2.png"]),
-                "KeyCard": "sprites/keycard.png"  # Caso exista
-            }
-            
-            sprite_name = sprite_mapping.get(item_type, f"{item_type.lower()}.png")
+            sprite_name = config.get("sprite", f"assets/sprites/{item_type.lower()}.png")
             
             item = Item(
                 id=f"{item_type.lower()}_{id(position)}",
                 name=config.get("name", item_type),
                 position=position,
                 size=tuple(config.get("size", [24, 24])),  
-                effect=config.get("effect", ""),
+                effect=config.get("effect", {}).get("type", ""),
                 sprite_name=sprite_name
             )
             
-            if "value" in config:
-                item.value = config["value"]
+            if "effect" in config and "value" in config["effect"]:
+                item.value = config["effect"]["value"]
             
             return item
             

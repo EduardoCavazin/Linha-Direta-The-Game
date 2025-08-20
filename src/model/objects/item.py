@@ -12,18 +12,14 @@ class Item(GameObject):
         self.value: int = 0 
         
         if sprite_name is None:
-            sprite_name = f"sprites/{self.id}.png"
+            sprite_name = f"assets/sprites/{self.id}.png"
+
         
         try:
             self.image = load_image(sprite_name, size)
         except Exception as e:
-            try:
-                fallback_sprite = "sprites/player.png" if "health" in sprite_name.lower() else "sprites/ammo.png"
-                self.image = load_image(fallback_sprite, size)
-            except:
-                self.image = pygame.Surface(size, pygame.SRCALPHA)
-                color = (0, 255, 0) if "health" in sprite_name.lower() else (0, 100, 255) 
-                pygame.draw.circle(self.image, color, (size[0]//2, size[1]//2), min(size)//2)
+            print(f"Erro ao carregar sprite {sprite_name}: {e}")
+
     
     @property
     def position(self) -> Tuple[float, float]:
@@ -44,4 +40,7 @@ class Item(GameObject):
                 target.ammo = min(target.ammo + 10, target.weapon.max_ammo)
 
     def draw(self, screen: pygame.Surface) -> None:
-        screen.blit(self.image, self.hitbox.topleft)
+        if hasattr(self, 'image') and self.image is not None:
+            screen.blit(self.image, self.hitbox.topleft)
+        else:
+            pygame.draw.rect(screen, (255, 0, 255), self.hitbox, 2)
