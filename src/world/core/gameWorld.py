@@ -52,7 +52,6 @@ class GameWorld:
                 start_room = self.map.rooms[0]
             
             self.current_room = start_room
-            print(f"Sala inicial selecionada: {self.current_room.id}")
             
             if self.current_room:
                 room_width, room_height = self.current_room.size
@@ -84,7 +83,6 @@ class GameWorld:
             self.player.weapon = weapon
             self.player.ammo = 12
             
-            print(f"Player principal criado com EntityFactory: {self.player.id}")
         else:
             print("ERRO: Falha ao criar player principal com EntityFactory!")
         
@@ -207,7 +205,6 @@ class GameWorld:
                 enemy_bullet = enemy.update(player_pos, delta_time)
                 if enemy_bullet:
                     self.enemy_bullets.append(enemy_bullet)
-                    print(f"Inimigo {enemy.id} atirou!")
             else:
                 self.current_room.enemies.remove(enemy)
         
@@ -235,7 +232,6 @@ class GameWorld:
         offset_y = random.uniform(-15, 15)
         drop_position = (enemy_position[0] + offset_x, enemy_position[1] + offset_y)
         
-        print(f" Gerando drop na posição: {drop_position}")
         
         dropped_item = self.entity_factory.create_item(drop_type, drop_position)
         

@@ -19,7 +19,6 @@ class AudioManager:
                 sound = pygame.mixer.Sound(file_path)
                 sound.set_volume(self.sfx_volume)
                 self.sounds[name] = sound
-                print(f"Som carregado: {name} - {file_path}")
             except pygame.error as e:
                 print(f"Não foi possível carregar: {file_path} - {e}")
                 self.sounds[name] = pygame.mixer.Sound(buffer=b'\x00' * 1024)
@@ -39,7 +38,6 @@ class AudioManager:
                 pygame.mixer.music.load(music_file)
                 pygame.mixer.music.set_volume(self.music_volume)
                 pygame.mixer.music.play(-1) 
-                print(f"Música de fundo iniciada: {music_file}")
                 return
             except pygame.error as e:
                 print(f"Não foi possível carregar: {music_file} - {e}")

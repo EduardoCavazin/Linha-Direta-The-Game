@@ -14,11 +14,9 @@ class Item(GameObject):
         if sprite_name is None:
             sprite_name = f"assets/sprites/{self.id}.png"
 
-        print(f"Tentando carregar sprite: {sprite_name}") 
         
         try:
             self.image = load_image(sprite_name, size)
-            print(f"Sprite carregada com sucesso: {sprite_name}")
         except Exception as e:
             print(f"Erro ao carregar sprite {sprite_name}: {e}")
 
@@ -43,8 +41,6 @@ class Item(GameObject):
 
     def draw(self, screen: pygame.Surface) -> None:
         if hasattr(self, 'image') and self.image is not None:
-            print(f"Desenhando item {self.name} - Imagem: {self.image.get_size()}")
             screen.blit(self.image, self.hitbox.topleft)
         else:
-            print(f"ERRO: Item {self.name} não tem imagem válida!")
             pygame.draw.rect(screen, (255, 0, 255), self.hitbox, 2)

@@ -64,7 +64,6 @@ class AssetLoader:
         self._add_background_pattern(background, size)
         
         self._background_cache[cache_key] = background
-        print(f"Background criado para sala: {room_id}")
         return background
     
     def _add_background_pattern(self, surface: pygame.Surface, size: Tuple[int, int]) -> None:

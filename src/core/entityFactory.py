@@ -96,9 +96,7 @@ class EntityFactory:
         try:
             config = self.configs["entities"]["Player"]
             sprite_config = config.get("sprite", {})
-            
-            print(f"[EntityFactory] Sprite config: {sprite_config}")
-            
+
             player = Player(
                 id="player",
                 name="Jogador",
@@ -106,10 +104,10 @@ class EntityFactory:
                 size=tuple(config.get("size", [32, 32])),
                 speed=config.get("speed", 200),
                 health=config.get("health", 100),
-                weapon=None,  # Será configurado depois
+                weapon=None,  
                 ammo=config.get("start_ammo", 30),
                 status="alive",
-                sprite_config=sprite_config  # Passar configurações do sprite
+                sprite_config=sprite_config  
             )
             
             return player
@@ -137,7 +135,7 @@ class EntityFactory:
                 weapon=None,
                 ammo=0,
                 status="alive",
-                sprite_config=sprite_config,  # Passar configurações do sprite
+                sprite_config=sprite_config,  
                 detection_range=config.get("detection_range", 250),
                 drops=config.get("drops", [])
             )
@@ -156,8 +154,6 @@ class EntityFactory:
                 return None
             
             sprite_name = config.get("sprite", f"assets/sprites/{item_type.lower()}.png")
-            
-            print(f"Criando item {item_type} com sprite: {sprite_name}")
             
             item = Item(
                 id=f"{item_type.lower()}_{id(position)}",
