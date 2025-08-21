@@ -47,6 +47,10 @@ class AudioManager:
         self.music_volume = max(0.0, min(1.0, volume))
         pygame.mixer.music.set_volume(self.music_volume)
     
+    def stop_background_music(self) -> None:
+        """Stop the currently playing background music"""
+        pygame.mixer.music.stop()
+    
     def set_sfx_volume(self, volume: float) -> None:
         self.sfx_volume = max(0.0, min(1.0, volume))
         for sound in self.sounds.values():

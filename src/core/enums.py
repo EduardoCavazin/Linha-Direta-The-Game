@@ -89,6 +89,7 @@ class GameState(Enum):
     PAUSED = auto()
     GAME_OVER = auto()
     VICTORY = auto()
+    QUIT = auto()  # When player chooses to quit
 
 # ==============================================
 # MAPPING HELPERS

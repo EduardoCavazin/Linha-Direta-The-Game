@@ -1,20 +1,15 @@
 import pygame
 import sys
-from enum import Enum, auto
 from src.world.core.gameWorld import GameWorld
 from src.core.audioManager import AudioManager 
 from src.ui.hud import Hud
+from src.ui.gameOverScreen import GameOverScreen
+from src.core.enums import GameState
 
 
 WIDTH: int = 950
 HEIGHT: int = 800
 TARGET_FPS: int = 60
-
-class GameState(Enum):
-    RUNNING = auto()
-    PAUSED = auto()
-    GAME_OVER = auto()
-    MENU = auto()
 
 class GameManager:
     def __init__(self, width: int = WIDTH, height: int = HEIGHT, fps: int = TARGET_FPS) -> None:
@@ -29,7 +24,7 @@ class GameManager:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.target_fps: int = fps
         
-        self.state: GameState = GameState.RUNNING
+        self.state: GameState = GameState.PLAYING
         
         self.audio_manager = AudioManager()
         
@@ -39,6 +34,7 @@ class GameManager:
         
         self.audio_manager.play_background_music()
         self.hud = Hud(self.screen, self.game_world.player, self.clock)
+        self.game_over_screen = GameOverScreen(self.screen)
         
         self.timer_running = True
         self.timer_start = pygame.time.get_ticks()
@@ -65,7 +61,7 @@ class GameManager:
     def _process_keyboard_input(self) -> None:
         keys = pygame.key.get_pressed()
         
-        if self.state == GameState.RUNNING:
+        if self.state == GameState.PLAYING:
             self.game_world.process_player_input(keys)
             mouse_pos = pygame.mouse.get_pos()
             self.game_world.process_player_mouse_movement(mouse_pos)
@@ -86,34 +82,68 @@ class GameManager:
             current_vol = self.audio_manager.music_volume
             self.audio_manager.set_music_volume(current_vol - 0.01)
         
+        # Global controls
         if keys[pygame.K_ESCAPE]:
-            self.state = GameState.GAME_OVER
+            if self.state == GameState.PLAYING:
+                self.state = GameState.PAUSED
+            elif self.state == GameState.PAUSED:
+                self.state = GameState.PLAYING
+            elif self.state == GameState.GAME_OVER:
+                self.state = GameState.GAME_OVER  # Stay in game over, exit via UI
         
-        if keys[pygame.K_1]:  # Tecla 1 - ativa suavização rápida
-            self.set_camera_smoothing(True, 0.5)
+        # Game Over controls
+        if self.state == GameState.GAME_OVER:
+            if keys[pygame.K_r]:
+                self._restart_game()
+            elif keys[pygame.K_q]:
+                self.state = GameState.QUIT  # Will exit main loop
         
-        if keys[pygame.K_2]:  # Tecla 2 - ativa suavização lenta
-            self.set_camera_smoothing(True, 0.1)
-        
-        if keys[pygame.K_3]:  # Tecla 3 - desativa suavização
-            self.set_camera_smoothing(False)
-        
-        if keys[pygame.K_F1]:  # F1 - mostra informações de debug
-            self._show_debug_info = not getattr(self, '_show_debug_info', False)
+        # Playing state controls
+        elif self.state == GameState.PLAYING:
+            if keys[pygame.K_1]:  # Tecla 1 - ativa suavização rápida
+                self.set_camera_smoothing(True, 0.5)
+            
+            if keys[pygame.K_2]:  # Tecla 2 - ativa suavização lenta
+                self.set_camera_smoothing(True, 0.1)
+            
+            if keys[pygame.K_3]:  # Tecla 3 - desativa suavização
+                self.set_camera_smoothing(False)
+            
+            if keys[pygame.K_F1]:  # F1 - mostra informações de debug
+                self._show_debug_info = not getattr(self, '_show_debug_info', False)
 
     def _process_system_events(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.state = GameState.GAME_OVER
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.state == GameState.RUNNING:
-                mouse_pos = pygame.mouse.get_pos()
-                self.game_world.process_player_mouse(mouse_pos)
+                self.state = GameState.QUIT
                 
-                self.audio_manager.play_sound('shoot')
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if self.state == GameState.PLAYING:
+                    mouse_pos = pygame.mouse.get_pos()
+                    self.game_world.process_player_mouse(mouse_pos)
+                    self.audio_manager.play_sound('shoot')
+                    
+                elif self.state == GameState.GAME_OVER:
+                    mouse_pos = pygame.mouse.get_pos()
+                    action = self.game_over_screen.handle_click(mouse_pos)
+                    if action == "restart":
+                        self._restart_game()
+                    elif action == "quit":
+                        self.state = GameState.QUIT
+                        
+            elif event.type == pygame.MOUSEMOTION:
+                if self.state == GameState.GAME_OVER:
+                    self.game_over_screen.handle_mouse_motion(event.pos)
                 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
+                if event.key == pygame.K_p and self.state == GameState.PLAYING:
                     self.toggle_pause()
+                elif self.state == GameState.GAME_OVER:
+                    action = self.game_over_screen.handle_keypress(event.key)
+                    if action == "restart":
+                        self._restart_game()
+                    elif action == "quit":
+                        self.state = GameState.QUIT
 
     def _draw_pause_overlay(self) -> None:
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
@@ -148,7 +178,7 @@ class GameManager:
 
     def run(self) -> None:
         try:
-            while self.state != GameState.GAME_OVER:
+            while self.state != GameState.QUIT:
                 delta_time: float = self.clock.tick(self.target_fps) / 1000.0
                 
                 self.handle_events()
@@ -156,16 +186,24 @@ class GameManager:
                 if self.timer_running:
                     self.elapsed_time = pygame.time.get_ticks() - self.timer_start
                 
-                if self.state == GameState.RUNNING:
+                if self.state == GameState.PLAYING:
                     self.game_world.update(delta_time)
+                    
+                    # Check if player died
+                    if self.game_world.player and not self.game_world.player.is_alive():
+                        self.state = GameState.GAME_OVER
+                        self.audio_manager.stop_background_music()
 
                 self.game_world.render()
 
-                if self.state == GameState.RUNNING:
+                if self.state == GameState.PLAYING:
                     self.hud.player = self.game_world.player
                     self.hud.draw(elapsed_time=self.elapsed_time)
                 
-                if self.state == GameState.PAUSED:
+                elif self.state == GameState.GAME_OVER:
+                    self.game_over_screen.draw()
+                
+                elif self.state == GameState.PAUSED:
                     self._draw_pause_overlay()
                 
                 self.hud.draw_debug_info(self) 
@@ -176,3 +214,15 @@ class GameManager:
         finally:
             pygame.quit()
             sys.exit()
+    
+    def _restart_game(self) -> None:
+        """Restart the game by creating new game world"""
+        self.state = GameState.PLAYING
+        self.game_world = GameWorld(self.screen, self.clock, self.width, self.height, self.audio_manager)
+        self.hud = Hud(self.screen, self.game_world.player, self.clock)
+        self.audio_manager.play_background_music()
+        
+        # Reset timer
+        self.timer_running = True
+        self.timer_start = pygame.time.get_ticks()
+        self.timer_paused_at = 0

@@ -202,7 +202,6 @@ class Player(Entity):
             print(f"-{actual_damage} de vida! Vida atual: {self.health}/100")
             
             if self.health <= 0:
-                self.alive = False
-                print("Game Over!")
+                self.die()  # Use the inherited die() method from Entity
         else:
             print("Nenhum dano recebido!")
