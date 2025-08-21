@@ -3,6 +3,7 @@ import math
 from typing import Tuple, Optional, Any
 from src.model.objects.bullet import Bullet
 from src.model.objects.movableObject import MovableObject
+from src.core.enums import EntityStatus
 
 class Entity(MovableObject):
     def __init__(
@@ -110,11 +111,11 @@ class Entity(MovableObject):
             self.health = min(self.max_health, self.health + amount)
 
     def die(self) -> None:
-        self.status = "dead"
+        self.status = EntityStatus.DEAD.value
         print(f"{self.name} morreu!")
         
     def is_alive(self) -> bool:
-        return self.status != "dead"
+        return self.status != EntityStatus.DEAD.value
         
     def get_health_percentage(self) -> float:
         return (self.health / self.max_health) * 100.0 if self.max_health > 0 else 0.0

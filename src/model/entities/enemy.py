@@ -4,6 +4,7 @@ from typing import Tuple, Optional, Any, TYPE_CHECKING
 from src.model.entities.entity import Entity
 from src.core.utils import load_image
 from src.core.constants import Enemy as EnemyConst, Animation, Bullet as BulletConst
+from src.core.enums import EntityStatus
 
 if TYPE_CHECKING:
     from src.model.objects.bullet import Bullet
@@ -130,7 +131,7 @@ class Enemy(Entity):
         screen.blit(self.image, self.rect.topleft)
         
     def set_dead_state(self) -> None:
-        self.status = "dead"
+        self.status = EntityStatus.DEAD.value
         
         try:
             self.base_enemy_image = load_image("sprites/dead_enemy.png", self.size)

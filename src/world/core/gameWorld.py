@@ -9,7 +9,8 @@ from src.world.core.map import Map
 from src.world.core.room import Room
 from src.core.camera import Camera
 from src.core.entityFactory import EntityFactory
-from src.core.constants import World, Player, Enemy, Bullet, Items, Physics, get_random_drop_offset, Physics
+from src.core.constants import World, Player, Enemy, Bullet, Items, Physics, get_random_drop_offset
+from src.core.enums import ItemType, ItemEffect, get_item_effect, get_item_display_name
 
 
 class GameWorld:
@@ -231,25 +232,26 @@ class GameWorld:
         if not self.current_room:
             return
         
-        drop_type = random.choice(["HealthPack", "AmmoPack"])
+        drop_type = random.choice([ItemType.HEALTH_PACK, ItemType.AMMO_PACK])
         
         offset_x, offset_y = get_random_drop_offset()
         drop_position = (enemy_position[0] + offset_x, enemy_position[1] + offset_y)
         
         
-        dropped_item = self.entity_factory.create_item(drop_type, drop_position)
+        dropped_item = self.entity_factory.create_item(drop_type.value, drop_position)
         
         if dropped_item:
-            if drop_type == "HealthPack":
-                dropped_item.effect = "heal"
+            item_effect = get_item_effect(drop_type)
+            dropped_item.effect = item_effect.value
+            
+            if drop_type == ItemType.HEALTH_PACK:
                 dropped_item.value = Items.HEALTH_PACK_VALUE  
-            elif drop_type == "AmmoPack":
-                dropped_item.effect = "ammo"
+            elif drop_type == ItemType.AMMO_PACK:
                 dropped_item.value = Items.AMMO_PACK_VALUE   
             
             self.current_room.items.append(dropped_item)
             
-            item_name = "Kit Médico" if drop_type == "HealthPack" else "Munição"
+            item_name = get_item_display_name(drop_type)
             print(f" {item_name} foi dropado!")
         else:
             print(" Falha ao criar o item dropado!")
@@ -281,9 +283,9 @@ class GameWorld:
         for item in self.current_room.items[:]:
             if self.player.rect.colliderect(item.hitbox):
                 print(f"ITEM COLETADO: {item.name} - {item.effect}")
-                if item.effect == "heal":
+                if item.effect == ItemEffect.HEAL.value:
                     self.player.heal(item.value)
-                elif item.effect == "ammo":
+                elif item.effect == ItemEffect.AMMO.value:
                     self.player.add_ammo(item.value)
             
                 self.current_room.items.remove(item)

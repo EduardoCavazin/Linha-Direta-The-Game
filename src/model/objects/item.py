@@ -3,6 +3,7 @@ import pygame
 from typing import Tuple, Any
 from src.model.objects.gameObject import GameObject
 from src.core.utils import load_image
+from src.core.enums import ItemEffect
 
 class Item(GameObject):
     def __init__(self, id: str, name: str, position: Tuple[float, float], size: Tuple[int, int], effect: str, sprite_name: str = None) -> None:
@@ -31,11 +32,11 @@ class Item(GameObject):
         self.hitbox.x, self.hitbox.y = value
         
     def use(self, target: Any) -> None:
-        if self.effect == "heal":
+        if self.effect == ItemEffect.HEAL.value:
             target.health += 20
             if target.health > 100:
                 target.health = 100
-        elif self.effect == "ammo":
+        elif self.effect == ItemEffect.AMMO.value:
             if target.weapon is not None:
                 target.ammo = min(target.ammo + 10, target.weapon.max_ammo)
 
