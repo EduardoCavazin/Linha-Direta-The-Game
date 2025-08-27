@@ -16,8 +16,11 @@ class Room:
         visited: bool,
         background: pygame.Surface,
         collision_matrix: Optional[List[List[bool]]] = None,
+        fire_matrix: Optional[List[List[bool]]] = None,
+        animated_tiles: Optional[dict] = None,
         tile_size: Tuple[int, int] = (32, 32),
-        tmx_objects_data: Optional[List[dict]] = None
+        tmx_objects_data: Optional[List[dict]] = None,
+        tmx_loader: Optional[Any] = None
     ) -> None:
         self.id: str = id
         self.size: Tuple[int, int] = size
@@ -33,7 +36,15 @@ class Room:
         self.doors: List[Any] = doors or []
         
         self.collision_matrix: Optional[List[List[bool]]] = collision_matrix
+        self.fire_matrix: Optional[List[List[bool]]] = fire_matrix
+        self.animated_tiles: dict = animated_tiles or {}
         self._wall_rects_cache: Optional[List[pygame.Rect]] = None
+        self._fire_rects_cache: Optional[List[pygame.Rect]] = None
+        
+        # Animation state tracking
+        self.animation_time: float = 0.0
+        self.current_tile_frames: dict = {}  # tile_gid -> current_frame_index
+        self.tmx_loader = tmx_loader  # Keep reference for background updates
         
         self.tmx_objects_data = tmx_objects_data
         self.spawn_position: Tuple[float, float] = self._extract_spawn_position(player)
@@ -110,6 +121,95 @@ class Room:
 
     def invalidate_collision_cache(self) -> None:
         self._wall_rects_cache = None
+        self._fire_rects_cache = None
+    
+    def get_fire_rects(self) -> List[pygame.Rect]:
+        """Get fire damage zone rectangles for damage checking"""
+        if self._fire_rects_cache is not None:
+            return self._fire_rects_cache
+            
+        fire_rects = []
+        if not self.fire_matrix:
+            return fire_rects
+            
+        for y, row in enumerate(self.fire_matrix):
+            for x, is_fire in enumerate(row):
+                if is_fire:
+                    fire_rect = pygame.Rect(
+                        x * self.tile_size[0],
+                        y * self.tile_size[1],
+                        self.tile_size[0],
+                        self.tile_size[1]
+                    )
+                    fire_rects.append(fire_rect)
+        
+        self._fire_rects_cache = fire_rects
+        return fire_rects
+    
+    def check_fire_damage(self, entity_rect: pygame.Rect) -> bool:
+        """Check if entity is touching fire zones - returns True if taking damage"""
+        fire_rects = self.get_fire_rects()
+        for fire_rect in fire_rects:
+            if entity_rect.colliderect(fire_rect):
+                return True
+        return False
+    
+    def update_tile_animations(self, delta_time: float) -> None:
+        """Update animated tile frames based on elapsed time"""
+        if not self.animated_tiles:
+            return
+            
+        self.animation_time += delta_time * 1000  # Convert to milliseconds
+        
+        for tile_gid, animation_data in self.animated_tiles.items():
+            frames = animation_data["frames"]
+            total_duration = animation_data["total_duration"]
+            
+            # Calculate current time in animation cycle
+            cycle_time = self.animation_time % total_duration
+            
+            # Find which frame should be showing
+            elapsed = 0
+            current_frame_index = 0
+            
+            for i, frame in enumerate(frames):
+                elapsed += frame["duration"]
+                if cycle_time < elapsed:
+                    current_frame_index = i
+                    break
+            
+            # Store current frame for this tile
+            self.current_tile_frames[tile_gid] = current_frame_index
+    
+    def get_current_tile_gid(self, original_gid: int) -> int:
+        """Get the current tile GID for animated tiles, or original GID for static tiles"""
+        if original_gid in self.animated_tiles:
+            frame_index = self.current_tile_frames.get(original_gid, 0)
+            animation_data = self.animated_tiles[original_gid]
+            frames = animation_data["frames"]
+            
+            if frame_index < len(frames):
+                # Get the actual tile GID for this frame
+                frame_tileid = frames[frame_index]["tileid"]
+                tileset_firstgid = animation_data["tileset_firstgid"]
+                return tileset_firstgid + frame_tileid
+        
+        return original_gid
+    
+    def needs_background_update(self) -> bool:
+        """Check if background needs updating due to animated tiles"""
+        return len(self.animated_tiles) > 0
+    
+    def update_background(self) -> None:
+        """Update background with current animated tile frames"""
+        if self.animated_tiles and self.tmx_loader:
+            # Create mapping of original GID to current GID
+            current_tile_mapping = {}
+            for original_gid in self.animated_tiles:
+                current_tile_mapping[original_gid] = self.get_current_tile_gid(original_gid)
+            
+            # Recreate background with animated frames
+            self.background = self.tmx_loader.create_animated_background(current_tile_mapping)
 
     # ==========================================
     # BULLET COLLISION 

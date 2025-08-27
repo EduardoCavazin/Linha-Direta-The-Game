@@ -44,6 +44,8 @@ class Map:
             room_id = os.path.splitext(os.path.basename(tmx_path))[0]
             room_size = tmx_loader.get_map_size_pixels()
             collision_matrix = tmx_loader.get_collision_matrix()
+            fire_matrix = tmx_loader.get_fire_matrix()
+            animated_tiles = tmx_loader.get_animated_tiles()
             background = tmx_loader.create_background()
             
             entities_data = tmx_loader.get_objects_data()
@@ -61,7 +63,10 @@ class Map:
                 visited=False,
                 background=background,
                 collision_matrix=collision_matrix,
-                tmx_objects_data=entities_data
+                fire_matrix=fire_matrix,
+                animated_tiles=animated_tiles,
+                tmx_objects_data=entities_data,
+                tmx_loader=tmx_loader
             )
             
             return room

@@ -19,63 +19,38 @@ class Player(Entity):
         status: str,
         sprite_config: Optional[Dict] = None
     ) -> None:
-        self._setup_player_sprite(sprite_config, size, position)
+        # Setup player sprite
+        image = self._load_player_sprite(sprite_config, size)
         
-        super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config)
     
 
-    def _setup_player_sprite(self, sprite_config: Optional[Dict], size: Tuple[int, int], position: Tuple[float, float]) -> None:
+    def _load_player_sprite(self, sprite_config: Optional[Dict], size: Tuple[int, int]) -> pygame.Surface:
+        """Carrega o sprite do jogador"""
         if sprite_config:
             sprite_path = sprite_config.get("path", "assets/sprites/player_pixelado.png")
-            self.animation_speed = sprite_config.get("animation_speed", Animation.PLAYER_ANIMATION_SPEED)
         else:
             sprite_path = "assets/sprites/player_pixelado.png"
-            self.animation_speed = Animation.PLAYER_ANIMATION_SPEED
 
-        self.spritesheet = load_image(sprite_path)
+        spritesheet = load_image(sprite_path)
         
-        if self.spritesheet is None:
-            self.spritesheet = pygame.Surface((128, 128), pygame.SRCALPHA)
-            self.spritesheet.fill((0, 150, 255))
+        if spritesheet is None:
+            # Fallback para uma superfície colorida se não conseguir carregar
+            spritesheet = pygame.Surface((128, 128), pygame.SRCALPHA)
+            spritesheet.fill((0, 150, 255))
         
-        self.frame_count = Animation.PLAYER_FRAME_COUNT
-        self.frame_rows = Animation.PLAYER_FRAME_ROWS
-        self.frame_width = self.spritesheet.get_width() // self.frame_count
-        self.frame_height = self.spritesheet.get_height() // self.frame_rows
-
-        self.frames = self._load_animation_frames(size)
-        
-        self.current_frame = 0
-        self.animation_timer = 0.0
-        
-        self.base_player_image = self.frames[0] if self.frames else pygame.Surface(size, pygame.SRCALPHA)
-        self.image = self.base_player_image
-        self.rect = self.image.get_rect(center=position)
-        
-
-    def _load_animation_frames(self, size: Tuple[int, int]) -> List[pygame.Surface]:
-        frames = []
-        for y in range(self.frame_rows):
-            for x in range(self.frame_count):
-                frame = pygame.Surface((self.frame_width, self.frame_height), pygame.SRCALPHA)
-                frame.blit(self.spritesheet, (0, 0), 
-                          (x * self.frame_width, y * self.frame_height, 
-                           self.frame_width, self.frame_height))
-                frame = pygame.transform.scale(frame, size)
-                frames.append(frame)
-        return frames
+        return spritesheet
 
     def update_animation(self, delta_time: float) -> None:
+        """Override para controlar animação apenas quando se movendo"""
         if not self.moving:
             self.current_frame = 0
-            self.base_player_image = self.frames[0]
+            if self.frames:
+                self.base_image = self.frames[0]
             return
 
-        self.animation_timer += delta_time
-        if self.animation_timer >= self.animation_speed:
-            self.animation_timer = 0
-            self.current_frame = (self.current_frame + 1) % 4
-            self.base_player_image = self.frames[self.current_frame]
+        # Chama o método da classe pai se estiver se movendo
+        super().update_animation(delta_time)
 
     def move(
         self,
@@ -102,7 +77,7 @@ class Player(Entity):
 
         speed = self.speed * delta_time
         move_vec = direction_vector * speed
-        new_pos = (self.position[0] + move_vec.x, self.position[1] + move_vec.y)
+        new_pos = self.position + move_vec
 
         
         collision = self._check_collision(new_pos, obstacles)
@@ -113,12 +88,12 @@ class Player(Entity):
             if world_bounds:
                 self._apply_world_bounds(world_bounds)
 
-    def _check_collision(self, new_pos: Tuple[float, float], obstacles: Optional[list]) -> bool:
+    def _check_collision(self, new_pos: pygame.Vector2, obstacles: Optional[list]) -> bool:
         if not obstacles:
             return False
 
         temp_rect = pygame.Rect(0, 0, self.size[0], self.size[1])
-        temp_rect.center = (int(new_pos[0]), int(new_pos[1]))
+        temp_rect.center = (int(new_pos.x), int(new_pos.y))
 
         for obstacle in obstacles:
             if temp_rect.colliderect(obstacle):
@@ -134,10 +109,9 @@ class Player(Entity):
         max_x = world_bounds[0] - half_width
         max_y = world_bounds[1] - half_height
 
-        x, y = self.position
-        x = max(min_x, min(x, max_x))
-        y = max(min_y, min(y, max_y))
-        self.position = (x, y)
+        x = max(min_x, min(self.position.x, max_x))
+        y = max(min_y, min(self.position.y, max_y))
+        self.position = pygame.Vector2(x, y)
 
     def reload(self) -> None:
         if self.weapon:
@@ -167,7 +141,7 @@ class Player(Entity):
         self.rotate_towards(mouse_pos)
 
         old_center = self.rect.center
-        self.image = pygame.transform.rotate(self.base_player_image, -self.rotation)
+        self.image = pygame.transform.rotate(self.base_image, -self.rotation)
         self.rect = self.image.get_rect(center=old_center)
 
     def heal(self, amount: int) -> None:

@@ -111,12 +111,20 @@ class GameLogic:
     MIN_HEALTH = 0
 
 # ==============================================
+# FIRE DAMAGE SYSTEM
+# ==============================================
+class FireDamage:
+    DAMAGE_PER_TICK = 5  # Damage per fire tick
+    DAMAGE_INTERVAL = 1.0  # Seconds between damage ticks
+    FIRE_WARNING_COLOR = (255, 100, 0)  # Orange overlay for fire zones
+
+# ==============================================
 # FILE PATHS (removing hardcoded paths)
 # ==============================================
 class Assets:
     PLAYER_SPRITE = "assets/sprites/player_pixelado.png"
-    ENEMY_SPRITE = "sprites/Enemy4.png"
-    DEAD_ENEMY_SPRITE = "sprites/dead_enemy.png"
+    ENEMY_SPRITE = "assets/sprites/Enemy4.png"  # Fixed: added assets/
+    DEAD_ENEMY_SPRITE = "assets/sprites/dead_enemy.png"  # Fixed: added assets/
     
     MAPS_FOLDER = "assets/sprites/world/tilesets"
     

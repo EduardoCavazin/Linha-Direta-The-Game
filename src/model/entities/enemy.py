@@ -26,48 +26,39 @@ class Enemy(Entity):
         drops: list = None
     ) -> None:
         sprite_config = sprite_config or {}
-        sprite_path = sprite_config.get("path", "sprites/enemy.png") 
+        sprite_path = sprite_config.get("path", "assets/sprites/enemy2.png") 
         
-        image = load_image(sprite_path, size)
+        image = load_image(sprite_path)
         
-        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status)
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config)
         
         self.detection_range = detection_range
         self.drops = drops or []
-        
-        self.frame_count = sprite_config.get("frames", 1)
-        self.animation_speed = sprite_config.get("animation_speed", Animation.ENEMY_ANIMATION_SPEED)
-        
-        self.base_enemy_image: pygame.Surface = load_image("sprites/Enemy4.png", size)
-        self.base_enemy_rect: pygame.Rect = self.base_enemy_image.get_rect(topleft=position)
-        
-        self.image: pygame.Surface = self.base_enemy_image
-        self.rect: pygame.Rect = self.image.get_rect(topleft=position)
-        self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
         
         self.attack_range: float = EnemyConst.ATTACK_RANGE     
         self.attack_cooldown: float = 0.0    
         self.attack_interval: float = EnemyConst.ATTACK_INTERVAL_SECONDS    
         self.last_attack_time: float = 0.0
         
-    @property
-    def position(self) -> pygame.Vector2:
-        return self._position
-    
-    @position.setter
-    def position(self, value: Tuple[float, float]) -> None:
-        self._position = pygame.Vector2(value)
+    # Removed: Enemy now uses simplified Entity._setup_animation() and _load_animation_frames() methods
+        
+    # Removed: Enemy now uses Entity.update_animation() - no override needed
+        
+    # Removed: Enemy now uses Entity.position property (Vector2 consistent)
     
     def update(self, player_pos: Tuple[float, float], delta_time: float = 0.016) -> Optional['Bullet']:
         if not self.is_alive():
             return None
+            
+        # Update animation
+        self.update_animation(delta_time)
             
         self.rotate_towards(player_pos)
         
         angle_rad = math.radians(self.rotation)
         self.direction = pygame.Vector2(math.cos(angle_rad), math.sin(angle_rad))
         
-        self.image = pygame.transform.rotate(self.base_enemy_image, -self.rotation)
+        self.image = pygame.transform.rotate(self.base_image, -self.rotation)
         self.rect = self.image.get_rect(center=self.rect.center)
         
         if self.attack_cooldown > 0:
@@ -134,8 +125,8 @@ class Enemy(Entity):
         self.status = EntityStatus.DEAD.value
         
         try:
-            self.base_enemy_image = load_image("sprites/dead_enemy.png", self.size)
-            self.image = pygame.transform.rotate(self.base_enemy_image, -self.rotation)
+            self.base_image = load_image("assets/sprites/dead_enemy.png", self.size)
+            self.image = pygame.transform.rotate(self.base_image, -self.rotation)
             old_center = self.rect.center
             self.rect = self.image.get_rect()
             self.rect.center = old_center

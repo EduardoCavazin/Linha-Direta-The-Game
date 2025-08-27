@@ -2,6 +2,7 @@ import os
 import xml.etree.ElementTree as ET
 import pygame
 from typing import Dict, List, Tuple, Optional, Any
+from PIL import Image, ImageSequence
 from src.world.loaders.assetLoader import AssetLoader, get_asset_loader
 
 class TiledLoader:
@@ -211,6 +212,23 @@ class TiledLoader:
             tileset["tilecount"] = int(root.get("tilecount", 0))
             tileset["columns"] = int(root.get("columns", 0))
             
+            # Parse tile animations
+            tileset["animations"] = {}
+            for tile_elem in root.findall("tile"):
+                tile_id = int(tile_elem.get("id", 0))
+                animation_elem = tile_elem.find("animation")
+                
+                if animation_elem is not None:
+                    frames = []
+                    for frame_elem in animation_elem.findall("frame"):
+                        frame_tileid = int(frame_elem.get("tileid", 0))
+                        frame_duration = int(frame_elem.get("duration", 100))  # ms
+                        frames.append({"tileid": frame_tileid, "duration": frame_duration})
+                    
+                    if frames:
+                        tileset["animations"][tile_id] = frames
+                        print(f"Found animation for tile {tile_id}: {len(frames)} frames")
+            
             image = root.find("image")
             if image is not None:
                 raw_source = image.get("source", "")
@@ -341,6 +359,124 @@ class TiledLoader:
                 break
         
         return collision_matrix
+    
+    def get_fire_matrix(self) -> List[List[bool]]:
+        """Get fire damage zones matrix - damages player but doesn't block movement"""
+        fire_matrix = [[False for _ in range(self.width)] for _ in range(self.height)]
+        
+        for layer in self.layers:
+            if layer["name"].lower() in ["fogo", "fire", "damage"]:
+                
+                for y, row in enumerate(layer["data"]):
+                    for x, gid in enumerate(row):
+                        if gid > 0:
+                            fire_matrix[y][x] = True
+                break
+        
+        return fire_matrix
+    
+    def get_animated_tiles(self) -> Dict[int, Dict]:
+        """Get all animated tile definitions with their frame sequences"""
+        animated_tiles = {}
+        
+        for tileset in self.tilesets:
+            firstgid = tileset.get("firstgid", 1)
+            animations = tileset.get("animations", {})
+            
+            for local_tile_id, frames in animations.items():
+                # Convert local tile ID to global tile ID
+                global_tile_id = firstgid + local_tile_id
+                
+                # Calculate total animation duration
+                total_duration = sum(frame["duration"] for frame in frames)
+                
+                animated_tiles[global_tile_id] = {
+                    "frames": frames,
+                    "total_duration": total_duration,
+                    "tileset_firstgid": firstgid,
+                    "local_id": local_tile_id
+                }
+        
+        return animated_tiles
+    
+    def create_animated_background(self, room_current_tiles: dict = None) -> pygame.Surface:
+        """Create background with animated tiles support - same as original but with animation overrides"""
+        width, height = self.get_map_size_pixels()
+        background = pygame.Surface((width, height), pygame.SRCALPHA)
+        background.fill((40, 40, 40))
+        
+        room_current_tiles = room_current_tiles or {}
+        
+        for layer in self.layers:
+            if not layer["visible"]:
+                continue
+            
+            self._render_layer_with_animations(layer, background, room_current_tiles)
+        
+        self._render_object_markers(background)
+        
+        return background
+    
+    def _render_layer_with_animations(self, layer: Dict, surface: pygame.Surface, room_current_tiles: dict) -> None:
+        """Render layer with animated tile support"""
+        for y, row in enumerate(layer["data"]):
+            for x, gid in enumerate(row):
+                if gid == 0:
+                    continue
+                
+                # Check if this tile has animation override
+                current_gid = room_current_tiles.get(gid, gid)
+                
+                # Use existing tile_images (same as original)
+                tile_img = self.tile_images.get(current_gid)
+                if tile_img:
+                    pos_x = x * self.tilewidth
+                    pos_y = y * self.tileheight
+                    surface.blit(tile_img, (pos_x, pos_y))
+    
+    def _get_tile_surface(self, gid: int) -> Optional[pygame.Surface]:
+        """Get tile surface for given GID"""
+        if gid <= 0:
+            return None
+            
+        # Find which tileset this GID belongs to
+        for tileset in reversed(self.tilesets):  # Check from highest firstgid to lowest
+            firstgid = tileset.get("firstgid", 1)
+            tilecount = tileset.get("tilecount", 0)
+            
+            if gid >= firstgid and gid < firstgid + tilecount:
+                # This tileset contains our tile
+                local_id = gid - firstgid
+                
+                # Load tileset image if not already loaded
+                if "image" not in tileset:
+                    image_source = tileset.get("image_source", "")
+                    if image_source:
+                        tileset_image = self.asset_loader.get_asset(image_source)
+                        if tileset_image:
+                            tileset["image"] = tileset_image
+                
+                if "image" in tileset:
+                    tileset_image = tileset["image"]
+                    
+                    # Calculate tile position in tileset
+                    tilewidth = tileset.get("tilewidth", 32)
+                    tileheight = tileset.get("tileheight", 32)
+                    columns = tileset.get("columns", 1)
+                    
+                    if columns > 0:
+                        tile_x = (local_id % columns) * tilewidth
+                        tile_y = (local_id // columns) * tileheight
+                        
+                        # Extract tile from tileset
+                        tile_surface = pygame.Surface((tilewidth, tileheight), pygame.SRCALPHA)
+                        tile_surface.blit(tileset_image, (0, 0), (tile_x, tile_y, tilewidth, tileheight))
+                        
+                        return tile_surface
+                
+                break
+        
+        return None
     
     def __str__(self) -> str:
         return (f"TiledMap: {os.path.basename(self.path)}\n"

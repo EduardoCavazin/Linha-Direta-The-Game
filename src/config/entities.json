@@ -8,6 +8,7 @@
     "sprite": {
       "path": "assets/sprites/player_pixelado.png",
       "frames": 4,
+      "frame_rows": 4,
       "animation_speed": 0.2,
       "directions": ["up", "right", "down", "left"]
     },
@@ -22,8 +23,9 @@
     "hitbox_size": [24, 24],
     "detection_range": 250,
     "sprite": {
-      "path": "sprites/Enemy4.png",
+      "path": "assets/sprites/enemy2.png",
       "frames": 4,
+      "frame_rows": 4,
       "animation_speed": 0.15
     },
     "drops": [
@@ -40,8 +42,9 @@
     "hitbox_size": [24, 24],
     "detection_range": 300,
     "sprite": {
-      "path": "sprites/Player_Movement.png",
+      "path": "assets/sprites/Player_Movement.png",
       "frames": 4,
+      "frame_rows": 4,
       "animation_speed": 0.15
     },
     "weapon": "Shotgun",
@@ -59,7 +62,7 @@
     "hitbox_size": [40, 40],
     "detection_range": 400,
     "sprite": {
-      "path": "sprites/Player_Movement.png",
+      "path": "assets/sprites/Player_Movement.png",
       "frames": 6,
       "animation_speed": 0.2
     },

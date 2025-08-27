@@ -9,7 +9,7 @@ from src.world.core.map import Map
 from src.world.core.room import Room
 from src.core.camera import Camera
 from src.core.entityFactory import EntityFactory
-from src.core.constants import World, Player, Enemy, Bullet, Items, Physics, get_random_drop_offset
+from src.core.constants import World, Player, Enemy, Bullet, Items, Physics, FireDamage, get_random_drop_offset
 from src.core.enums import ItemType, ItemEffect, get_item_effect, get_item_display_name
 
 
@@ -33,6 +33,9 @@ class GameWorld:
         self.render_queue: List = []
         self.last_teleport_time: float = 0.0 
         self.start_time = pygame.time.get_ticks()
+        
+        # Fire damage system
+        self.last_fire_damage_time: float = 0.0
         
         self._initialize_world()
     
@@ -186,6 +189,20 @@ class GameWorld:
             traceback.print_exc()
             return
             
+        try:
+            self._check_fire_damage(delta_time)
+        except Exception as e:
+            print(f"ERRO no _check_fire_damage(): {e}")
+            import traceback
+            traceback.print_exc()
+        
+        try:
+            self._update_tile_animations(delta_time)
+        except Exception as e:
+            print(f"ERRO no _update_tile_animations(): {e}")
+            import traceback
+            traceback.print_exc()
+        
         try:
             self._update_render_queue()
         except AttributeError as e:
@@ -563,3 +580,35 @@ class GameWorld:
         self.enemy_bullets.clear()  
         self.render_queue.clear()
         print("GameWorld limpo")
+    
+    # ==========================================
+    # FIRE DAMAGE SYSTEM
+    # ==========================================
+    
+    def _check_fire_damage(self, delta_time: float) -> None:
+        """Check if player is standing on fire tiles and apply damage"""
+        if not self.player or not self.current_room or not self.player.is_alive():
+            return
+            
+        # Check if player is touching fire zones
+        player_rect = self.player.rect
+        is_on_fire = self.current_room.check_fire_damage(player_rect)
+        
+        if is_on_fire:
+            current_time = pygame.time.get_ticks() / 1000.0  # Convert to seconds
+            
+            # Apply damage every DAMAGE_INTERVAL seconds
+            if current_time - self.last_fire_damage_time >= FireDamage.DAMAGE_INTERVAL:
+                self.player.take_damage(FireDamage.DAMAGE_PER_TICK)
+                self.last_fire_damage_time = current_time
+                print(f"🔥 Player taking fire damage! Health: {self.player.health}")
+    
+    def _update_tile_animations(self, delta_time: float) -> None:
+        """Update animated tiles in current room"""
+        if self.current_room:
+            old_frames = self.current_room.current_tile_frames.copy()
+            self.current_room.update_tile_animations(delta_time)
+            
+            # Only update background if frames actually changed (for performance)
+            if self.current_room.current_tile_frames != old_frames:
+                self.current_room.update_background()

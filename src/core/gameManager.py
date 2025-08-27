@@ -45,11 +45,11 @@ class GameManager:
     def toggle_pause(self) -> None:
         if self.state == GameState.RUNNING:
             self.state = GameState.PAUSED
-            self.timer_runnig = False
+            self.timer_running = False
             self.timer_paused_at = pygame.time.get_ticks()
         elif self.state == GameState.PAUSED:
             self.state = GameState.RUNNING
-            self.timer_runnig = True
+            self.timer_running = True
             pause_duration = pygame.time.get_ticks() - self.timer_paused_at
             self.timer_start += pause_duration
 
