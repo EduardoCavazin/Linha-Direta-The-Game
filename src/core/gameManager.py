@@ -6,6 +6,7 @@ from src.ui.hud import Hud
 from src.ui.gameOverScreen import GameOverScreen
 from src.core.enums import GameState
 from src.core.utils import create_overlay
+from src.core.constants import Rendering
 
 
 WIDTH: int = 950
@@ -150,14 +151,14 @@ class GameManager:
                         self.state = GameState.QUIT
 
     def _draw_pause_overlay(self) -> None:
-        overlay = create_overlay((self.width, self.height), (0, 0, 0, 128))
+        overlay = create_overlay((self.width, self.height), Rendering.OVERLAY_COLOR)
         
         self.screen.blit(overlay, (0, 0))
         
         try:
-            font = pygame.font.Font("assets/fonts/techno_hideo.ttf", 64)
+            font = pygame.font.Font("assets/fonts/techno_hideo.ttf", Rendering.PAUSE_FONT_SIZE)
         except:
-            font = pygame.font.Font(None, 64)
+            font = pygame.font.Font(None, Rendering.PAUSE_FONT_SIZE)
             
         pause_text = font.render("PAUSADO", True, (255, 255, 255))
         

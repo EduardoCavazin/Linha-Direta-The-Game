@@ -6,6 +6,7 @@ from src.model.objects.movableObject import MovableObject
 from src.core.enums import EntityStatus
 from src.core.utils import load_image, create_surface
 from src.core.mathUtils import calculate_distance, calculate_angle_to_target, create_direction_vector
+from src.core.constants import Physics
 
 class Entity(MovableObject):
     def __init__(
@@ -202,11 +203,11 @@ class Entity(MovableObject):
         current_pos = (self._position.x, self._position.y)
         angle_deg = calculate_angle_to_target(current_pos, target_pos)
         
-        self.rotation = angle_deg - 90
+        self.rotation = angle_deg - Physics.DIRECTION_OFFSET_DEGREES
         
         self.direction = pygame.Vector2(
-            math.cos(math.radians(self.rotation + 90)),
-            math.sin(math.radians(self.rotation + 90))
+            math.cos(math.radians(self.rotation + Physics.DIRECTION_OFFSET_DEGREES)),
+            math.sin(math.radians(self.rotation + Physics.DIRECTION_OFFSET_DEGREES))
         )
 
     def update_visual(self) -> None:

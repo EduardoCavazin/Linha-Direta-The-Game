@@ -290,7 +290,7 @@ class GameWorld:
                 self.bullets.remove(bullet)
                 continue
             
-            if self.current_room.check_collision((bullet.position.x, bullet.position.y), (2, 2)):
+            if self.current_room.check_collision((bullet.position.x, bullet.position.y), Bullet.COLLISION_CHECK_SIZE):
                 self.bullets.remove(bullet)
                 continue
         

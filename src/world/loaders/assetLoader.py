@@ -2,6 +2,7 @@ import os
 import pygame
 from typing import Dict, Optional, Tuple
 from src.core.utils import load_image
+from src.core.constants import Rendering
 
 class AssetLoader:
     def __init__(self):
@@ -52,7 +53,7 @@ class AssetLoader:
             print(f"Erro ao carregar textura {name}: {e}")
             return None
     
-    def create_room_background(self, room_id: str, size: Tuple[int, int], fill_color: Tuple[int, int, int] = (64, 64, 64)) -> pygame.Surface:
+    def create_room_background(self, room_id: str, size: Tuple[int, int], fill_color: Tuple[int, int, int] = Rendering.DEFAULT_ROOM_COLOR) -> pygame.Surface:
         cache_key = f"bg_{room_id}_{size[0]}x{size[1]}"
         
         if cache_key in self._background_cache:

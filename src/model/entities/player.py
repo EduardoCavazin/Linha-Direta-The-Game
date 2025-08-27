@@ -36,8 +36,8 @@ class Player(Entity):
         
         if spritesheet is None:
             # Fallback para uma superfície colorida se não conseguir carregar
-            spritesheet = create_surface((128, 128))
-            spritesheet.fill((0, 150, 255))
+            spritesheet = create_surface(PlayerConst.FALLBACK_SPRITE_SIZE)
+            spritesheet.fill(PlayerConst.FALLBACK_SPRITE_COLOR)
         
         return spritesheet
 

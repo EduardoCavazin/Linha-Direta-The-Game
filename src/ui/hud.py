@@ -1,5 +1,6 @@
 import pygame
 from typing import Any
+from src.core.constants import Rendering
 
 class Hud:
     def __init__(self, screen: pygame.Surface, player: Any, clock: pygame.time.Clock) -> None:
@@ -12,12 +13,12 @@ class Hud:
         health_text: pygame.Surface = self.font.render(
             f"Health: {self.player.health}", True, (255, 255, 255)
         )
-        self.screen.blit(health_text, (10, 10))
+        self.screen.blit(health_text, Rendering.HEALTH_POS)
 
         ammo_text: pygame.Surface = self.font.render(
             f"Ammo: {self.player.ammo}", True, (255, 255, 255)
         )
-        self.screen.blit(ammo_text, (10, 50))
+        self.screen.blit(ammo_text, Rendering.AMMO_POS)
 
         fps: int = int(self.clock.get_fps())
         fps_text: pygame.Surface = self.font.render(
@@ -31,7 +32,7 @@ class Hud:
             seconds = elapsed_time // 1000
             millis = elapsed_time % 1000
             timer_text = self.font.render(f" {seconds}:{millis:03d}", True, (255, 255, 255))
-            self.screen.blit(timer_text, (10, 90))
+            self.screen.blit(timer_text, Rendering.TIMER_POS)
         
 
     def draw_debug_info(self, game_manager) -> None:
@@ -66,6 +67,6 @@ class Hud:
         for line in debug_lines:
             text = font.render(line, True, (255, 255, 255))
             bg_rect = pygame.Rect(10, y_offset, text.get_width() + 10, text.get_height())
-            pygame.draw.rect(self.screen, (0, 0, 0, 128), bg_rect)
+            pygame.draw.rect(self.screen, Rendering.TRANSPARENT_BLACK, bg_rect)
             self.screen.blit(text, (15, y_offset))
             y_offset += 25

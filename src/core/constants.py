@@ -25,6 +25,10 @@ class Player:
     # Weapon Settings
     PISTOL_DAMAGE = 25
     PISTOL_MAX_AMMO = 12
+    
+    # Sprite properties
+    FALLBACK_SPRITE_SIZE = (128, 128)
+    FALLBACK_SPRITE_COLOR = (0, 150, 255)
 
 # ==============================================
 # ENEMY SETTINGS
@@ -80,6 +84,10 @@ class Physics:
     
     # Tile settings
     DEFAULT_TILE_SIZE = (32, 32)
+    
+    # Rotation/Angle constants
+    DIRECTION_OFFSET_DEGREES = 90
+    FULL_CIRCLE_DEGREES = 360
 
 # ==============================================
 # RENDERING & UI
@@ -88,6 +96,22 @@ class Rendering:
     DEFAULT_WINDOW_WIDTH = 800
     DEFAULT_WINDOW_HEIGHT = 600
     TARGET_FPS = 60
+    
+    # Font sizes
+    PAUSE_FONT_SIZE = 64
+    DEFAULT_FONT_SIZE = 24
+    
+    # UI Colors
+    OVERLAY_COLOR = (0, 0, 0, 128)
+    TRANSPARENT_BLACK = (0, 0, 0, 128)
+    
+    # UI Positions
+    HEALTH_POS = (10, 10)
+    AMMO_POS = (10, 50)
+    TIMER_POS = (10, 90)
+    
+    # Background colors
+    DEFAULT_ROOM_COLOR = (64, 64, 64)
 
 # ==============================================
 # ANIMATION SETTINGS
