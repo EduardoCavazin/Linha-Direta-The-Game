@@ -122,14 +122,17 @@ class GameWorld:
         world_mouse_pos = self.camera.screen_to_world(mouse_pos)
         self.player.rotate_to_mouse(world_mouse_pos)
 
-    def process_player_mouse(self, mouse_pos: Tuple[int, int]) -> None:
+    def process_player_mouse(self, mouse_pos: Tuple[int, int]) -> bool:
+        """Processa o clique do mouse do jogador. Retorna True se o tiro foi bem-sucedido."""
         if not self.player:
-            return
+            return False
         
         world_mouse_pos = self.camera.screen_to_world(mouse_pos)
         bullet = self.player.shoot(world_mouse_pos)
         if bullet:
             self.bullets.append(bullet)
+            return True
+        return False
 
     # ==========================================
     # UPDATE LOGIC

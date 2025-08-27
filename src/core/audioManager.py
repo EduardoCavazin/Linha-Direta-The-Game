@@ -11,6 +11,7 @@ class AudioManager:
     def _load_sounds(self) -> None:
         sound_files = {
             'shoot': 'assets/audio/sfx/pistol_sound.wav',
+            'dryfire': 'assets/audio/sfx/Dryfire.mp3',
             'footstep': 'assets/audio/sfx/footstep.mp3',
         }
         

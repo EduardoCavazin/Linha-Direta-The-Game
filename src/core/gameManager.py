@@ -120,8 +120,11 @@ class GameManager:
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.state == GameState.PLAYING:
                     mouse_pos = pygame.mouse.get_pos()
-                    self.game_world.process_player_mouse(mouse_pos)
-                    self.audio_manager.play_sound('shoot')
+                    shot_successful = self.game_world.process_player_mouse(mouse_pos)
+                    if shot_successful:
+                        self.audio_manager.play_sound('shoot')
+                    else:
+                        self.audio_manager.play_sound('dryfire')
                     
                 elif self.state == GameState.GAME_OVER:
                     mouse_pos = pygame.mouse.get_pos()

@@ -16,6 +16,7 @@ AMMO_PACK = "assets/sprites/ammo.png"
 
 # Audio (existing files)
 PISTOL_SOUND = "assets/audio/sfx/pistol_sound.wav"
+DRYFIRE_SOUND = "assets/audio/sfx/Dryfire.mp3"
 FOOTSTEP = "assets/audio/sfx/footstep.mp3"
 
 SOUNDTRACK_1 = "assets/audio/music/Soundtrack1 (1).mp3"
