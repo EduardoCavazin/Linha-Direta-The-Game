@@ -5,6 +5,7 @@ from src.model.entities.entity import Entity
 from src.core.utils import load_image
 from src.core.constants import Enemy as EnemyConst, Animation, Bullet as BulletConst
 from src.core.enums import EntityStatus
+from src.core.mathUtils import calculate_angle_to_target
 
 if TYPE_CHECKING:
     from src.model.objects.bullet import Bullet
@@ -79,31 +80,27 @@ class Enemy(Entity):
         return None
     
     def _calculate_distance_to_player(self, player_pos: Tuple[float, float]) -> float:
-        enemy_x, enemy_y = self.position.x, self.position.y
-        player_x, player_y = player_pos
-        return math.sqrt((player_x - enemy_x) ** 2 + (player_y - enemy_y) ** 2)
+        return self.get_distance_to(player_pos)
     
     def _shoot_at_player(self, player_pos: Tuple[float, float]) -> Optional['Bullet']:
         from src.model.objects.bullet import Bullet
         
-        enemy_x, enemy_y = self.position.x, self.position.y
-        player_x, player_y = player_pos
-        
-        dx = player_x - enemy_x
-        dy = player_y - enemy_y
-        distance = math.sqrt(dx*dx + dy*dy)
+        enemy_pos = (self.position.x, self.position.y)
+        distance = self.get_distance_to(player_pos)
         
         if distance == 0:
             return None
         
+        dx = player_pos[0] - enemy_pos[0]
+        dy = player_pos[1] - enemy_pos[1]
         dx = dx / distance
         dy = dy / distance
         
         offset = EnemyConst.BULLET_SPAWN_OFFSET
-        bullet_x = enemy_x + (dx * offset)
-        bullet_y = enemy_y + (dy * offset)
+        bullet_x = enemy_pos[0] + (dx * offset)
+        bullet_y = enemy_pos[1] + (dy * offset)
         
-        bullet_angle = math.degrees(math.atan2(dy, dx))
+        bullet_angle = calculate_angle_to_target(enemy_pos, player_pos)
         
         damage = self.weapon.damage if self.weapon else EnemyConst.DEFAULT_DAMAGE
         

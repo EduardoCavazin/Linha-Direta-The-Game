@@ -21,3 +21,16 @@ def load_image(path: str, size: Optional[Tuple[int, int]] = None) -> pygame.Surf
         image = pygame.transform.scale(image, size)
     
     return image.convert_alpha()
+
+def create_surface(size: Tuple[int, int], alpha: bool = True) -> pygame.Surface:
+    """Cria uma superfície com ou sem alpha"""
+    if alpha:
+        return pygame.Surface(size, pygame.SRCALPHA)
+    else:
+        return pygame.Surface(size)
+
+def create_overlay(size: Tuple[int, int], color: Tuple[int, int, int, int]) -> pygame.Surface:
+    """Cria uma superfície overlay com cor e alpha"""
+    overlay = pygame.Surface(size, pygame.SRCALPHA)
+    overlay.fill(color)
+    return overlay

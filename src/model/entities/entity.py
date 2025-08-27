@@ -4,7 +4,8 @@ from typing import Tuple, Optional, Any, List, Union
 from src.model.objects.bullet import Bullet
 from src.model.objects.movableObject import MovableObject
 from src.core.enums import EntityStatus
-from src.core.utils import load_image
+from src.core.utils import load_image, create_surface
+from src.core.mathUtils import calculate_distance, calculate_angle_to_target, create_direction_vector
 
 class Entity(MovableObject):
     def __init__(
@@ -94,7 +95,7 @@ class Entity(MovableObject):
     def _extract_frame(self, spritesheet: pygame.Surface, x: int, y: int, 
                       width: int, height: int, target_size: Tuple[int, int]) -> pygame.Surface:
         """Extract and scale a single frame from spritesheet"""
-        frame = pygame.Surface((width, height), pygame.SRCALPHA)
+        frame = create_surface((width, height))
         frame.blit(spritesheet, (0, 0), (x, y, width, height))
         return pygame.transform.scale(frame, target_size)
     
@@ -138,19 +139,14 @@ class Entity(MovableObject):
             bullet_pos = pygame.Vector2(self._position.x, self._position.y)
             
             if target_pos:
-                target_x, target_y = target_pos
-                direction = pygame.Vector2(
-                    target_x - bullet_pos.x,
-                    target_y - bullet_pos.y
-                ).normalize()
+                direction = create_direction_vector(bullet_pos, target_pos)
+                rotation = calculate_angle_to_target(bullet_pos, target_pos)
             else:
                 mouse_coords = pygame.mouse.get_pos()
-                direction = pygame.Vector2(
-                    mouse_coords[0] - bullet_pos.x,
-                    mouse_coords[1] - bullet_pos.y
-                ).normalize()
+                direction = create_direction_vector(bullet_pos, mouse_coords)
+                rotation = calculate_angle_to_target(bullet_pos, mouse_coords)
             
-            rotation = -math.degrees(math.atan2(direction.y, direction.x))
+            rotation = -rotation
             
             if hasattr(self.weapon, 'bullet_config'):
                 bullet_size = tuple(self.weapon.bullet_config.get('size', [8, 8]))
@@ -203,11 +199,8 @@ class Entity(MovableObject):
             pygame.draw.rect(screen, (255, 0, 255), rect)
 
     def rotate_towards(self, target_pos: Tuple[float, float]) -> None:
-        player_x, player_y = self._position.x, self._position.y
-        target_x, target_y = target_pos
-        
-        angle_rad = math.atan2(target_y - player_y, target_x - player_x)
-        angle_deg = math.degrees(angle_rad)
+        current_pos = (self._position.x, self._position.y)
+        angle_deg = calculate_angle_to_target(current_pos, target_pos)
         
         self.rotation = angle_deg - 90
         
@@ -226,11 +219,7 @@ class Entity(MovableObject):
         self.moving = is_moving
         
     def get_distance_to(self, target_pos: Tuple[float, float]) -> float:
-        target_x, target_y = target_pos
-        return math.sqrt(
-            (target_x - self._position.x) ** 2 + 
-            (target_y - self._position.y) ** 2
-        )
+        return calculate_distance(self._position, target_pos)
     
     def get_direction_vector(self) -> Tuple[float, float]:
         angle_rad = math.radians(self.rotation)

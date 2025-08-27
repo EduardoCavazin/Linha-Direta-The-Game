@@ -1,7 +1,7 @@
 import pygame
 from typing import Tuple, Optional, Any, List, Dict
 from src.model.entities.entity import Entity
-from src.core.utils import load_image
+from src.core.utils import load_image, create_surface
 from src.model.objects.bullet import Bullet
 from src.core.constants import Player as PlayerConst, Animation
 
@@ -36,7 +36,7 @@ class Player(Entity):
         
         if spritesheet is None:
             # Fallback para uma superfície colorida se não conseguir carregar
-            spritesheet = pygame.Surface((128, 128), pygame.SRCALPHA)
+            spritesheet = create_surface((128, 128))
             spritesheet.fill((0, 150, 255))
         
         return spritesheet
