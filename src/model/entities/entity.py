@@ -22,9 +22,10 @@ class Entity(MovableObject):
         image: Optional[pygame.Surface],
         status: str,
         rotation: float = 0,
-        sprite_config: Optional[dict] = None
+        sprite_config: Optional[dict] = None,
+        hitbox_size: Optional[Tuple[int, int]] = None
     ) -> None:
-        super().__init__(id, position, size, speed, rotation)
+        super().__init__(id, position, size, speed, rotation, hitbox_size)
         self.name: str = name
         self.health: int = health
         self.max_health: int = health  

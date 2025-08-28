@@ -108,7 +108,8 @@ class EntityFactory:
                 weapon=None,  
                 ammo=config.get("start_ammo", PlayerConst.STARTING_AMMO),
                 status="alive",
-                sprite_config=sprite_config  
+                sprite_config=sprite_config,
+                hitbox_size=tuple(config.get("hitbox_size", config.get("size", PlayerConst.DEFAULT_SIZE)))
             )
             
             return player
@@ -138,7 +139,8 @@ class EntityFactory:
                 status="alive",
                 sprite_config=sprite_config,  
                 detection_range=config.get("detection_range", EnemyConst.DETECTION_RANGE),
-                drops=config.get("drops", [])
+                drops=config.get("drops", []),
+                hitbox_size=tuple(config.get("hitbox_size", config.get("size", EnemyConst.BASIC_ENEMY_SIZE)))
             )
             
             return enemy

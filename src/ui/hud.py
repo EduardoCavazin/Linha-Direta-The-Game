@@ -51,6 +51,9 @@ class Hud:
         if hasattr(game_manager.game_world, 'camera'):
             mouse_world_pos = game_manager.game_world.camera.screen_to_world(mouse_screen_pos)
 
+        # Get collision optimization stats
+        collision_stats = game_manager.game_world.get_collision_stats()
+        
         debug_lines = [
             f"Camera: ({camera_pos[0]:.0f}, {camera_pos[1]:.0f})",
             f"Player: ({player_pos[0]:.0f}, {player_pos[1]:.0f})",
@@ -58,6 +61,13 @@ class Hud:
             f"Mouse (World): ({mouse_world_pos[0]:.0f}, {mouse_world_pos[1]:.0f})",
             f"Bullets: {len(game_manager.game_world.bullets)}",
             f"FPS: {game_manager.clock.get_fps():.0f}",
+            "",
+            "Collision Optimization:",
+            f"  Checks: {collision_stats['collision_checks']}",
+            f"  Cache Hits: {collision_stats['cache_hits']}",
+            f"  Hit Rate: {collision_stats['cache_hit_rate']}",
+            f"  Objects: {collision_stats['objects_in_grid']}",
+            "",
             "Controls:",
             "1/2/3 - Camera smoothing",
             "F1 - Toggle debug info"

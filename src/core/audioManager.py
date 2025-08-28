@@ -12,6 +12,7 @@ class AudioManager:
         sound_files = {
             'shoot': 'assets/audio/sfx/pistol_sound.wav',
             'dryfire': 'assets/audio/sfx/Dryfire.mp3',
+            'hurt': 'assets/audio/sfx/classic_hurt.mp3',
             'footstep': 'assets/audio/sfx/footstep.mp3',
         }
         

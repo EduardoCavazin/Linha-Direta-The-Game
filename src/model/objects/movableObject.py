@@ -5,8 +5,8 @@ from src.model.objects.gameObject import GameObject
 
 class MovableObject(GameObject):
     def __init__(self, id: str, position: Tuple[float, float], size: Tuple[int, int],
-                 speed: float, rotation: float = 0) -> None:
-        super().__init__(id, position, size)
+                 speed: float, rotation: float = 0, hitbox_size: Tuple[int, int] = None) -> None:
+        super().__init__(id, position, size, hitbox_size)
         self._position: pygame.Vector2 = pygame.Vector2(position)
         self.speed: float = speed
         self.rotation: float = rotation

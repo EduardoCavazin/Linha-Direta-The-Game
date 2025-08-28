@@ -1,7 +1,7 @@
 import math
 import random
 import pygame
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 from src.model.entities.player import Player
 from src.model.entities.enemy import Enemy
 from src.model.objects.bullet import Bullet
@@ -11,6 +11,7 @@ from src.core.camera import Camera
 from src.core.entityFactory import EntityFactory
 from src.core.constants import World, Player, Enemy, Bullet, Items, Physics, FireDamage, get_random_drop_offset
 from src.core.enums import ItemType, ItemEffect, get_item_effect, get_item_display_name
+from src.core.collisionOptimizer import CollisionOptimizer
 
 
 class GameWorld:
@@ -25,6 +26,9 @@ class GameWorld:
         self.entity_factory: EntityFactory = EntityFactory()
         
         self.camera: Camera = Camera(width, height, World.CAMERA_WORLD_WIDTH, World.CAMERA_WORLD_HEIGHT)
+        
+        # Initialize collision optimizer
+        self.collision_optimizer = CollisionOptimizer(World.CAMERA_WORLD_WIDTH, World.CAMERA_WORLD_HEIGHT)
         
         self.current_room: Optional[Room] = None
         self.player: Optional[Player] = None
@@ -62,6 +66,9 @@ class GameWorld:
             if self.current_room:
                 room_width, room_height = self.current_room.size
                 self.camera.set_world_bounds(room_width, room_height)
+                
+                # Initialize collision optimizer with static objects
+                self._initialize_room_collisions()
                 
                 self._lock_room_doors()
                 
@@ -141,6 +148,9 @@ class GameWorld:
     def update(self, delta_time: float = None) -> None:
         if not self.current_room:
             return
+        
+        # Update collision optimizer frame (for cache management)
+        self.collision_optimizer.update_frame()
         
         try:
             if self.player:
@@ -390,6 +400,9 @@ class GameWorld:
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
         
+        # Initialize collision optimizer with static objects for the new room
+        self._initialize_room_collisions()
+        
         self._lock_room_doors()
         if self.current_room.is_clear():
             self._unlock_room_doors()
@@ -404,11 +417,11 @@ class GameWorld:
             temp_rect = pygame.Rect(0, 0, self.player.size[0], self.player.size[1])
             temp_rect.center = (int(spawn_position[0]), int(spawn_position[1]))
             
-            obstacles = self.current_room.get_wall_rects()
-            collision = any(temp_rect.colliderect(obs) for obs in obstacles)
+            # Use optimized collision check
+            collision = self.collision_optimizer.check_collision_optimized(temp_rect, static_only=True)
             
             if collision:
-                spawn_position = self._find_safe_spawn(spawn_position, obstacles)
+                spawn_position = self._find_safe_spawn(spawn_position)
             
             self.player.position = spawn_position
             self.camera.follow_target(self.player)
@@ -417,7 +430,7 @@ class GameWorld:
             
             print(f"Player posicionado em: {self.player.position}")
     
-    def _find_safe_spawn(self, original_spawn: Tuple[float, float], obstacles: List[pygame.Rect]) -> Tuple[float, float]:
+    def _find_safe_spawn(self, original_spawn: Tuple[float, float]) -> Tuple[float, float]:
         spawn_x, spawn_y = original_spawn
         
         player_w, player_h = self.player.size
@@ -435,13 +448,34 @@ class GameWorld:
                     test_rect = pygame.Rect(0, 0, player_w, player_h)
                     test_rect.center = (int(test_x), int(test_y))
                     
-                    collision = any(test_rect.colliderect(obs) for obs in obstacles)
+                    collision = self.collision_optimizer.check_collision_optimized(test_rect, static_only=True)
                     if not collision:
                         print(f"Posição livre encontrada: ({test_x:.1f}, {test_y:.1f})")
                         return (test_x, test_y)
         
         print("Nenhuma posição livre encontrada, usando centro do mapa")
         return (self.current_room.size[0] // 2, self.current_room.size[1] // 2)
+    
+    def _initialize_room_collisions(self) -> None:
+        """Initialize collision optimizer with static objects from current room"""
+        if not self.current_room:
+            return
+        
+        # Clear existing static objects
+        # Note: We'll keep a simple approach for now - just clear everything and re-add
+        self.collision_optimizer = CollisionOptimizer(World.CAMERA_WORLD_WIDTH, World.CAMERA_WORLD_HEIGHT)
+        
+        # Add wall rectangles as static collision objects
+        wall_rects = self.current_room.get_wall_rects()
+        for i, wall_rect in enumerate(wall_rects):
+            wall_id = f"wall_{self.current_room.id}_{i}"
+            self.collision_optimizer.add_static_object(wall_id, None, wall_rect)
+        
+        print(f"Initialized collision optimizer with {len(wall_rects)} static objects")
+    
+    def get_collision_stats(self) -> Dict[str, int]:
+        """Get collision optimization performance stats"""
+        return self.collision_optimizer.get_performance_stats()
     
 
     # ==========================================
@@ -534,6 +568,9 @@ class GameWorld:
                 room_width, room_height = self.current_room.size
                 self.camera.set_world_bounds(room_width, room_height)
                 
+                # Initialize collision optimizer with static objects
+                self._initialize_room_collisions()
+                
                 self._lock_room_doors()
                 if self.current_room.is_clear():
                     self._unlock_room_doors()
@@ -576,6 +613,10 @@ class GameWorld:
                 damage = bullet.damage
                 self.player.take_damage(damage)
                 
+                # Play hurt sound
+                if self.audio_manager:
+                    self.audio_manager.play_sound('hurt')
+                
                 self.enemy_bullets.remove(bullet)
     
     def cleanup(self) -> None:
@@ -604,6 +645,11 @@ class GameWorld:
             if current_time - self.last_fire_damage_time >= FireDamage.DAMAGE_INTERVAL:
                 self.player.take_damage(FireDamage.DAMAGE_PER_TICK)
                 self.last_fire_damage_time = current_time
+                
+                # Play hurt sound for fire damage
+                if self.audio_manager:
+                    self.audio_manager.play_sound('hurt')
+                
                 print(f"🔥 Player taking fire damage! Health: {self.player.health}")
     
     def _update_tile_animations(self, delta_time: float) -> None:

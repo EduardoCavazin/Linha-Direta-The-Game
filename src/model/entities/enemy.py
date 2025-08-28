@@ -24,14 +24,15 @@ class Enemy(Entity):
         status: str,
         sprite_config: dict = None,
         detection_range: float = EnemyConst.DETECTION_RANGE,
-        drops: list = None
+        drops: list = None,
+        hitbox_size: Optional[Tuple[int, int]] = None
     ) -> None:
         sprite_config = sprite_config or {}
         sprite_path = sprite_config.get("path", "assets/sprites/enemy2.png") 
         
         image = load_image(sprite_path)
         
-        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config)
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config, hitbox_size)
         
         self.detection_range = detection_range
         self.drops = drops or []
