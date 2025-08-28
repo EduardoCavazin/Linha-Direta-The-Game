@@ -39,10 +39,7 @@ class Hud:
         if not getattr(game_manager, '_show_debug_info', False):
             return
 
-        try:
-            font = pygame.font.Font(None, 24)
-        except:
-            return
+        font = pygame.font.Font(None, 24)
 
         camera_pos = game_manager.get_camera_position()
         player_pos = game_manager.get_player_position()

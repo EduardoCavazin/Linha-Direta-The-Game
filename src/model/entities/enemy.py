@@ -41,12 +41,6 @@ class Enemy(Entity):
         self.attack_cooldown: float = 0.0    
         self.attack_interval: float = EnemyConst.ATTACK_INTERVAL_SECONDS    
         self.last_attack_time: float = 0.0
-        
-    # Removed: Enemy now uses simplified Entity._setup_animation() and _load_animation_frames() methods
-        
-    # Removed: Enemy now uses Entity.update_animation() - no override needed
-        
-    # Removed: Enemy now uses Entity.position property (Vector2 consistent)
     
     def update(self, player_pos: Tuple[float, float], delta_time: float = 0.016) -> Optional['Bullet']:
         if not self.is_alive():

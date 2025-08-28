@@ -99,9 +99,7 @@ class GameWorld:
         else:
             print("ERRO: Falha ao criar player principal com EntityFactory!")
         
-    # ==========================================
-    # INPUT PROCESSING 
-    # ==========================================
+    # Input Processing
     
     def process_player_input(self, keys: pygame.key.ScancodeWrapper) -> None:
         if not self.player or not self.current_room:
@@ -141,9 +139,7 @@ class GameWorld:
             return True
         return False
 
-    # ==========================================
-    # UPDATE LOGIC
-    # ==========================================
+    # Update Logic
     
     def update(self, delta_time: float = None) -> None:
         if not self.current_room:
@@ -152,77 +148,28 @@ class GameWorld:
         # Update collision optimizer frame (for cache management)
         self.collision_optimizer.update_frame()
         
-        try:
-            if self.player:
-                self.player.update(delta_time)
-                self.camera.follow_target(self.player)
-        except AttributeError as e:
-            print(f"ERRO no player.update(): {e}")
-            import traceback
-            traceback.print_exc()
-            return
+        # Update player
+        if self.player:
+            self.player.update(delta_time)
+            self.camera.follow_target(self.player)
         
-        try:
-            self._update_enemies()
-        except AttributeError as e:
-            print(f"ERRO no _update_enemies(): {e}")
-            import traceback
-            traceback.print_exc()
-            return
+        # Update game objects
+        self._update_enemies()
+        self._update_bullets()
+        self._update_enemy_bullets()
             
-        try:
-            self._update_bullets()
-        except AttributeError as e:
-            print(f"ERRO no _update_bullets(): {e}")
-            import traceback
-            traceback.print_exc()
-            return
-            
-        try:
-            self._update_enemy_bullets()
-        except AttributeError as e:
-            print(f"ERRO no _update_enemy_bullets(): {e}")
-            import traceback
-            traceback.print_exc()
-            return
-            
-        try:
-            self._check_item_collisions()
-        except AttributeError as e:
-            print(f"ERRO no _check_item_collisions(): {e}")
-            import traceback
-            traceback.print_exc()
-            return
-            
-        try:
-            self._check_door_collisions()
-        except AttributeError as e:
-            print(f"ERRO no _check_door_collisions(): {e}")
-            import traceback
-            traceback.print_exc()
-            return
-            
-        try:
-            self._check_fire_damage(delta_time)
-        except Exception as e:
-            print(f"ERRO no _check_fire_damage(): {e}")
-            import traceback
-            traceback.print_exc()
+        # Update collisions and interactions
+        self._check_item_collisions()
+        self._check_door_collisions()
+        self._check_fire_damage(delta_time)
         
+        # Update visuals
         try:
             self._update_tile_animations(delta_time)
         except Exception as e:
-            print(f"ERRO no _update_tile_animations(): {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"Warning: Tile animation error: {e}")
         
-        try:
-            self._update_render_queue()
-        except AttributeError as e:
-            print(f"ERRO no _update_render_queue(): {e}")
-            import traceback
-            traceback.print_exc()
-            return
+        self._update_render_queue()
     
     def _update_enemies(self) -> None:
         if not self.player or not self.current_room:
@@ -395,7 +342,7 @@ class GameWorld:
         return None
 
     def _teleport_to_room(self, target_room: Room) -> None:
-        print(f"TELEPORTE: Mudando para {target_room.id}")
+        # Debug: print(f"TELEPORTE: Mudando para {target_room.id}")
         self.current_room = target_room
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
@@ -428,7 +375,7 @@ class GameWorld:
             
             self.player.moving = False
             
-            print(f"Player posicionado em: {self.player.position}")
+            # Debug: print(f"Player posicionado em: {self.player.position}")
     
     def _find_safe_spawn(self, original_spawn: Tuple[float, float]) -> Tuple[float, float]:
         spawn_x, spawn_y = original_spawn
@@ -450,7 +397,7 @@ class GameWorld:
                     
                     collision = self.collision_optimizer.check_collision_optimized(test_rect, static_only=True)
                     if not collision:
-                        print(f"Posição livre encontrada: ({test_x:.1f}, {test_y:.1f})")
+                        # Debug: print(f"Posição livre encontrada: ({test_x:.1f}, {test_y:.1f})")
                         return (test_x, test_y)
         
         print("Nenhuma posição livre encontrada, usando centro do mapa")
@@ -471,16 +418,14 @@ class GameWorld:
             wall_id = f"wall_{self.current_room.id}_{i}"
             self.collision_optimizer.add_static_object(wall_id, None, wall_rect)
         
-        print(f"Initialized collision optimizer with {len(wall_rects)} static objects")
+        # Debug: print(f"Initialized collision optimizer with {len(wall_rects)} static objects")
     
     def get_collision_stats(self) -> Dict[str, int]:
         """Get collision optimization performance stats"""
         return self.collision_optimizer.get_performance_stats()
     
 
-    # ==========================================
-    # RENDERING 
-    # ==========================================
+    # Rendering
     
     def _update_render_queue(self) -> None:
         self.render_queue.clear()
@@ -556,10 +501,7 @@ class GameWorld:
                     obj.position = original_pos
         
 
-    # ==========================================
-    # UTILITY METHODS
-    # ==========================================
-    
+    # Utility Methods
     
     def change_room(self, room_index: int) -> None:
         if 0 <= room_index < len(self.map.rooms):

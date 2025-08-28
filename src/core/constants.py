@@ -3,9 +3,7 @@ Constantes do jogo - Centralizando todos os magic numbers
 Organizado por categorias para fácil manutenção
 """
 
-# ==============================================
-# WORLD & CAMERA SETTINGS
-# ==============================================
+# World & Camera Settings
 class World:
     CAMERA_WORLD_WIDTH = 2000
     CAMERA_WORLD_HEIGHT = 2000
@@ -13,9 +11,7 @@ class World:
     DEFAULT_SPAWN_Y = 100.0
     TELEPORT_COOLDOWN_SECONDS = 1.0
 
-# ==============================================
-# PLAYER SETTINGS  
-# ==============================================
+# Player Settings
 class Player:
     DEFAULT_HEALTH = 100
     DEFAULT_SPEED = 200
@@ -30,9 +26,7 @@ class Player:
     FALLBACK_SPRITE_SIZE = (128, 128)
     FALLBACK_SPRITE_COLOR = (0, 150, 255)
 
-# ==============================================
-# ENEMY SETTINGS
-# ==============================================
+# Enemy Settings
 class Enemy:
     ATTACK_RANGE = 120.0
     ATTACK_INTERVAL_SECONDS = 1.2
@@ -45,9 +39,7 @@ class Enemy:
     BASIC_ENEMY_SPEED = 80
     BASIC_ENEMY_SIZE = (32, 32)
 
-# ==============================================
-# BULLET SETTINGS
-# ==============================================
+# Bullet Settings
 class Bullet:
     DEFAULT_SIZE = (8, 8)
     DEFAULT_SPEED = 400

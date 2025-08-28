@@ -227,7 +227,7 @@ class TiledLoader:
                     
                     if frames:
                         tileset["animations"][tile_id] = frames
-                        print(f"Found animation for tile {tile_id}: {len(frames)} frames")
+                        # Debug: print(f"Found animation for tile {tile_id}: {len(frames)} frames")
             
             image = root.find("image")
             if image is not None:

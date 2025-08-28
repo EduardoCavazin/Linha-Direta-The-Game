@@ -4,10 +4,7 @@ Eliminates magic strings and provides type safety
 """
 from enum import Enum, auto
 
-# ==============================================
-# ENTITY STATES
-# ==============================================
-
+# Entity States
 class EntityStatus(Enum):
     """Status of entities (Player, Enemy)"""
     ALIVE = "alive"
@@ -16,10 +13,7 @@ class EntityStatus(Enum):
     def __str__(self) -> str:
         return self.value
 
-# ==============================================
-# ITEM SYSTEM
-# ==============================================
-
+# Item System
 class ItemType(Enum):
     """Types of items that can be found/dropped"""
     HEALTH_PACK = "HealthPack"
@@ -36,10 +30,7 @@ class ItemEffect(Enum):
     def __str__(self) -> str:
         return self.value
 
-# ==============================================
-# ROOM STATES  
-# ==============================================
-
+# Room States
 class RoomStatus(Enum):
     """Status of rooms in the game"""
     LOCKED = "locked"
@@ -50,10 +41,7 @@ class RoomStatus(Enum):
     def __str__(self) -> str:
         return self.value
 
-# ==============================================
-# WEAPON TYPES
-# ==============================================
-
+# Weapon Types
 class WeaponType(Enum):
     """Types of weapons available"""
     PISTOL = "pistol"
@@ -63,9 +51,7 @@ class WeaponType(Enum):
     def __str__(self) -> str:
         return self.value
 
-# ==============================================
-# DIRECTION/MOVEMENT
-# ==============================================
+# Direction/Movement
 
 class Direction(Enum):
     """Movement directions"""
@@ -78,9 +64,7 @@ class Direction(Enum):
     def __str__(self) -> str:
         return self.value
 
-# ==============================================
-# GAME STATES
-# ==============================================
+# Game States
 
 class GameState(Enum):
     """Overall game states"""
