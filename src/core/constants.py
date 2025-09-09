@@ -52,6 +52,9 @@ class Bullet:
     # Enemy Bullets  
     ENEMY_BULLET_SIZE = (8, 8)
     ENEMY_BULLET_SPEED = 400
+    
+    # Visual
+    COLOR = (255, 215, 0)  # Dourado para as balas
 
 # ==============================================
 # ITEM & DROP SETTINGS

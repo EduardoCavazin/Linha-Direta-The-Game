@@ -188,9 +188,15 @@ class EntityFactory:
             locked = properties.get("locked", config.get("locked", False))
             destination = properties.get("destination", config.get("destination", "next_room"))
 
+            # CORREÇÃO: Tiled retorna posição topleft, mas nosso sistema usa center
+            # Converter topleft para center
+            center_x = position[0] + width / 2
+            center_y = position[1] + height / 2
+            center_position = (center_x, center_y)
+
             door = Door(
                 id=f"{door_type.lower()}_{id(position)}",
-                position=position,
+                position=center_position,
                 size=(width, height),
                 locked=locked,
                 name=door_type,

@@ -49,6 +49,10 @@ class Camera:
         screen_y = world_pos[1] - self.y
         return (screen_x, screen_y)
     
+    def get_offset(self) -> Tuple[float, float]:
+        """Retorna o offset atual da câmera para conversão mundo->tela"""
+        return (self.x, self.y)
+    
     def screen_to_world(self, screen_pos: Tuple[float, float]) -> Tuple[float, float]:
         world_x = screen_pos[0] + self.x
         world_y = screen_pos[1] + self.y

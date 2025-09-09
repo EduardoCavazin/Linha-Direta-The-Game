@@ -44,4 +44,5 @@ class Item(GameObject):
         if hasattr(self, 'image') and self.image is not None:
             screen.blit(self.image, self.hitbox.topleft)
         else:
-            pygame.draw.rect(screen, (255, 0, 255), self.hitbox, 2)
+            # Debug antigo removido - usando novo sistema F1/F2
+            pass

@@ -306,7 +306,7 @@ class TiledLoader:
             
             self._render_layer_to_surface(layer, background)
         
-        self._render_object_markers(background)
+# Debug markers removidos - usando novo sistema de debug
         
         return background
     
@@ -413,7 +413,7 @@ class TiledLoader:
             
             self._render_layer_with_animations(layer, background, room_current_tiles)
         
-        self._render_object_markers(background)
+# Debug markers removidos - usando novo sistema de debug
         
         return background
     

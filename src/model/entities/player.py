@@ -23,7 +23,8 @@ class Player(Entity):
         # Setup player sprite
         image = self._load_player_sprite(sprite_config, size)
         
-        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config, hitbox_size)
+        # Player usa hitbox triangular por padrão
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config, hitbox_size, "triangle")
     
 
     def _load_player_sprite(self, sprite_config: Optional[Dict], size: Tuple[int, int]) -> pygame.Surface:

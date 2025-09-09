@@ -67,7 +67,21 @@ class Hud:
             "",
             "Controls:",
             "1/2/3 - Camera smoothing",
-            "F1 - Toggle debug info"
+            "F1 - Toggle debug & hitboxes",
+            "F2 - Toggle detailed hitbox info",
+            "",
+            "Debug Colors:",
+            "Green - Player (triangular hitbox)",
+            "Red - Enemies",
+            "Yellow - Items",
+            "Cyan - Door hitboxes (debug)",
+            "White - World structures/walls",
+            "Orange - Fire zones & Enemy bullets",
+            "Magenta - Player bullets",
+            "",
+            "Door States:",
+            "Red filled - Locked door",
+            "Blue filled - Unlocked door"
         ]
 
         y_offset = 10

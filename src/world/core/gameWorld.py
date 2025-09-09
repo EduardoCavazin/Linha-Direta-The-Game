@@ -258,7 +258,7 @@ class GameWorld:
             return
         
         for item in self.current_room.items[:]:
-            if self.player.rect.colliderect(item.hitbox):
+            if self.player.collides_with(item):
                 print(f"ITEM COLETADO: {item.name} - {item.effect}")
                 if item.effect == ItemEffect.HEAL.value:
                     self.player.heal(item.value)
@@ -276,10 +276,7 @@ class GameWorld:
             return
         
         for door in self.current_room.doors:
-            door_rect = pygame.Rect(door.position[0], door.position[1], 
-                                  door.size[0], door.size[1])
-        
-            if self.player.rect.colliderect(door_rect):
+            if self.player.collides_with(door):
                 if not self.current_room.is_clear():
                     enemies_remaining = self.current_room.get_alive_enemies_count()
                     print(f"Não é possível avançar! Elimine os {enemies_remaining} inimigos restantes.")
@@ -459,6 +456,154 @@ class GameWorld:
         
         for obj in self.render_queue:
             self._render_object_with_camera(obj)
+    
+    def render_debug_hitboxes(self, show_debug: bool, show_detailed: bool = False) -> None:
+        """Renderiza os hitboxes de debug se habilitado"""
+        if not show_debug:
+            return
+            
+        camera_offset = self.camera.get_offset()
+        
+        # Debug do player
+        if self.player:
+            self.player.draw_debug_hitbox(self.screen, camera_offset, (0, 255, 0))  # Verde
+            if show_detailed:
+                self._draw_hitbox_info(self.player, camera_offset, "Player (Triangular)")
+        
+        # Debug dos inimigos
+        if self.current_room:
+            for enemy in self.current_room.enemies:
+                if enemy.is_alive():
+                    enemy.draw_debug_hitbox(self.screen, camera_offset, (255, 0, 0))  # Vermelho
+                    if show_detailed:
+                        hitbox_type = "Triangular" if getattr(enemy, 'hitbox_type', 'rect') == "triangle" else "Rectangular"
+                        self._draw_hitbox_info(enemy, camera_offset, f"Enemy ({hitbox_type})")
+            
+            # Debug dos itens  
+            for item in self.current_room.items:
+                item.draw_debug_hitbox(self.screen, camera_offset, (255, 255, 0))  # Amarelo
+                if show_detailed:
+                    self._draw_hitbox_info(item, camera_offset, "Item (Rect)")
+                
+            # Debug das portas
+            for door in self.current_room.doors:
+                door.draw_debug_hitbox(self.screen, camera_offset, (0, 255, 255))  # Ciano
+                if show_detailed:
+                    self._draw_hitbox_info(door, camera_offset, "Door (Rect)")
+            
+            # Debug das estruturas/paredes do mundo
+            self._draw_world_structures(camera_offset, show_detailed)
+        
+        # Debug das balas
+        for bullet in self.bullets:
+            bullet.draw_debug_hitbox(self.screen, camera_offset, (255, 0, 255))  # Magenta
+            if show_detailed:
+                self._draw_hitbox_info(bullet, camera_offset, "Player Bullet")
+            
+        for enemy_bullet in self.enemy_bullets:
+            enemy_bullet.draw_debug_hitbox(self.screen, camera_offset, (255, 128, 0))  # Laranja
+            if show_detailed:
+                self._draw_hitbox_info(enemy_bullet, camera_offset, "Enemy Bullet")
+    
+    def _draw_hitbox_info(self, obj, camera_offset, label):
+        """Desenha informações sobre o hitbox de um objeto"""
+        try:
+            import pygame
+            
+            # Posição na tela
+            screen_x = int(obj.position[0] - camera_offset[0])
+            screen_y = int(obj.position[1] - camera_offset[1]) - 20  # Acima do objeto
+            
+            # Criar texto
+            font = pygame.font.Font(None, 16)
+            text = font.render(label, True, (255, 255, 255))
+            
+            # Background para o texto
+            text_rect = text.get_rect()
+            text_rect.topleft = (screen_x - text_rect.width // 2, screen_y)
+            pygame.draw.rect(self.screen, (0, 0, 0, 180), text_rect)
+            
+            # Desenhar texto
+            self.screen.blit(text, text_rect.topleft)
+            
+        except Exception as e:
+            pass  # Ignorar erros de renderização
+    
+    def _draw_world_structures(self, camera_offset, show_detailed):
+        """Desenha as hitboxes das estruturas/paredes do mundo"""
+        if not self.current_room:
+            return
+            
+        try:
+            # Obter retângulos das paredes
+            wall_rects = self.current_room.get_wall_rects()
+            
+            # OTIMIZAÇÃO: Só desenhar paredes visíveis na tela
+            camera_rect = pygame.Rect(camera_offset[0], camera_offset[1], self.width, self.height)
+            
+            visible_walls = 0
+            for wall_rect in wall_rects:
+                # Só processar se estiver visível na câmera
+                if not camera_rect.colliderect(wall_rect):
+                    continue
+                    
+                visible_walls += 1
+                # Limitar para performance - só mostrar primeiras 100 paredes visíveis
+                if visible_walls > 100:
+                    break
+                # Desenhar hitbox da parede
+                screen_rect = wall_rect.copy()
+                screen_rect.topleft = (
+                    wall_rect.left - camera_offset[0],
+                    wall_rect.top - camera_offset[1]
+                )
+                
+                # Cor diferente para estruturas - branco com alpha
+                pygame.draw.rect(self.screen, (255, 255, 255), screen_rect, 1)
+                
+                if show_detailed:
+                    # Adicionar informação sobre tile de colisão
+                    center_x = screen_rect.centerx
+                    center_y = screen_rect.centery - 10
+                    
+                    font = pygame.font.Font(None, 12)
+                    text = font.render("Wall", True, (255, 255, 255))
+                    
+                    # Background pequeno para o texto
+                    text_rect = text.get_rect()
+                    text_rect.center = (center_x, center_y)
+                    pygame.draw.rect(self.screen, (0, 0, 0, 128), text_rect)
+                    
+                    self.screen.blit(text, text_rect.topleft)
+                    
+            # Também desenhar zonas de fogo se existirem
+            fire_rects = self.current_room.get_fire_rects()
+            for fire_rect in fire_rects:
+                screen_rect = fire_rect.copy()
+                screen_rect.topleft = (
+                    fire_rect.left - camera_offset[0],
+                    fire_rect.top - camera_offset[1]
+                )
+                
+                # Cor laranja para zonas de fogo
+                pygame.draw.rect(self.screen, (255, 100, 0), screen_rect, 1)
+                
+                if show_detailed:
+                    center_x = screen_rect.centerx
+                    center_y = screen_rect.centery - 10
+                    
+                    font = pygame.font.Font(None, 12)
+                    text = font.render("Fire", True, (255, 100, 0))
+                    
+                    text_rect = text.get_rect()
+                    text_rect.center = (center_x, center_y)
+                    pygame.draw.rect(self.screen, (0, 0, 0, 128), text_rect)
+                    
+                    self.screen.blit(text, text_rect.topleft)
+                    
+        except Exception as e:
+            # Debug: print do erro para investigar
+            print(f"Debug: Erro ao desenhar estruturas: {e}")
 
     def _render_object_with_camera(self, obj) -> None:
         if not hasattr(obj, 'position'):
@@ -489,9 +634,13 @@ class GameWorld:
             else:
                 self.screen.blit(obj.image, screen_pos)
         elif hasattr(obj, 'hitbox') and obj.hitbox is not None:
-            screen_hitbox = obj.hitbox.copy()
-            screen_hitbox.topleft = screen_pos
-            pygame.draw.rect(self.screen, (255, 0, 0), screen_hitbox)
+            # Objetos sem image mas com draw() method (como balas)
+            if hasattr(obj, 'draw'):
+                original_pos = obj.position if hasattr(obj, 'position') else None
+                obj.position = screen_pos
+                obj.draw(self.screen)
+                if original_pos:
+                    obj.position = original_pos
         else:
             if hasattr(obj, 'draw'):
                 original_pos = obj.position if hasattr(obj, 'position') else None
@@ -551,7 +700,7 @@ class GameWorld:
                 self.enemy_bullets.remove(bullet)
                 continue
             
-            if bullet.hitbox.colliderect(self.player.hitbox):
+            if bullet.collides_with(self.player):
                 damage = bullet.damage
                 self.player.take_damage(damage)
                 

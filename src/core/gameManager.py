@@ -45,12 +45,12 @@ class GameManager:
         
 
     def toggle_pause(self) -> None:
-        if self.state == GameState.RUNNING:
+        if self.state == GameState.PLAYING:
             self.state = GameState.PAUSED
             self.timer_running = False
             self.timer_paused_at = pygame.time.get_ticks()
         elif self.state == GameState.PAUSED:
-            self.state = GameState.RUNNING
+            self.state = GameState.PLAYING
             self.timer_running = True
             pause_duration = pygame.time.get_ticks() - self.timer_paused_at
             self.timer_start += pause_duration
@@ -84,14 +84,7 @@ class GameManager:
             current_vol = self.audio_manager.music_volume
             self.audio_manager.set_music_volume(current_vol - 0.01)
         
-        # Global controls
-        if keys[pygame.K_ESCAPE]:
-            if self.state == GameState.PLAYING:
-                self.state = GameState.PAUSED
-            elif self.state == GameState.PAUSED:
-                self.state = GameState.PLAYING
-            elif self.state == GameState.GAME_OVER:
-                self.state = GameState.GAME_OVER  # Stay in game over, exit via UI
+        # Não processar ESC aqui - movido para _process_system_events para evitar repetição
         
         # Game Over controls
         if self.state == GameState.GAME_OVER:
@@ -113,6 +106,9 @@ class GameManager:
             
             if keys[pygame.K_F1]:  # F1 - mostra informações de debug
                 self._show_debug_info = not getattr(self, '_show_debug_info', False)
+            
+            if keys[pygame.K_F2]:  # F2 - mostra informações detalhadas de hitbox
+                self._show_detailed_debug = not getattr(self, '_show_detailed_debug', False)
 
     def _process_system_events(self) -> None:
         for event in pygame.event.get():
@@ -141,8 +137,20 @@ class GameManager:
                     self.game_over_screen.handle_mouse_motion(event.pos)
                 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p and self.state == GameState.PLAYING:
+                # ESC para pausar/despausar
+                if event.key == pygame.K_ESCAPE:
+                    if self.state == GameState.PLAYING:
+                        self.toggle_pause()
+                    elif self.state == GameState.PAUSED:
+                        self.toggle_pause()
+                    elif self.state == GameState.GAME_OVER:
+                        pass  # Não fazer nada no game over
+                
+                # P também pode pausar (alternativa)
+                elif event.key == pygame.K_p and self.state in [GameState.PLAYING, GameState.PAUSED]:
                     self.toggle_pause()
+                
+                # Controles do game over
                 elif self.state == GameState.GAME_OVER:
                     action = self.game_over_screen.handle_keypress(event.key)
                     if action == "restart":
@@ -199,6 +207,12 @@ class GameManager:
                         self.audio_manager.stop_background_music()
 
                 self.game_world.render()
+                
+                # Renderizar hitboxes de debug se habilitado
+                show_debug = getattr(self, '_show_debug_info', False)
+                show_detailed = getattr(self, '_show_detailed_debug', False)
+                if show_debug:
+                    self.game_world.render_debug_hitboxes(True, show_detailed)
 
                 if self.state == GameState.PLAYING:
                     self.hud.player = self.game_world.player

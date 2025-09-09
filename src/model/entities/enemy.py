@@ -105,7 +105,8 @@ class Enemy(Entity):
             size=BulletConst.DEFAULT_SIZE,          
             speed=BulletConst.ENEMY_BULLET_SPEED,            
             damage=damage,
-            rotation=bullet_angle
+            rotation=bullet_angle,
+            is_player_bullet=False  # Balas dos inimigos
         )
         
         return bullet

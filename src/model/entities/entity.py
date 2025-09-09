@@ -23,9 +23,10 @@ class Entity(MovableObject):
         status: str,
         rotation: float = 0,
         sprite_config: Optional[dict] = None,
-        hitbox_size: Optional[Tuple[int, int]] = None
+        hitbox_size: Optional[Tuple[int, int]] = None,
+        hitbox_type: str = "rect"
     ) -> None:
-        super().__init__(id, position, size, speed, rotation, hitbox_size)
+        super().__init__(id, position, size, speed, rotation, hitbox_size, hitbox_type)
         self.name: str = name
         self.health: int = health
         self.max_health: int = health  
@@ -163,7 +164,8 @@ class Entity(MovableObject):
                 size=bullet_size,
                 speed=bullet_speed,
                 damage=self.weapon.damage,
-                rotation=rotation
+                rotation=rotation,
+                is_player_bullet=True  # Assume que Entity é para player por padrão
             )
             bullet.directedSpeed = direction * bullet.speed
             return bullet
@@ -197,14 +199,17 @@ class Entity(MovableObject):
         if self.image:
             screen.blit(self.image, self.rect)
         else:
-            rect = pygame.Rect(self._position.x, self._position.y, self.size[0], self.size[1])
-            pygame.draw.rect(screen, (255, 0, 255), rect)
+            # Debug antigo removido - usando novo sistema F1/F2
+            pass
 
     def rotate_towards(self, target_pos: Tuple[float, float]) -> None:
         current_pos = (self._position.x, self._position.y)
         angle_deg = calculate_angle_to_target(current_pos, target_pos)
         
-        self.rotation = angle_deg - Physics.DIRECTION_OFFSET_DEGREES
+        new_rotation = angle_deg - Physics.DIRECTION_OFFSET_DEGREES
+        
+        # Usar o novo método para atualizar rotação (inclui hitbox triangular)
+        self.update_rotation(new_rotation)
         
         self.direction = pygame.Vector2(
             math.cos(math.radians(self.rotation + Physics.DIRECTION_OFFSET_DEGREES)),
