@@ -2,12 +2,14 @@
 Game Over Screen - Displayed when player dies
 """
 import pygame
-from typing import Callable
+from typing import Callable, List
 from src.core.enums import GameState
+from src.core.leaderboard import Leaderboard, LeaderboardEntry
 
 class GameOverScreen:
     def __init__(self, screen: pygame.Surface):
         self.screen = screen
+        self.leaderboard = Leaderboard()
         self.font_large = pygame.font.Font(None, 72)
         self.font_medium = pygame.font.Font(None, 48)
         self.font_small = pygame.font.Font(None, 36)
@@ -75,13 +77,16 @@ class GameOverScreen:
         
         # Draw "GAME OVER" title
         game_over_text = self.font_large.render("GAME OVER", True, self.red_accent)
-        game_over_rect = game_over_text.get_rect(center=(self.center_x, self.center_y - 100))
+        game_over_rect = game_over_text.get_rect(center=(self.center_x, 80))
         self.screen.blit(game_over_text, game_over_rect)
         
         # Draw subtitle
         subtitle_text = self.font_medium.render("You were eliminated!", True, self.text_color)
-        subtitle_rect = subtitle_text.get_rect(center=(self.center_x, self.center_y - 50))
+        subtitle_rect = subtitle_text.get_rect(center=(self.center_x, 130))
         self.screen.blit(subtitle_text, subtitle_rect)
+        
+        # Draw leaderboard
+        self._draw_leaderboard()
         
         # Draw restart button
         restart_color = self.button_hover_color if self.restart_hovered else self.button_color
@@ -103,5 +108,45 @@ class GameOverScreen:
         
         # Draw instructions
         instruction_text = self.font_small.render("Press R to restart or ESC to quit", True, self.text_color)
-        instruction_rect = instruction_text.get_rect(center=(self.center_x, self.center_y + 200))
+        instruction_rect = instruction_text.get_rect(center=(self.center_x, self.screen.get_height() - 50))
         self.screen.blit(instruction_text, instruction_rect)
+    
+    def _draw_leaderboard(self) -> None:
+        """Draw the top 5 leaderboard"""
+        # Title
+        leaderboard_title = self.font_medium.render("TOP 5 MELHORES TEMPOS", True, (255, 215, 0))  # Gold
+        title_rect = leaderboard_title.get_rect(center=(self.center_x, 180))
+        self.screen.blit(leaderboard_title, title_rect)
+        
+        # Get top scores
+        top_scores = self.leaderboard.get_top_scores(5)
+        
+        if not top_scores:
+            no_scores_text = self.font_small.render("Nenhum recorde ainda!", True, self.text_color)
+            no_scores_rect = no_scores_text.get_rect(center=(self.center_x, 220))
+            self.screen.blit(no_scores_text, no_scores_rect)
+            return
+        
+        # Draw scores
+        start_y = 220
+        for i, entry in enumerate(top_scores):
+            rank = i + 1
+            color = self._get_rank_color(rank)
+            
+            # Format: "1. PlayerName - 02:45"
+            score_text = f"{rank}. {entry.name} - {entry.get_time_formatted()}"
+            
+            score_surface = self.font_small.render(score_text, True, color)
+            score_rect = score_surface.get_rect(center=(self.center_x, start_y + (i * 30)))
+            self.screen.blit(score_surface, score_rect)
+    
+    def _get_rank_color(self, rank: int) -> tuple:
+        """Get color for rank position"""
+        if rank == 1:
+            return (255, 215, 0)    # Gold
+        elif rank == 2:
+            return (192, 192, 192)  # Silver
+        elif rank == 3:
+            return (205, 127, 50)   # Bronze
+        else:
+            return (255, 255, 255)  # White

@@ -73,6 +73,7 @@ class GameState(Enum):
     PAUSED = auto()
     GAME_OVER = auto()
     VICTORY = auto()
+    NAME_INPUT = auto()  # When player is entering name for leaderboard
     QUIT = auto()  # When player chooses to quit
 
 # ==============================================
