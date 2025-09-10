@@ -41,6 +41,9 @@ class GameWorld:
         # Fire damage system
         self.last_fire_damage_time: float = 0.0
         
+        # Game completion flag
+        self.game_completed: bool = False
+        
         self._initialize_world()
     
     def _initialize_world(self) -> None:
@@ -296,6 +299,11 @@ class GameWorld:
                 print(f"Teletransportando de {self.current_room.id} para {target_room.id} (progressão sequencial)")
                 self._teleport_to_room(target_room)
                 return
+            else:
+                # Jogo completado - todos os mapas foram concluídos
+                print("🎉 Parabéns! Você completou todos os mapas!")
+                self.game_completed = True
+                return
         
         elif destination and destination != "next_room":
             target_room = None
@@ -328,7 +336,8 @@ class GameWorld:
         elif current_id == "Mapa2":
             next_id = "Mapa 3"
         elif current_id == "Mapa 3":
-            next_id = "Mapa1"  
+            # Fim de jogo - jogador completou todos os mapas
+            return None  
         else:
             next_id = "Mapa1"
         
@@ -710,6 +719,10 @@ class GameWorld:
                     self.audio_manager.play_sound('hurt')
                 
                 self.enemy_bullets.remove(bullet)
+    
+    def is_game_completed(self) -> bool:
+        """Retorna True se o jogador completou todos os mapas"""
+        return self.game_completed
     
     def cleanup(self) -> None:
         self.bullets.clear()
