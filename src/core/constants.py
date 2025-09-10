@@ -16,11 +16,11 @@ class Player:
     DEFAULT_HEALTH = 100
     DEFAULT_SPEED = 200
     DEFAULT_SIZE = (32, 32)
-    STARTING_AMMO = 12
+    STARTING_AMMO = 30
     
     # Weapon Settings
     PISTOL_DAMAGE = 25
-    PISTOL_MAX_AMMO = 12
+    PISTOL_MAX_AMMO = 30
     
     # Sprite properties
     FALLBACK_SPRITE_SIZE = (128, 128)

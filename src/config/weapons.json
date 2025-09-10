@@ -3,7 +3,7 @@
     "name": "Pistola",
     "damage": 25,
     "fire_rate": 2.0,
-    "ammo_capacity": 15,
+    "ammo_capacity": 30,
     "reload_time": 1.5,
     "sprite": "assets/sprites/pistol.png",
     "bullet": {
