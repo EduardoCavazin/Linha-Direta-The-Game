@@ -1,0 +1,24 @@
+{
+  "HealthPack": {
+    "name": "Kit Médico",
+    "description": "Recupera 50 de saúde",
+    "size": [16, 16],
+    "sprite": "assets/sprites/medkit1.png",
+    "effect": {
+      "type": "heal",
+      "value": 50
+    },
+    "collectible": true
+  },
+  "AmmoPack": {
+    "name": "Munição",
+    "description": "+15 balas",
+    "size": [16, 16],
+    "sprite": "assets/sprites/ammo.png",
+    "effect": {
+      "type": "ammo",
+      "value": 15
+    },
+    "collectible": true
+  }
+}

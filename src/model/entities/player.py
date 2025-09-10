@@ -1,131 +1,183 @@
-import math
 import pygame
-from typing import Tuple, Optional, Any, List
+from typing import Tuple, Optional, Any, List, Dict
 from src.model.entities.entity import Entity
-from src.core.utils import load_image
+from src.core.utils import load_image, create_surface
+from src.model.objects.bullet import Bullet
+from src.core.constants import Player as PlayerConst, Animation
 
 class Player(Entity):
     def __init__(
         self,
         id: str,
         name: str,
-        position: Tuple[float, float],  
+        position: Tuple[float, float],
         size: Tuple[int, int],
         speed: float,
         health: int,
         weapon: Optional[Any],
         ammo: int,
         status: str,
-        screen_width: int = 800,
-        screen_height: int = 600
+        sprite_config: Optional[Dict] = None,
+        hitbox_size: Optional[Tuple[int, int]] = None
     ) -> None:
-        topleft: Tuple[float, float] = (position[0] - size[0] // 2, position[1] - size[1] // 2)
+        # Setup player sprite
+        image = self._load_player_sprite(sprite_config, size)
         
-        self.spritesheet: pygame.Surface = load_image('Player_Movement.png')
-        self.frame_count: int = 3  
-        self.frame_width: int = self.spritesheet.get_width() // self.frame_count
-        self.frame_height: int = self.spritesheet.get_height() // 2  
-        
-        self.frames: List[pygame.Surface] = self._load_animation_frames(size)
-        
-        self.current_frame: int = 0
-        self.animation_speed: float = 0.2  
-        self.animation_timer: float = 0
-        
-        self.base_player_image: pygame.Surface = self.frames[0]
-        self.base_player_rect: pygame.Rect = self.base_player_image.get_rect(topleft=topleft)
-        
-        self.image: pygame.Surface = self.base_player_image
-        self.rect: pygame.Rect = self.image.get_rect(topleft=topleft)
-        self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
-        self.moving: bool = False
-        
-        self.screen_width: int = screen_width
-        self.screen_height: int = screen_height
-        
-        super().__init__(id, name, topleft, size, speed, health, weapon, ammo, self.image, status)
-        
-        self._position: pygame.Vector2 = pygame.Vector2(topleft)
+        # Player usa hitbox triangular por padrão
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config, hitbox_size, "triangle")
     
-    def _load_animation_frames(self, size: Tuple[int, int]) -> List[pygame.Surface]:
-        frames = []
-        for y in range(2):
-            for x in range(self.frame_count):
-                frame = pygame.Surface((self.frame_width, self.frame_height), pygame.SRCALPHA)
-                frame.blit(self.spritesheet, (0, 0), 
-                          (x * self.frame_width, y * self.frame_height, 
-                           self.frame_width, self.frame_height))
-                frame = pygame.transform.scale(frame, size)
-                frames.append(frame)
-        return frames
-    
-    @property
-    def position(self) -> pygame.Vector2:
-        return self._position
-    
-    @position.setter
-    def position(self, value: Tuple[float, float]) -> None:
-        self._position = pygame.Vector2(value)
-        if hasattr(self, 'hitbox'):
-            self.hitbox.topleft = (self._position.x, self._position.y)
-        if hasattr(self, 'base_player_rect'):
-            self.base_player_rect.topleft = (self._position.x, self._position.y)
-    
+
+    def _load_player_sprite(self, sprite_config: Optional[Dict], size: Tuple[int, int]) -> pygame.Surface:
+        """Carrega o sprite do jogador"""
+        if sprite_config:
+            sprite_path = sprite_config.get("path", "assets/sprites/player_pixelado.png")
+        else:
+            sprite_path = "assets/sprites/player_pixelado.png"
+
+        spritesheet = load_image(sprite_path)
+        
+        if spritesheet is None:
+            # Fallback para uma superfície colorida se não conseguir carregar
+            spritesheet = create_surface(PlayerConst.FALLBACK_SPRITE_SIZE)
+            spritesheet.fill(PlayerConst.FALLBACK_SPRITE_COLOR)
+        
+        return spritesheet
+
     def update_animation(self, delta_time: float) -> None:
+        """Override para controlar animação apenas quando se movendo"""
         if not self.moving:
             self.current_frame = 0
-            self.base_player_image = self.frames[0]
+            if self.frames:
+                self.base_image = self.frames[0]
             return
-            
-        self.animation_timer += delta_time
-        if self.animation_timer >= self.animation_speed:
-            self.animation_timer = 0
-            self.current_frame = (self.current_frame + 1) % self.frame_count
-            self.base_player_image = self.frames[self.current_frame]
-    
+
+        # Chama o método da classe pai se estiver se movendo
+        super().update_animation(delta_time)
+
     def move(
         self,
-        direction: str,
+        directions: List[str],
         delta_time: float,
-        obstacles: Optional[list] = None
+        obstacles: Optional[list] = None,
+        world_bounds: Optional[Tuple[int, int]] = None
     ) -> None:
         self.moving = True
-        super().move(direction, delta_time, obstacles, self.screen_width, self.screen_height)
-    
+
+        direction_vector = pygame.Vector2(0, 0)
+        for direction in directions:
+            if direction == "up":
+                direction_vector.y -= 1
+            elif direction == "down":
+                direction_vector.y += 1
+            elif direction == "left":
+                direction_vector.x -= 1
+            elif direction == "right":
+                direction_vector.x += 1
+
+        if direction_vector.length() > 0:
+            direction_vector = direction_vector.normalize()
+
+        speed = self.speed * delta_time
+        move_vec = direction_vector * speed
+        new_pos = self.position + move_vec
+
+        
+        collision = self._check_collision(new_pos, obstacles)
+        
+        if not collision:
+            self.position = new_pos
+            
+            if world_bounds:
+                self._apply_world_bounds(world_bounds)
+
+    def _check_collision(self, new_pos: pygame.Vector2, obstacles: Optional[list]) -> bool:
+        if not obstacles:
+            return False
+
+        temp_rect = pygame.Rect(0, 0, self.size[0], self.size[1])
+        temp_rect.center = (int(new_pos.x), int(new_pos.y))
+
+        for obstacle in obstacles:
+            if temp_rect.colliderect(obstacle):
+                return True
+        return False
+
+    def _apply_world_bounds(self, world_bounds: Tuple[int, int]) -> None:
+        half_width = self.size[0] // 2
+        half_height = self.size[1] // 2
+
+        min_x = half_width
+        min_y = half_height
+        max_x = world_bounds[0] - half_width
+        max_y = world_bounds[1] - half_height
+
+        x = max(min_x, min(self.position.x, max_x))
+        y = max(min_y, min(self.position.y, max_y))
+        self.position = pygame.Vector2(x, y)
+
     def reload(self) -> None:
         if self.weapon:
             self.ammo = self.weapon.max_ammo
 
-    def calculate_rotation(self) -> float:
-        mouse_coords: Tuple[int, int] = pygame.mouse.get_pos()
-        player_center: Tuple[float, float] = (self.position.x + self.size[0] / 2,
-                                               self.position.y + self.size[1] / 2)
-        dx: float = mouse_coords[0] - player_center[0]
-        dy: float = mouse_coords[1] - player_center[1]
-        if dx == 0 and dy == 0:
-            self.direction = pygame.Vector2(0, 1)
-            return 0.0
-        self.direction = pygame.Vector2(dx, dy).normalize()
-    
-    def update_sprite(self, angle: float) -> None:
-        rotated_image: pygame.Surface = pygame.transform.rotate(self.base_player_image, angle)
-        player_center: Tuple[float, float] = (self.position.x + self.size[0] / 2,
-                                               self.position.y + self.size[1] / 2)
-        self.image = rotated_image
-        self.rect = rotated_image.get_rect(center=player_center)
-    
     def update(self, delta_time: float) -> None:
         self.update_animation(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
-        angle: float = -math.degrees(math.atan2(self.direction.y, self.direction.x)) - 90
-        self.update_sprite(angle)
-        screen.blit(self.image, self.rect.topleft)
+        screen.blit(self.image, self.rect)
         self.moving = False
-        
-    def handle_key_press(self, key: str, delta_time: float, obstacles: Optional[list] = None) -> None:
+
+    def handle_key_press(
+        self, 
+        key: str, 
+        delta_time: float, 
+        obstacles: Optional[list] = None,
+        world_bounds: Optional[Tuple[int, int]] = None
+    ) -> None:
         if key in ["up", "down", "left", "right"]:
-            self.move(key, delta_time, obstacles)
-    
+            self.move(key, delta_time, obstacles, world_bounds)
+
     def handle_mouse_click(self):
         return self.shoot()
+
+    def rotate_to_mouse(self, mouse_pos: Tuple[int, int]) -> None:
+        self.rotate_towards(mouse_pos)
+
+        old_center = self.rect.center
+        self.image = pygame.transform.rotate(self.base_image, -self.rotation)
+        self.rect = self.image.get_rect(center=old_center)
+
+    def heal(self, amount: int) -> None:
+        old_health = self.health
+        self.health = min(self.health + amount, 100)
+        actual_heal = self.health - old_health
+
+    def add_ammo(self, amount: int) -> None:
+        if not self.weapon:
+            print("Não há arma equipada!")
+            return
+
+        old_ammo = self.ammo
+        max_ammo = getattr(self.weapon, 'max_ammo', 100) 
+        self.ammo = min(self.ammo + amount, max_ammo)
+        actual_ammo = self.ammo - old_ammo
+
+        if actual_ammo > 0:
+            print(f"{actual_ammo} munições! Munição atual: {self.ammo}/{max_ammo}")
+        else:
+            print("Munição já está no máximo!")
+    
+    def take_damage(self, damage: int) -> None:
+        if damage <= 0:
+            return
+            
+        old_health = self.health
+        self.health = max(0, self.health - damage)
+        actual_damage = old_health - self.health
+        
+        if actual_damage > 0:
+            print(f"-{actual_damage} de vida! Vida atual: {self.health}/100")
+            
+            if self.health <= 0:
+                self.die()  # Use the inherited die() method from Entity
+        else:
+            print("Nenhum dano recebido!")

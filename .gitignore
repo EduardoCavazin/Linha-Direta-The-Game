@@ -4,3 +4,30 @@ __pycache__/
 # Ignorar arquivos compilados do Python
 *.py[cod]
 *$py.class
+
+# Pygame específico
+*.log
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.claude
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Temporários
+*.tmp
+*.temp
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Roadmap de desenvolvimento (privado)
+ROADMAP.md
+PADROES.md

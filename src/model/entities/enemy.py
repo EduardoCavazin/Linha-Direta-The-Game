@@ -1,8 +1,14 @@
 import math
 import pygame
-from typing import Tuple, Optional, Any
+from typing import Tuple, Optional, Any, TYPE_CHECKING
 from src.model.entities.entity import Entity
 from src.core.utils import load_image
+from src.core.constants import Enemy as EnemyConst, Animation, Bullet as BulletConst
+from src.core.enums import EntityStatus
+from src.core.mathUtils import calculate_angle_to_target
+
+if TYPE_CHECKING:
+    from src.model.objects.bullet import Bullet
 
 class Enemy(Entity):
     def __init__(
@@ -15,51 +21,105 @@ class Enemy(Entity):
         health: int,
         weapon: Optional[Any],
         ammo: int,
-        status: str
+        status: str,
+        sprite_config: dict = None,
+        detection_range: float = EnemyConst.DETECTION_RANGE,
+        drops: list = None,
+        hitbox_size: Optional[Tuple[int, int]] = None
     ) -> None:
-        self.base_enemy_image: pygame.Surface = load_image("player.png", size)
-        self.base_enemy_rect: pygame.Rect = self.base_enemy_image.get_rect(topleft=position)
+        sprite_config = sprite_config or {}
+        sprite_path = sprite_config.get("path", "assets/sprites/enemy2.png") 
         
-        self.image: pygame.Surface = self.base_enemy_image
-        self.rect: pygame.Rect = self.image.get_rect(topleft=position)
-        self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
+        image = load_image(sprite_path)
         
-        super().__init__(id, name, position, size, speed, health, weapon, ammo, self.image, status)
+        super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config, hitbox_size)
+        
+        self.detection_range = detection_range
+        self.drops = drops or []
+        
+        self.attack_range: float = EnemyConst.ATTACK_RANGE     
+        self.attack_cooldown: float = 0.0    
+        self.attack_interval: float = EnemyConst.ATTACK_INTERVAL_SECONDS    
+        self.last_attack_time: float = 0.0
     
-    @property
-    def position(self) -> pygame.Vector2:
-        return self._position
+    def update(self, player_pos: Tuple[float, float], delta_time: float = 0.016) -> Optional['Bullet']:
+        if not self.is_alive():
+            return None
+            
+        # Update animation
+        self.update_animation(delta_time)
+            
+        self.rotate_towards(player_pos)
+        
+        angle_rad = math.radians(self.rotation)
+        self.direction = pygame.Vector2(math.cos(angle_rad), math.sin(angle_rad))
+        
+        self.image = pygame.transform.rotate(self.base_image, -self.rotation)
+        self.rect = self.image.get_rect(center=self.rect.center)
+        
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= delta_time
+        
+        return self._try_attack_player(player_pos)
     
-    @position.setter
-    def position(self, value: Tuple[float, float]) -> None:
-        self._position = pygame.Vector2(value)
+    def _try_attack_player(self, player_pos: Tuple[float, float]) -> Optional['Bullet']:
+        if self.attack_cooldown > 0:
+            return None
+        
+        distance = self._calculate_distance_to_player(player_pos)
+        
+        if distance <= self.attack_range:
+            self.attack_cooldown = self.attack_interval
+            return self._shoot_at_player(player_pos)
+        
+        return None
     
-    def update_rotation(self, player_position: pygame.Vector2) -> None:
-        direction: pygame.Vector2 = pygame.Vector2(
-            player_position.x - self.position.x,
-            player_position.y - self.position.y
+    def _calculate_distance_to_player(self, player_pos: Tuple[float, float]) -> float:
+        return self.get_distance_to(player_pos)
+    
+    def _shoot_at_player(self, player_pos: Tuple[float, float]) -> Optional['Bullet']:
+        from src.model.objects.bullet import Bullet
+        
+        enemy_pos = (self.position.x, self.position.y)
+        distance = self.get_distance_to(player_pos)
+        
+        if distance == 0:
+            return None
+        
+        dx = player_pos[0] - enemy_pos[0]
+        dy = player_pos[1] - enemy_pos[1]
+        dx = dx / distance
+        dy = dy / distance
+        
+        offset = EnemyConst.BULLET_SPAWN_OFFSET
+        bullet_x = enemy_pos[0] + (dx * offset)
+        bullet_y = enemy_pos[1] + (dy * offset)
+        
+        bullet_angle = calculate_angle_to_target(enemy_pos, player_pos)
+        
+        damage = self.weapon.damage if self.weapon else EnemyConst.DEFAULT_DAMAGE
+        
+        bullet = Bullet(
+            id=f"enemy_bullet_{id(self)}_{pygame.time.get_ticks()}",
+            position=(bullet_x, bullet_y),
+            size=BulletConst.DEFAULT_SIZE,          
+            speed=BulletConst.ENEMY_BULLET_SPEED,            
+            damage=damage,
+            rotation=bullet_angle,
+            is_player_bullet=False  # Balas dos inimigos
         )
-        if direction.length() != 0:
-            direction = direction.normalize()
-        self.direction = direction
-        self.rotation = -math.degrees(math.atan2(direction.y, direction.x))
         
-        self.image = pygame.transform.rotate(self.base_enemy_image, self.rotation)
-        self.rect = self.image.get_rect(topleft=self.position)
-    
-    def update(self, player_position: pygame.Vector2) -> None:
-        if self.is_alive():
-            self.update_rotation(player_position)
+        return bullet
     
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.image, self.rect.topleft)
         
     def set_dead_state(self) -> None:
-        self.status = "dead"
+        self.status = EntityStatus.DEAD.value
         
         try:
-            self.base_enemy_image = load_image("dead_enemy.png", self.size)
-            self.image = pygame.transform.rotate(self.base_enemy_image, self.rotation)
+            self.base_image = load_image("assets/sprites/dead_enemy.png", self.size)
+            self.image = pygame.transform.rotate(self.base_image, -self.rotation)
             old_center = self.rect.center
             self.rect = self.image.get_rect()
             self.rect.center = old_center

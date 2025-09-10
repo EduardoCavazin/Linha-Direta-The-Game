@@ -1,23 +1,26 @@
 import pygame
 import sys
-from enum import Enum, auto
-from src.world.gameWorld import GameWorld
+from src.world.core.gameWorld import GameWorld
+from src.core.audioManager import AudioManager 
+from src.ui.hud import Hud
+from src.ui.gameOverScreen import GameOverScreen
+from src.ui.nameInputScreen import NameInputScreen
+from src.core.enums import GameState
+from src.core.utils import create_overlay
+from src.core.constants import Rendering
+from src.core.leaderboard import Leaderboard
 
 
-WIDTH: int = 1280
-HEIGHT: int = 720
+WIDTH: int = 950
+HEIGHT: int = 800
 TARGET_FPS: int = 60
-
-class GameState(Enum):
-    """Estados possíveis para o jogo"""
-    RUNNING = auto()
-    PAUSED = auto()
-    GAME_OVER = auto()
-    MENU = auto()
 
 class GameManager:
     def __init__(self, width: int = WIDTH, height: int = HEIGHT, fps: int = TARGET_FPS) -> None:
         pygame.init()
+        
+        pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+        
         self.width: int = width
         self.height: int = height
         self.screen: pygame.Surface = pygame.display.set_mode((width, height))
@@ -25,106 +28,305 @@ class GameManager:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.target_fps: int = fps
         
-        # Usar o GameState em vez de boolean para controlar o estado do jogo
-        self.state: GameState = GameState.RUNNING
+        self.state: GameState = GameState.PLAYING
         
-        self.game_world: GameWorld = GameWorld(self.screen, self.clock, self.width, self.height)
+        self.audio_manager = AudioManager()
+        
+        self.game_world: GameWorld = GameWorld(self.screen, self.clock, self.width, self.height, self.audio_manager)
+        
+        self.footstep_timer = 0
+        
+        self.audio_manager.play_background_music()
+        self.leaderboard = Leaderboard()
+        self.hud = Hud(self.screen, self.game_world.player, self.clock)
+        self.game_over_screen = GameOverScreen(self.screen)
+        # Share the same leaderboard instance
+        self.game_over_screen.leaderboard = self.leaderboard
+        self.name_input_screen = None  # Will be created when needed
+        
+        self.timer_running = True
+        self.timer_start = pygame.time.get_ticks()
+        self.timer_paused_at = 0
+        self.elapsed_time = 0
+        
 
     def toggle_pause(self) -> None:
-        """Alterna entre os estados pausado e rodando"""
-        if self.state == GameState.RUNNING:
+        if self.state == GameState.PLAYING:
             self.state = GameState.PAUSED
+            self.timer_running = False
+            self.timer_paused_at = pygame.time.get_ticks()
         elif self.state == GameState.PAUSED:
-            self.state = GameState.RUNNING
+            self.state = GameState.PLAYING
+            self.timer_running = True
+            pause_duration = pygame.time.get_ticks() - self.timer_paused_at
+            self.timer_start += pause_duration
 
     def handle_events(self) -> None:
-        # Processar eventos do sistema
         self._process_system_events()
         
-        # Processar entrada do teclado
         self._process_keyboard_input()
 
-    def _process_system_events(self) -> None:
-        """Processa eventos do sistema como fechar o jogo"""
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.state = GameState.GAME_OVER
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.state == GameState.RUNNING:
-                self.game_world.handle_player_mouse_click()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:  # Tecla P para pausar
-                    self.toggle_pause()
-
     def _process_keyboard_input(self) -> None:
-        """Processa entrada do teclado para movimento do jogador e ações do sistema"""
         keys = pygame.key.get_pressed()
         
-        # Apenas processar movimentos se o jogo estiver rodando
-        if self.state == GameState.RUNNING:
-            # Movimento do jogador
-            if keys[pygame.K_w]:
-                self.game_world.handle_player_key_press("up")
-            if keys[pygame.K_s]:
-                self.game_world.handle_player_key_press("down")
-            if keys[pygame.K_a]:
-                self.game_world.handle_player_key_press("left")
-            if keys[pygame.K_d]:
-                self.game_world.handle_player_key_press("right")
+        if self.state == GameState.PLAYING:
+            self.game_world.process_player_input(keys)
+            mouse_pos = pygame.mouse.get_pos()
+            self.game_world.process_player_mouse_movement(mouse_pos)
             
-        # Ações do sistema (funcionam mesmo pausado)
-        if keys[pygame.K_ESCAPE]:
-            self.state = GameState.GAME_OVER
-    
-    def _draw_pause_overlay(self) -> None:
-        """Desenha um overlay quando o jogo está pausado"""
-        # Criar uma superfície semi-transparente
-        overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 128))  # Preto com 50% de transparência
+            if keys[pygame.K_w] or keys[pygame.K_a] or keys[pygame.K_s] or keys[pygame.K_d]:
+                self.footstep_timer += 1
+                if self.footstep_timer >= 20:
+                    self.audio_manager.play_sound('footstep')
+                    self.footstep_timer = 0
+            else:
+                self.footstep_timer = 0
         
-        # Desenhar o overlay
+        if keys[pygame.K_KP_PLUS]: 
+            current_vol = self.audio_manager.music_volume
+            self.audio_manager.set_music_volume(current_vol + 0.01)
+        
+        if keys[pygame.K_KP_MINUS]: 
+            current_vol = self.audio_manager.music_volume
+            self.audio_manager.set_music_volume(current_vol - 0.01)
+        
+        # Não processar ESC aqui - movido para _process_system_events para evitar repetição
+        
+        # Game Over controls
+        if self.state == GameState.GAME_OVER:
+            if keys[pygame.K_r]:
+                self._restart_game()
+            elif keys[pygame.K_q]:
+                self.state = GameState.QUIT  # Will exit main loop
+        
+        # Playing state controls
+        elif self.state == GameState.PLAYING:
+            if keys[pygame.K_1]:  # Tecla 1 - ativa suavização rápida
+                self.set_camera_smoothing(True, 0.5)
+            
+            if keys[pygame.K_2]:  # Tecla 2 - ativa suavização lenta
+                self.set_camera_smoothing(True, 0.1)
+            
+            if keys[pygame.K_3]:  # Tecla 3 - desativa suavização
+                self.set_camera_smoothing(False)
+            
+            if keys[pygame.K_F1]:  # F1 - mostra informações de debug
+                self._show_debug_info = not getattr(self, '_show_debug_info', False)
+            
+            if keys[pygame.K_F2]:  # F2 - mostra informações detalhadas de hitbox
+                self._show_detailed_debug = not getattr(self, '_show_detailed_debug', False)
+
+    def _process_system_events(self) -> None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.state = GameState.QUIT
+                
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if self.state == GameState.PLAYING:
+                    mouse_pos = pygame.mouse.get_pos()
+                    shot_successful = self.game_world.process_player_mouse(mouse_pos)
+                    if shot_successful:
+                        self.audio_manager.play_sound('shoot')
+                    else:
+                        self.audio_manager.play_sound('dryfire')
+                    
+                elif self.state == GameState.GAME_OVER:
+                    mouse_pos = pygame.mouse.get_pos()
+                    action = self.game_over_screen.handle_click(mouse_pos)
+                    if action == "restart":
+                        self._restart_game()
+                    elif action == "quit":
+                        self.state = GameState.QUIT
+                
+                elif self.state == GameState.NAME_INPUT and self.name_input_screen:
+                    action = self.name_input_screen.handle_event(event)
+                    if action == "submit":
+                        self._save_score_and_continue()
+                    elif action == "skip":
+                        self.state = GameState.GAME_OVER
+                        
+            elif event.type == pygame.MOUSEMOTION:
+                if self.state == GameState.GAME_OVER:
+                    self.game_over_screen.handle_mouse_motion(event.pos)
+                elif self.state == GameState.NAME_INPUT and self.name_input_screen:
+                    self.name_input_screen.handle_event(event)
+                
+            elif event.type == pygame.KEYDOWN:
+                # ESC para pausar/despausar
+                if event.key == pygame.K_ESCAPE:
+                    if self.state == GameState.PLAYING:
+                        self.toggle_pause()
+                    elif self.state == GameState.PAUSED:
+                        self.toggle_pause()
+                    elif self.state == GameState.GAME_OVER:
+                        pass  # Não fazer nada no game over
+                
+                # P também pode pausar (alternativa)
+                elif event.key == pygame.K_p and self.state in [GameState.PLAYING, GameState.PAUSED]:
+                    self.toggle_pause()
+                
+                # R para resetar quando pausado
+                elif event.key == pygame.K_r and self.state == GameState.PAUSED:
+                    self._restart_game()
+                
+                # X para sair do jogo quando pausado
+                elif event.key == pygame.K_x and self.state == GameState.PAUSED:
+                    self.state = GameState.QUIT
+                
+                # Controles do name input
+                elif self.state == GameState.NAME_INPUT and self.name_input_screen:
+                    action = self.name_input_screen.handle_event(event)
+                    if action == "submit":
+                        self._save_score_and_continue()
+                    elif action == "skip":
+                        self.state = GameState.GAME_OVER
+                
+                # Controles do game over
+                elif self.state == GameState.GAME_OVER:
+                    action = self.game_over_screen.handle_keypress(event.key)
+                    if action == "restart":
+                        self._restart_game()
+                    elif action == "quit":
+                        self.state = GameState.QUIT
+
+    def _draw_pause_overlay(self) -> None:
+        overlay = create_overlay((self.width, self.height), Rendering.OVERLAY_COLOR)
+        
         self.screen.blit(overlay, (0, 0))
         
-        # Criar texto de pausa
         try:
-            font = pygame.font.Font("assets/fonts/techno_hideo.ttf", 64)
+            font_large = pygame.font.Font("assets/fonts/techno_hideo.ttf", Rendering.PAUSE_FONT_SIZE)
+            font_small = pygame.font.Font("assets/fonts/techno_hideo.ttf", Rendering.PAUSE_FONT_SIZE // 2)
         except:
-            font = pygame.font.Font(None, 64)
+            font_large = pygame.font.Font(None, Rendering.PAUSE_FONT_SIZE)
+            font_small = pygame.font.Font(None, Rendering.PAUSE_FONT_SIZE // 2)
             
-        pause_text = font.render("PAUSADO", True, (255, 255, 255))
+        # Título "PAUSADO"
+        pause_text = font_large.render("PAUSADO", True, (255, 255, 255))
+        pause_rect = pause_text.get_rect(center=(self.width // 2, self.height // 2 - 50))
+        self.screen.blit(pause_text, pause_rect)
         
-        # Centralizar o texto
-        text_rect = pause_text.get_rect(center=(self.width // 2, self.height // 2))
+        # Instruções de controle
+        controls = [
+            "ESC ou P - Continuar",
+            "R - Resetar Jogo",
+            "X - Sair do Jogo"
+        ]
         
-        # Desenhar o texto
-        self.screen.blit(pause_text, text_rect)
+        y_offset = self.height // 2 + 10
+        for control in controls:
+            control_text = font_small.render(control, True, (200, 200, 200))
+            control_rect = control_text.get_rect(center=(self.width // 2, y_offset))
+            self.screen.blit(control_text, control_rect)
+            y_offset += 35
+
+    def set_camera_smoothing(self, enabled: bool, factor: float = 0.1) -> None:
+        if hasattr(self.game_world, 'camera'):
+            self.game_world.camera.set_smoothing(enabled, factor)
+    
+    def get_camera_position(self) -> tuple:
+        if hasattr(self.game_world, 'camera'):
+            return (self.game_world.camera.x, self.game_world.camera.y)
+        return (0, 0)
+    
+    def get_player_position(self) -> tuple:
+        if self.game_world.player:
+            return self.game_world.player.position
+        return (0, 0)
 
     def run(self) -> None:
-        """Loop principal do jogo"""
         try:
-            while self.state != GameState.GAME_OVER:
-                # Calcular o delta time para atualizações consistentes
+            while self.state != GameState.QUIT:
                 delta_time: float = self.clock.tick(self.target_fps) / 1000.0
                 
-                # Processar eventos de entrada (em qualquer estado)
                 self.handle_events()
                 
-                # Atualizar o jogo apenas se estiver rodando
-                if self.state == GameState.RUNNING:
-                    self.game_world.update(delta_time)
+                if self.timer_running:
+                    self.elapsed_time = pygame.time.get_ticks() - self.timer_start
                 
-                # Renderizar o jogo
+                if self.state == GameState.PLAYING:
+                    self.game_world.update(delta_time)
+                    
+                    # Check if player died
+                    if self.game_world.player and not self.game_world.player.is_alive():
+                        self._handle_player_death()
+                        self.audio_manager.stop_background_music()
+
                 self.game_world.render()
                 
-                # Renderizar overlay de pausa se necessário
-                if self.state == GameState.PAUSED:
+                # Renderizar hitboxes de debug se habilitado
+                show_debug = getattr(self, '_show_debug_info', False)
+                show_detailed = getattr(self, '_show_detailed_debug', False)
+                if show_debug:
+                    self.game_world.render_debug_hitboxes(True, show_detailed)
+
+                if self.state == GameState.PLAYING:
+                    self.hud.player = self.game_world.player
+                    self.hud.draw(elapsed_time=self.elapsed_time)
+                
+                elif self.state == GameState.GAME_OVER:
+                    self.game_over_screen.draw()
+                
+                elif self.state == GameState.NAME_INPUT:
+                    if self.name_input_screen:
+                        self.name_input_screen.update(delta_time)
+                        self.name_input_screen.draw()
+                
+                elif self.state == GameState.PAUSED:
                     self._draw_pause_overlay()
                 
-                # Atualizar a tela
+                self.hud.draw_debug_info(self) 
+                
                 pygame.display.flip()
         except Exception as e:
             print(f"Erro no jogo: {e}")
-            # Poderia salvar o erro em um arquivo de log aqui
         finally:
-            # Encerramento limpo, executado mesmo em caso de erro
             pygame.quit()
             sys.exit()
+    
+    def _restart_game(self) -> None:
+        """Restart the game by creating new game world"""
+        self.state = GameState.PLAYING
+        self.game_world = GameWorld(self.screen, self.clock, self.width, self.height, self.audio_manager)
+        self.hud = Hud(self.screen, self.game_world.player, self.clock)
+        self.audio_manager.play_background_music()
+        
+        # Reset timer
+        self.timer_running = True
+        self.timer_start = pygame.time.get_ticks()
+        self.timer_paused_at = 0
+    
+    def _handle_player_death(self) -> None:
+        """Handle player death - check if score is worthy of leaderboard"""
+        current_time = self.elapsed_time
+        
+        # Check if this time would make it to top 10
+        if self.leaderboard.is_top_score(current_time, 10):
+            # Show name input screen
+            self.name_input_screen = NameInputScreen(self.screen, current_time)
+            self.state = GameState.NAME_INPUT
+        else:
+            # Go directly to game over
+            self.state = GameState.GAME_OVER
+    
+    def _save_score_and_continue(self) -> None:
+        """Save the player's score and continue to game over screen"""
+        if self.name_input_screen:
+            player_name = self.name_input_screen.get_name()
+            current_time = self.elapsed_time
+            
+            # Save to leaderboard
+            position = self.leaderboard.add_score(player_name, current_time)
+            
+            print(f"Score saved! {player_name} finished in {self._format_time(current_time)} - Position: {position}")
+            
+            # Go to game over screen
+            self.state = GameState.GAME_OVER
+            self.name_input_screen = None
+    
+    def _format_time(self, time_ms: int) -> str:
+        """Format time in milliseconds to mm:ss format"""
+        seconds = time_ms // 1000
+        minutes = seconds // 60
+        seconds = seconds % 60
+        return f"{minutes:02d}:{seconds:02d}"
