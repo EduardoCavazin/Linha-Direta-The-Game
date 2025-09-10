@@ -251,6 +251,11 @@ class GameManager:
                     if self.game_world.player and not self.game_world.player.is_alive():
                         self._handle_player_death()
                         self.audio_manager.stop_background_music()
+                    
+                    # Check if game was completed
+                    elif self.game_world.is_game_completed():
+                        self._handle_game_completion()
+                        self.audio_manager.stop_background_music()
 
                 self.game_world.render()
                 
@@ -298,6 +303,19 @@ class GameManager:
     
     def _handle_player_death(self) -> None:
         """Handle player death - check if score is worthy of leaderboard"""
+        current_time = self.elapsed_time
+        
+        # Check if this time would make it to top 10
+        if self.leaderboard.is_top_score(current_time, 10):
+            # Show name input screen
+            self.name_input_screen = NameInputScreen(self.screen, current_time)
+            self.state = GameState.NAME_INPUT
+        else:
+            # Go directly to game over
+            self.state = GameState.GAME_OVER
+    
+    def _handle_game_completion(self) -> None:
+        """Handle game completion - player finished all maps successfully"""
         current_time = self.elapsed_time
         
         # Check if this time would make it to top 10
