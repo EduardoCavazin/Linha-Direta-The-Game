@@ -193,7 +193,8 @@ class GameWorld:
         
         enemies_alive_after = self.current_room.get_alive_enemies_count()
         
-        if enemies_alive_before > 0 and enemies_alive_after == 0:
+        # Verificar se todos os inimigos foram eliminados
+        if enemies_alive_after == 0 and not self.current_room.cleared:
             self.current_room.mark_cleared()
             self._unlock_room_doors()
             print("Sala limpa! As portas foram desbloqueadas.")

@@ -150,6 +150,14 @@ class GameManager:
                 elif event.key == pygame.K_p and self.state in [GameState.PLAYING, GameState.PAUSED]:
                     self.toggle_pause()
                 
+                # R para resetar quando pausado
+                elif event.key == pygame.K_r and self.state == GameState.PAUSED:
+                    self._restart_game()
+                
+                # X para sair do jogo quando pausado
+                elif event.key == pygame.K_x and self.state == GameState.PAUSED:
+                    self.state = GameState.QUIT
+                
                 # Controles do game over
                 elif self.state == GameState.GAME_OVER:
                     action = self.game_over_screen.handle_keypress(event.key)
@@ -164,15 +172,30 @@ class GameManager:
         self.screen.blit(overlay, (0, 0))
         
         try:
-            font = pygame.font.Font("assets/fonts/techno_hideo.ttf", Rendering.PAUSE_FONT_SIZE)
+            font_large = pygame.font.Font("assets/fonts/techno_hideo.ttf", Rendering.PAUSE_FONT_SIZE)
+            font_small = pygame.font.Font("assets/fonts/techno_hideo.ttf", Rendering.PAUSE_FONT_SIZE // 2)
         except:
-            font = pygame.font.Font(None, Rendering.PAUSE_FONT_SIZE)
+            font_large = pygame.font.Font(None, Rendering.PAUSE_FONT_SIZE)
+            font_small = pygame.font.Font(None, Rendering.PAUSE_FONT_SIZE // 2)
             
-        pause_text = font.render("PAUSADO", True, (255, 255, 255))
+        # Título "PAUSADO"
+        pause_text = font_large.render("PAUSADO", True, (255, 255, 255))
+        pause_rect = pause_text.get_rect(center=(self.width // 2, self.height // 2 - 50))
+        self.screen.blit(pause_text, pause_rect)
         
-        text_rect = pause_text.get_rect(center=(self.width // 2, self.height // 2))
+        # Instruções de controle
+        controls = [
+            "ESC ou P - Continuar",
+            "R - Resetar Jogo",
+            "X - Sair do Jogo"
+        ]
         
-        self.screen.blit(pause_text, text_rect)
+        y_offset = self.height // 2 + 10
+        for control in controls:
+            control_text = font_small.render(control, True, (200, 200, 200))
+            control_rect = control_text.get_rect(center=(self.width // 2, y_offset))
+            self.screen.blit(control_text, control_rect)
+            y_offset += 35
 
     def set_camera_smoothing(self, enabled: bool, factor: float = 0.1) -> None:
         if hasattr(self.game_world, 'camera'):
