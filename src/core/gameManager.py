@@ -1,7 +1,7 @@
 import pygame
 import sys
 from src.world.core.gameWorld import GameWorld
-from src.core.audioManager import AudioManager 
+from src.core.audioManager import AudioManager
 from src.ui.hud import Hud
 from src.ui.gameOverScreen import GameOverScreen
 from src.ui.nameInputScreen import NameInputScreen
@@ -9,21 +9,28 @@ from src.core.enums import GameState
 from src.core.utils import create_overlay
 from src.core.constants import Rendering
 from src.core.leaderboard import Leaderboard
+from src.core.screenUtils import get_optimal_screen_size, center_window
 
 
-WIDTH: int = 950
-HEIGHT: int = 800
 TARGET_FPS: int = 60
+# Tamanho da tela será calculado dinamicamente
 
 class GameManager:
-    def __init__(self, width: int = WIDTH, height: int = HEIGHT, fps: int = TARGET_FPS) -> None:
+    def __init__(self, width: int = None, height: int = None, fps: int = TARGET_FPS) -> None:
         pygame.init()
-        
+
         pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
-        
-        self.width: int = width
-        self.height: int = height
-        self.screen: pygame.Surface = pygame.display.set_mode((width, height))
+
+        # Calcular tamanho ideal se não especificado
+        if width is None or height is None:
+            self.width, self.height = get_optimal_screen_size(preferred_width=950, preferred_height=800)
+        else:
+            self.width = width
+            self.height = height
+
+        # Centralizar janela
+        center_window(self.width, self.height)
+        self.screen: pygame.Surface = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Linha Direta - The Game")
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.target_fps: int = fps

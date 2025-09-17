@@ -307,8 +307,7 @@ class GameWorld:
             if target_room:
                 self._teleport_to_room(target_room)
                 return
-            else:
-        
+
         possible_rooms = [room for room in self.map.rooms if room != self.current_room]
         if not possible_rooms:
             return
@@ -657,8 +656,7 @@ class GameWorld:
                 
             if self.player:
                 self.player.position = self.current_room.spawn_position
-        else:
-    
+
     def get_current_room_info(self) -> dict:
         if not self.current_room:
             return {}

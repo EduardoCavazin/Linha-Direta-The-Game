@@ -160,9 +160,6 @@ class Player(Entity):
         self.ammo = min(self.ammo + amount, max_ammo)
         actual_ammo = self.ammo - old_ammo
 
-        if actual_ammo > 0:
-        else:
-    
     def take_damage(self, damage: int) -> None:
         if damage <= 0:
             return
@@ -172,7 +169,5 @@ class Player(Entity):
         actual_damage = old_health - self.health
         
         if actual_damage > 0:
-            
             if self.health <= 0:
                 self.die()  # Use the inherited die() method from Entity
-        else:

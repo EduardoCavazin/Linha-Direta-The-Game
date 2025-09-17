@@ -2,13 +2,16 @@ import sys
 import pygame
 import os
 from PIL import Image, ImageSequence
-from typing import Optional
 from src.core.utils import load_image
+from src.core.screenUtils import get_optimal_screen_size, center_window
 
 pygame.init()
 
-screen_width: int = 960
-screen_height: int = 960
+# Calcular tamanho ideal da tela
+screen_width, screen_height = get_optimal_screen_size(preferred_width=950, preferred_height=800)
+
+# Centralizar janela
+center_window(screen_width, screen_height)
 screen: pygame.Surface = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Main Menu")
 
@@ -43,10 +46,9 @@ except Exception as e:
 
 frame_index: int = 0
 
-title_rect: Optional[pygame.Rect] = None
-option1_rect: Optional[pygame.Rect] = None
-option2_rect: Optional[pygame.Rect] = None
-option3_rect: Optional[pygame.Rect] = None
+title_rect = None
+start_rect = None
+exit_rect = None
 
 def draw_rounded_background(surface: pygame.Surface, rect: pygame.Rect, color: tuple, radius: int) -> None:
     transparent_background: pygame.Surface = pygame.Surface((rect.width + 20, rect.height + 10), pygame.SRCALPHA)
@@ -54,46 +56,77 @@ def draw_rounded_background(surface: pygame.Surface, rect: pygame.Rect, color: t
     surface.blit(transparent_background, (rect.x - 10, rect.y - 5))
 
 def show_menu() -> None:
-    global frame_index, title_rect, option1_rect, option2_rect, option3_rect
+    """Renderiza o menu"""
+    global frame_index, title_rect, start_rect, exit_rect
+
+    # Renderizar background animado
     screen.blit(frames[frame_index], (0, 0))
     frame_index = (frame_index + 1) % frame_count
 
+    # Criar textos
     title: pygame.Surface = font.render("Linha Direta", True, white)
-    option1: pygame.Surface = font.render("Start", True, white)
-    option2: pygame.Surface = font.render("Settings", True, white)
-    option3: pygame.Surface = font.render("Exit", True, white)
+    start: pygame.Surface = font.render("Iniciar", True, white)
+    exit: pygame.Surface = font.render("Sair", True, white)
 
-    title_rect = title.get_rect(center=(screen_width // 2, screen_height // 2 - 150))
-    option1_rect = option1.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
-    option2_rect = option2.get_rect(center=(screen_width // 2, screen_height // 2 + 50))
-    option3_rect = option3.get_rect(center=(screen_width // 2, screen_height // 2 + 150))
+    # Instrucoes de controle
+    small_font = pygame.font.Font(None, 36)
+    instructions = small_font.render("Enter/Espaco: Iniciar | Esc: Sair", True, (200, 200, 200))
 
-    for rect in [title_rect, option1_rect, option2_rect, option3_rect]:
+    # Posicionar elementos
+    title_rect = title.get_rect(center=(screen_width // 2, screen_height // 2 - 120))
+    start_rect = start.get_rect(center=(screen_width // 2, screen_height // 2 - 20))
+    exit_rect = exit.get_rect(center=(screen_width // 2, screen_height // 2 + 80))
+    instructions_rect = instructions.get_rect(center=(screen_width // 2, screen_height // 2 + 180))
+
+    # Desenhar backgrounds dos textos
+    for rect in [title_rect, start_rect, exit_rect]:
         draw_rounded_background(screen, rect, (0, 0, 0, 128), 10)
+    draw_rounded_background(screen, instructions_rect, (0, 0, 0, 100), 5)
 
+    # Desenhar textos
     screen.blit(title, title_rect)
-    screen.blit(option1, option1_rect)
-    screen.blit(option2, option2_rect)
-    screen.blit(option3, option3_rect)
+    screen.blit(start, start_rect)
+    screen.blit(exit, exit_rect)
+    screen.blit(instructions, instructions_rect)
 
     pygame.display.flip()
+    return None
 
-def main() -> None:
+def run_menu() -> str:
+    """Executa o menu e retorna a acao escolhida pelo usuario"""
     clock: pygame.time.Clock = pygame.time.Clock()
     while True:
-        show_menu()
+        # Processar todos os eventos
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = event.pos
-                if option1_rect is not None and option1_rect.collidepoint(x, y):
-                elif option2_rect is not None and option2_rect.collidepoint(x, y):
-                elif option3_rect is not None and option3_rect.collidepoint(x, y):
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                    return "start"
+                elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                # Obter as posicoes dos botoes da funcao show_menu
+                if start_rect and start_rect.collidepoint(x, y):
+                    return "start"
+                elif exit_rect and exit_rect.collidepoint(x, y):
+                    pygame.quit()
+                    sys.exit()
+
+        # Renderizar o menu
+        show_menu()
         clock.tick(10)
+
+def main() -> None:
+    """Funcao principal para testar o menu isoladamente"""
+    action = run_menu()
+    if action == "start":
+        print("Iniciando jogo...")
+    pygame.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     main()

@@ -30,9 +30,7 @@ class Map:
                 room = self._load_tmx_room(file_path)
                 if room:
                     rooms.append(room)
-        
-        if not rooms:
-        
+
         return rooms
 
     def _load_tmx_room(self, tmx_path: str) -> Optional[Room]:
@@ -127,7 +125,8 @@ class Map:
                 self.current_room.visited = True
                 return self.current_room
         except ValueError:
-        
+            pass
+
         return None
 
     def get_previous_room(self) -> Optional[Room]:
@@ -140,7 +139,8 @@ class Map:
                 self.current_room = self.sequence[current_index - 1]
                 return self.current_room
         except ValueError:
-        
+            pass
+
         return None
 
     def get_room_by_id(self, room_id: str) -> Optional[Room]:
