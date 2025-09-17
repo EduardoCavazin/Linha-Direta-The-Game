@@ -55,7 +55,6 @@ class Room:
                 if obj.get("name") == "Player":
                     spawn_x = obj.get("x", 100.0)
                     spawn_y = obj.get("y", 100.0)
-                    print(f" Spawn do TMX encontrado: ({spawn_x}, {spawn_y})")
                     return (spawn_x, spawn_y)
         
         if player and hasattr(player, 'position'):
@@ -250,7 +249,6 @@ class Room:
                         enemy_position = enemy.position
                         
                     enemy.set_dead_state()
-                    print(f"Inimigo {enemy.id} eliminado!")
                     
                     if on_enemy_death_callback:
                         on_enemy_death_callback(enemy_position)
@@ -266,12 +264,10 @@ class Room:
     def mark_cleared(self) -> None:
         if not self.cleared:
             self.cleared = True
-            print(f"Sala {self.id} limpa")
 
     def mark_visited(self) -> None:
         if not self.visited:
             self.visited = True
-            print(f"Sala {self.id} visitada")
 
     def is_clear(self) -> bool:
         return all(not enemy.is_alive() for enemy in self.enemies)

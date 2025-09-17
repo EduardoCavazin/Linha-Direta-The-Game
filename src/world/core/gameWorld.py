@@ -200,7 +200,6 @@ class GameWorld:
         if enemies_alive_after == 0 and not self.current_room.cleared:
             self.current_room.mark_cleared()
             self._unlock_room_doors()
-            print("Sala limpa! As portas foram desbloqueadas.")
     
     def _unlock_room_doors(self) -> None:
         if not self.current_room:
@@ -233,9 +232,6 @@ class GameWorld:
             self.current_room.items.append(dropped_item)
             
             item_name = get_item_display_name(drop_type)
-            print(f" {item_name} foi dropado!")
-        else:
-            print(" Falha ao criar o item dropado!")
     
     def _update_bullets(self) -> None:
         if not self.bullets:
@@ -263,7 +259,6 @@ class GameWorld:
         
         for item in self.current_room.items[:]:
             if self.player.collides_with(item):
-                print(f"ITEM COLETADO: {item.name} - {item.effect}")
                 if item.effect == ItemEffect.HEAL.value:
                     self.player.heal(item.value)
                 elif item.effect == ItemEffect.AMMO.value:
@@ -283,7 +278,6 @@ class GameWorld:
             if self.player.collides_with(door):
                 if not self.current_room.is_clear():
                     enemies_remaining = self.current_room.get_alive_enemies_count()
-                    print(f"Não é possível avançar! Elimine os {enemies_remaining} inimigos restantes.")
                     return
                 
                 self._handle_door_teleport(door)
@@ -296,12 +290,10 @@ class GameWorld:
         if destination == "next_map":
             target_room = self._get_next_map()
             if target_room:
-                print(f"Teletransportando de {self.current_room.id} para {target_room.id} (progressão sequencial)")
                 self._teleport_to_room(target_room)
                 return
             else:
                 # Jogo completado - todos os mapas foram concluídos
-                print("🎉 Parabéns! Você completou todos os mapas!")
                 self.game_completed = True
                 return
         
@@ -313,19 +305,15 @@ class GameWorld:
                     break
             
             if target_room:
-                print(f"Teletransportando de {self.current_room.id} para {target_room.id} (destino específico)")
                 self._teleport_to_room(target_room)
                 return
             else:
-                print(f"Sala de destino '{destination}' não encontrada!")
         
         possible_rooms = [room for room in self.map.rooms if room != self.current_room]
         if not possible_rooms:
-            print("Nenhuma outra sala disponível para teleporte!")
             return
 
         target_room = random.choice(possible_rooms)
-        print(f"Teletransportando de {self.current_room.id} para {target_room.id} (aleatório)")
         self._teleport_to_room(target_room)
 
     def _get_next_map(self) -> Optional[Room]:
@@ -345,11 +333,9 @@ class GameWorld:
             if room.id == next_id:
                 return room
         
-        print(f"Próximo mapa '{next_id}' não encontrado!")
         return None
 
     def _teleport_to_room(self, target_room: Room) -> None:
-        # Debug: print(f"TELEPORTE: Mudando para {target_room.id}")
         self.current_room = target_room
         room_width, room_height = self.current_room.size
         self.camera.set_world_bounds(room_width, room_height)
@@ -360,10 +346,8 @@ class GameWorld:
         self._lock_room_doors()
         if self.current_room.is_clear():
             self._unlock_room_doors()
-            print("Sala já estava limpa - portas desbloqueadas.")
         else:
             enemies_count = self.current_room.get_alive_enemies_count()
-            print(f"Nova sala com {enemies_count} inimigos - elimine todos para desbloquear as portas.")
 
         if self.player:
             spawn_position = self.current_room.spawn_position
@@ -382,7 +366,6 @@ class GameWorld:
             
             self.player.moving = False
             
-            # Debug: print(f"Player posicionado em: {self.player.position}")
     
     def _find_safe_spawn(self, original_spawn: Tuple[float, float]) -> Tuple[float, float]:
         spawn_x, spawn_y = original_spawn
@@ -404,10 +387,8 @@ class GameWorld:
                     
                     collision = self.collision_optimizer.check_collision_optimized(test_rect, static_only=True)
                     if not collision:
-                        # Debug: print(f"Posição livre encontrada: ({test_x:.1f}, {test_y:.1f})")
                         return (test_x, test_y)
         
-        print("Nenhuma posição livre encontrada, usando centro do mapa")
         return (self.current_room.size[0] // 2, self.current_room.size[1] // 2)
     
     def _initialize_room_collisions(self) -> None:
@@ -425,7 +406,6 @@ class GameWorld:
             wall_id = f"wall_{self.current_room.id}_{i}"
             self.collision_optimizer.add_static_object(wall_id, None, wall_rect)
         
-        # Debug: print(f"Initialized collision optimizer with {len(wall_rects)} static objects")
     
     def get_collision_stats(self) -> Dict[str, int]:
         """Get collision optimization performance stats"""
@@ -612,8 +592,7 @@ class GameWorld:
                     self.screen.blit(text, text_rect.topleft)
                     
         except Exception as e:
-            # Debug: print do erro para investigar
-            print(f"Debug: Erro ao desenhar estruturas: {e}")
+            pass
 
     def _render_object_with_camera(self, obj) -> None:
         if not hasattr(obj, 'position'):
@@ -679,7 +658,6 @@ class GameWorld:
             if self.player:
                 self.player.position = self.current_room.spawn_position
         else:
-            print(f"Sala {room_index} não existe")
     
     def get_current_room_info(self) -> dict:
         if not self.current_room:
@@ -728,7 +706,6 @@ class GameWorld:
         self.bullets.clear()
         self.enemy_bullets.clear()  
         self.render_queue.clear()
-        print("GameWorld limpo")
     
     # ==========================================
     # FIRE DAMAGE SYSTEM
@@ -755,7 +732,6 @@ class GameWorld:
                 if self.audio_manager:
                     self.audio_manager.play_sound('hurt')
                 
-                print(f"🔥 Player taking fire damage! Health: {self.player.health}")
     
     def _update_tile_animations(self, delta_time: float) -> None:
         """Update animated tiles in current room"""

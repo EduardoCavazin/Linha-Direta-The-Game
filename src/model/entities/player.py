@@ -153,7 +153,6 @@ class Player(Entity):
 
     def add_ammo(self, amount: int) -> None:
         if not self.weapon:
-            print("Não há arma equipada!")
             return
 
         old_ammo = self.ammo
@@ -162,9 +161,7 @@ class Player(Entity):
         actual_ammo = self.ammo - old_ammo
 
         if actual_ammo > 0:
-            print(f"{actual_ammo} munições! Munição atual: {self.ammo}/{max_ammo}")
         else:
-            print("Munição já está no máximo!")
     
     def take_damage(self, damage: int) -> None:
         if damage <= 0:
@@ -175,9 +172,7 @@ class Player(Entity):
         actual_damage = old_health - self.health
         
         if actual_damage > 0:
-            print(f"-{actual_damage} de vida! Vida atual: {self.health}/100")
             
             if self.health <= 0:
                 self.die()  # Use the inherited die() method from Entity
         else:
-            print("Nenhum dano recebido!")

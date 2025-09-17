@@ -39,9 +39,7 @@ class GameManager:
         self.audio_manager.play_background_music()
         self.leaderboard = Leaderboard()
         self.hud = Hud(self.screen, self.game_world.player, self.clock)
-        self.game_over_screen = GameOverScreen(self.screen)
-        # Share the same leaderboard instance
-        self.game_over_screen.leaderboard = self.leaderboard
+        self.game_over_screen = None  # Will be created when needed
         self.name_input_screen = None  # Will be created when needed
         
         self.timer_running = True
@@ -90,7 +88,6 @@ class GameManager:
             current_vol = self.audio_manager.music_volume
             self.audio_manager.set_music_volume(current_vol - 0.01)
         
-        # Não processar ESC aqui - movido para _process_system_events para evitar repetição
         
         # Game Over controls
         if self.state == GameState.GAME_OVER:
@@ -130,7 +127,7 @@ class GameManager:
                     else:
                         self.audio_manager.play_sound('dryfire')
                     
-                elif self.state == GameState.GAME_OVER:
+                elif self.state == GameState.GAME_OVER and self.game_over_screen:
                     mouse_pos = pygame.mouse.get_pos()
                     action = self.game_over_screen.handle_click(mouse_pos)
                     if action == "restart":
@@ -143,10 +140,13 @@ class GameManager:
                     if action == "submit":
                         self._save_score_and_continue()
                     elif action == "skip":
+                        # Player completed the game but skipped name input
+                        self.game_over_screen = GameOverScreen(self.screen, game_completed=True)
+                        self.game_over_screen.leaderboard = self.leaderboard
                         self.state = GameState.GAME_OVER
                         
             elif event.type == pygame.MOUSEMOTION:
-                if self.state == GameState.GAME_OVER:
+                if self.state == GameState.GAME_OVER and self.game_over_screen:
                     self.game_over_screen.handle_mouse_motion(event.pos)
                 elif self.state == GameState.NAME_INPUT and self.name_input_screen:
                     self.name_input_screen.handle_event(event)
@@ -179,10 +179,13 @@ class GameManager:
                     if action == "submit":
                         self._save_score_and_continue()
                     elif action == "skip":
+                        # Player completed the game but skipped name input
+                        self.game_over_screen = GameOverScreen(self.screen, game_completed=True)
+                        self.game_over_screen.leaderboard = self.leaderboard
                         self.state = GameState.GAME_OVER
                 
                 # Controles do game over
-                elif self.state == GameState.GAME_OVER:
+                elif self.state == GameState.GAME_OVER and self.game_over_screen:
                     action = self.game_over_screen.handle_keypress(event.key)
                     if action == "restart":
                         self._restart_game()
@@ -269,7 +272,7 @@ class GameManager:
                     self.hud.player = self.game_world.player
                     self.hud.draw(elapsed_time=self.elapsed_time)
                 
-                elif self.state == GameState.GAME_OVER:
+                elif self.state == GameState.GAME_OVER and self.game_over_screen:
                     self.game_over_screen.draw()
                 
                 elif self.state == GameState.NAME_INPUT:
@@ -284,7 +287,7 @@ class GameManager:
                 
                 pygame.display.flip()
         except Exception as e:
-            print(f"Erro no jogo: {e}")
+            pass
         finally:
             pygame.quit()
             sys.exit()
@@ -295,36 +298,36 @@ class GameManager:
         self.game_world = GameWorld(self.screen, self.clock, self.width, self.height, self.audio_manager)
         self.hud = Hud(self.screen, self.game_world.player, self.clock)
         self.audio_manager.play_background_music()
-        
+
+        # Clear screens
+        self.game_over_screen = None
+        self.name_input_screen = None
+
         # Reset timer
         self.timer_running = True
         self.timer_start = pygame.time.get_ticks()
         self.timer_paused_at = 0
     
     def _handle_player_death(self) -> None:
-        """Handle player death - check if score is worthy of leaderboard"""
-        current_time = self.elapsed_time
-        
-        # Check if this time would make it to top 10
-        if self.leaderboard.is_top_score(current_time, 10):
-            # Show name input screen
-            self.name_input_screen = NameInputScreen(self.screen, current_time)
-            self.state = GameState.NAME_INPUT
-        else:
-            # Go directly to game over
-            self.state = GameState.GAME_OVER
+        """Handle player death - go directly to game over (no leaderboard entry)"""
+        # Player died before completing the game, go directly to game over
+        self.game_over_screen = GameOverScreen(self.screen, game_completed=False)
+        self.game_over_screen.leaderboard = self.leaderboard
+        self.state = GameState.GAME_OVER
     
     def _handle_game_completion(self) -> None:
         """Handle game completion - player finished all maps successfully"""
         current_time = self.elapsed_time
-        
+
         # Check if this time would make it to top 10
         if self.leaderboard.is_top_score(current_time, 10):
             # Show name input screen
             self.name_input_screen = NameInputScreen(self.screen, current_time)
             self.state = GameState.NAME_INPUT
         else:
-            # Go directly to game over
+            # Go directly to game over with completion flag
+            self.game_over_screen = GameOverScreen(self.screen, game_completed=True)
+            self.game_over_screen.leaderboard = self.leaderboard
             self.state = GameState.GAME_OVER
     
     def _save_score_and_continue(self) -> None:
@@ -332,13 +335,14 @@ class GameManager:
         if self.name_input_screen:
             player_name = self.name_input_screen.get_name()
             current_time = self.elapsed_time
-            
+
             # Save to leaderboard
             position = self.leaderboard.add_score(player_name, current_time)
-            
-            print(f"Score saved! {player_name} finished in {self._format_time(current_time)} - Position: {position}")
-            
-            # Go to game over screen
+
+
+            # Go to game over screen with completion flag
+            self.game_over_screen = GameOverScreen(self.screen, game_completed=True)
+            self.game_over_screen.leaderboard = self.leaderboard
             self.state = GameState.GAME_OVER
             self.name_input_screen = None
     

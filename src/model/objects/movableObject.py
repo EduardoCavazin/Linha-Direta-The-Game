@@ -75,5 +75,4 @@ class MovableObject(GameObject):
         self.move(direction, delta_time, obstacles, screen_width, screen_height)
 
     def draw(self, screen: pygame.Surface) -> None:
-        # Debug antigo removido - usando novo sistema F1/F2
         pass

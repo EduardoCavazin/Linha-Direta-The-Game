@@ -89,11 +89,8 @@ def main() -> None:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if option1_rect is not None and option1_rect.collidepoint(x, y):
-                    print("Starting the game...")
                 elif option2_rect is not None and option2_rect.collidepoint(x, y):
-                    print("Opening settings...")
                 elif option3_rect is not None and option3_rect.collidepoint(x, y):
-                    print("Exiting...")
                     pygame.quit()
                     sys.exit()
         clock.tick(10)

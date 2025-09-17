@@ -7,8 +7,9 @@ from src.core.enums import GameState
 from src.core.leaderboard import Leaderboard, LeaderboardEntry
 
 class GameOverScreen:
-    def __init__(self, screen: pygame.Surface):
+    def __init__(self, screen: pygame.Surface, game_completed: bool = False):
         self.screen = screen
+        self.game_completed = game_completed
         self.leaderboard = Leaderboard()
         self.font_large = pygame.font.Font(None, 72)
         self.font_medium = pygame.font.Font(None, 48)
@@ -75,13 +76,17 @@ class GameOverScreen:
         # Fill background
         self.screen.fill(self.background_color)
         
-        # Draw "GAME OVER" title
-        game_over_text = self.font_large.render("GAME OVER", True, self.red_accent)
-        game_over_rect = game_over_text.get_rect(center=(self.center_x, 80))
-        self.screen.blit(game_over_text, game_over_rect)
-        
-        # Draw subtitle
-        subtitle_text = self.font_medium.render("You were eliminated!", True, self.text_color)
+        # Draw title based on completion status
+        if self.game_completed:
+            title_text = self.font_large.render("PARABÉNS!", True, (0, 255, 0))  # Green for success
+            subtitle_text = self.font_medium.render("Você completou todos os mapas!", True, self.text_color)
+        else:
+            title_text = self.font_large.render("GAME OVER", True, self.red_accent)
+            subtitle_text = self.font_medium.render("You were eliminated!", True, self.text_color)
+
+        title_rect = title_text.get_rect(center=(self.center_x, 80))
+        self.screen.blit(title_text, title_rect)
+
         subtitle_rect = subtitle_text.get_rect(center=(self.center_x, 130))
         self.screen.blit(subtitle_text, subtitle_rect)
         
@@ -112,30 +117,37 @@ class GameOverScreen:
         self.screen.blit(instruction_text, instruction_rect)
     
     def _draw_leaderboard(self) -> None:
-        """Draw the top 5 leaderboard"""
+        """Draw the top 5 leaderboard only if game was completed"""
+        if not self.game_completed:
+            # Show message about completing the game to enter leaderboard
+            message_text = self.font_small.render("Complete todos os mapas para entrar no ranking!", True, (255, 255, 0))
+            message_rect = message_text.get_rect(center=(self.center_x, 200))
+            self.screen.blit(message_text, message_rect)
+            return
+
         # Title
         leaderboard_title = self.font_medium.render("TOP 5 MELHORES TEMPOS", True, (255, 215, 0))  # Gold
         title_rect = leaderboard_title.get_rect(center=(self.center_x, 180))
         self.screen.blit(leaderboard_title, title_rect)
-        
+
         # Get top scores
         top_scores = self.leaderboard.get_top_scores(5)
-        
+
         if not top_scores:
             no_scores_text = self.font_small.render("Nenhum recorde ainda!", True, self.text_color)
             no_scores_rect = no_scores_text.get_rect(center=(self.center_x, 220))
             self.screen.blit(no_scores_text, no_scores_rect)
             return
-        
+
         # Draw scores
         start_y = 220
         for i, entry in enumerate(top_scores):
             rank = i + 1
             color = self._get_rank_color(rank)
-            
+
             # Format: "1. PlayerName - 02:45"
             score_text = f"{rank}. {entry.name} - {entry.get_time_formatted()}"
-            
+
             score_surface = self.font_small.render(score_text, True, color)
             score_rect = score_surface.get_rect(center=(self.center_x, start_y + (i * 30)))
             self.screen.blit(score_surface, score_rect)

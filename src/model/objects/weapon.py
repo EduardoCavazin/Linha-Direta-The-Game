@@ -16,5 +16,4 @@ class Weapon:
             self.current_ammo -= 1
             return self.damage
         else:
-            print(f"{self.name} está sem munição!")
             return 0

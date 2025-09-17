@@ -30,10 +30,8 @@ class Map:
                 room = self._load_tmx_room(file_path)
                 if room:
                     rooms.append(room)
-                    print(f"Sala carregada: {room.id}")
         
         if not rooms:
-            print("Nenhuma sala foi carregada")
         
         return rooms
 
@@ -117,7 +115,6 @@ class Map:
     def _log_sequence(self) -> None:
         for i, room in enumerate(self.sequence):
             room_type = "Boss" if "boss" in room.id.lower() else "Normal"
-            print(f"  {i+1}. {room.id} {room_type}")
 
     def get_next_room(self) -> Optional[Room]:
         if not self.current_room or not self.sequence:
@@ -130,7 +127,6 @@ class Map:
                 self.current_room.visited = True
                 return self.current_room
         except ValueError:
-            print("Sala atual não encontrada na sequência")
         
         return None
 
@@ -142,10 +138,8 @@ class Map:
             current_index = self.sequence.index(self.current_room)
             if current_index > 0:
                 self.current_room = self.sequence[current_index - 1]
-                print(f"Voltou para: {self.current_room.id}")
                 return self.current_room
         except ValueError:
-            print("Sala atual não encontrada na sequência")
         
         return None
 

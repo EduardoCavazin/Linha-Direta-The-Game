@@ -170,7 +170,6 @@ class Entity(MovableObject):
             bullet.directedSpeed = direction * bullet.speed
             return bullet
         else:
-            print(f"{self.name} está sem munição!")
             return None
 
 
@@ -187,7 +186,6 @@ class Entity(MovableObject):
 
     def die(self) -> None:
         self.status = EntityStatus.DEAD.value
-        print(f"{self.name} morreu!")
         
     def is_alive(self) -> bool:
         return self.status != EntityStatus.DEAD.value
@@ -199,7 +197,6 @@ class Entity(MovableObject):
         if self.image:
             screen.blit(self.image, self.rect)
         else:
-            # Debug antigo removido - usando novo sistema F1/F2
             pass
 
     def rotate_towards(self, target_pos: Tuple[float, float]) -> None:

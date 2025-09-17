@@ -227,7 +227,6 @@ class TiledLoader:
                     
                     if frames:
                         tileset["animations"][tile_id] = frames
-                        # Debug: print(f"Found animation for tile {tile_id}: {len(frames)} frames")
             
             image = root.find("image")
             if image is not None:
@@ -306,7 +305,6 @@ class TiledLoader:
             
             self._render_layer_to_surface(layer, background)
         
-# Debug markers removidos - usando novo sistema de debug
         
         return background
     
@@ -413,7 +411,6 @@ class TiledLoader:
             
             self._render_layer_with_animations(layer, background, room_current_tiles)
         
-# Debug markers removidos - usando novo sistema de debug
         
         return background
     

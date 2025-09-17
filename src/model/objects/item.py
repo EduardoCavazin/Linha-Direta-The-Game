@@ -44,5 +44,4 @@ class Item(GameObject):
         if hasattr(self, 'image') and self.image is not None:
             screen.blit(self.image, self.hitbox.topleft)
         else:
-            # Debug antigo removido - usando novo sistema F1/F2
             pass
