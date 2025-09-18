@@ -108,3 +108,13 @@ class Leaderboard:
         if len(self.entries) < limit:
             return True
         return time < self.entries[limit - 1].time
+
+    def clear_scores(self) -> bool:
+        """Limpa todos os scores do leaderboard"""
+        try:
+            self.entries.clear()
+            self._save_to_file()
+            return True
+        except Exception as e:
+            print(f"Erro ao limpar leaderboard: {e}")
+            return False
