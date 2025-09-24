@@ -1,7 +1,6 @@
 import sys
 import pygame
 import os
-from PIL import Image, ImageSequence
 from src.core.screenUtils import get_optimal_screen_size, center_window
 
 pygame.init()
@@ -18,7 +17,7 @@ black: tuple = (0, 0, 0)
 base_path = os.path.abspath(os.path.dirname(__file__))
 project_root = os.path.abspath(os.path.join(base_path, "../.."))
 font_path: str = os.path.join(project_root, 'assets', 'fonts', 'Neutrons.ttf')
-gif_path: str = os.path.join(project_root, 'assets', 'ui', 'menu', 'backgroundGif.gif')
+background_path: str = os.path.join(project_root, 'assets', 'ui', 'menu', 'background.png')
 
 try:
     font: pygame.font.Font = pygame.font.Font(font_path, 74)
@@ -27,21 +26,12 @@ except Exception as e:
     font: pygame.font.Font = pygame.font.Font(None, 74) 
 
 try:
-    gif: Image.Image = Image.open(gif_path)
-    frames: list[pygame.Surface] = [
-        pygame.transform.scale(
-            pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode),
-            (screen_width, screen_height)
-        ) for frame in ImageSequence.Iterator(gif)
-    ]
-    frame_count: int = len(frames)
+    background: pygame.Surface = pygame.image.load(background_path)
+    background = pygame.transform.scale(background, (screen_width, screen_height))
 except Exception as e:
-    print(f"Erro ao carregar GIF: {e}")
-    frames: list[pygame.Surface] = [pygame.Surface((screen_width, screen_height))]
-    frames[0].fill((50, 50, 75))  
-    frame_count: int = 1
-
-frame_index: int = 0
+    print(f"Erro ao carregar background: {e}")
+    background: pygame.Surface = pygame.Surface((screen_width, screen_height))
+    background.fill((50, 50, 75))
 
 title_rect = None
 start_rect = None
@@ -54,10 +44,9 @@ def draw_rounded_background(surface: pygame.Surface, rect: pygame.Rect, color: t
     surface.blit(transparent_background, (rect.x - 10, rect.y - 5))
 
 def show_menu() -> None:
-    global frame_index, title_rect, start_rect, exit_rect
+    global title_rect, start_rect, exit_rect
 
-    screen.blit(frames[frame_index], (0, 0))
-    frame_index = (frame_index + 1) % frame_count
+    screen.blit(background, (0, 0))
 
     title: pygame.Surface = font.render("Linha Direta", True, white)
     start: pygame.Surface = font.render("Iniciar", True, white)
@@ -67,11 +56,11 @@ def show_menu() -> None:
     small_font = pygame.font.Font(None, 36)
     instructions = small_font.render("ENTER: Iniciar | L: Ranking | ESC: Sair", True, (200, 200, 200))
 
-    title_rect = title.get_rect(center=(screen_width // 2, screen_height // 2 - 140))
-    start_rect = start.get_rect(center=(screen_width // 2, screen_height // 2 - 40))
+    title_rect = title.get_rect(center=(screen_width // 2, screen_height // 2 - 200))
+    start_rect = start.get_rect(center=(screen_width // 2, screen_height // 2 - 60))
     leaderboard_rect = leaderboard.get_rect(center=(screen_width // 2, screen_height // 2 + 20))
-    exit_rect = exit.get_rect(center=(screen_width // 2, screen_height // 2 + 80))
-    instructions_rect = instructions.get_rect(center=(screen_width // 2, screen_height // 2 + 160))
+    exit_rect = exit.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
+    instructions_rect = instructions.get_rect(center=(screen_width // 2, screen_height // 2 + 220))
 
     for rect in [title_rect, start_rect, leaderboard_rect, exit_rect]:
         draw_rounded_background(screen, rect, (0, 0, 0, 128), 10)

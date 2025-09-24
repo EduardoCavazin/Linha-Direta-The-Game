@@ -66,20 +66,25 @@ class EntityFactory:
         obj_type = obj_data["type"]
         position = (obj_data["x"], obj_data["y"])
         properties = obj_data["properties"]
-        
+
         if obj_name == "Player":
             return self.create_player(position, properties)
-        
+
         elif obj_name in self.configs["entities"] and obj_name != "Player":
             return self.create_enemy(obj_name, position, properties)
-        
+
         elif obj_name in self.configs["items"]:
             return self.create_item(obj_name, position, properties)
-        
+
         elif obj_name in self.configs["doors"] or obj_name == "Door" or obj_name == "Door2":
             return self.create_door(obj_name, position, obj_data.get("width", 32), obj_data.get("height", 48), properties)
-        
+
         else:
+            # Sistema de fallback hierárquico para entidades não reconhecidas
+            fallback_enemy = self._try_enemy_fallback(obj_name, position, properties)
+            if fallback_enemy:
+                return fallback_enemy
+
             print(f"Tipo de entidade desconhecido: {obj_name}")
             return None
     
@@ -92,6 +97,9 @@ class EntityFactory:
             entities["items"].append(entity)
         elif obj_name in self.configs["doors"] or obj_name == "Door" or obj_name == "Door2":
             entities["doors"].append(entity)
+        elif self._is_enemy_fallback(obj_name):
+            # Entidades com fallback também são consideradas inimigos
+            entities["enemies"].append(entity)
     
     def create_player(self, position: Tuple[float, float], properties: Dict = None) -> Optional[Player]:
         try:
@@ -208,6 +216,40 @@ class EntityFactory:
         except Exception as e:
             print(f"Erro ao criar porta {door_type}: {e}")
             return None
+
+    def _try_enemy_fallback(self, obj_name: str, position: Tuple[float, float], properties: Dict = None) -> Optional[Enemy]:
+        """
+        Sistema de fallback hierárquico para inimigos não reconhecidos.
+        Tenta criar inimigo na seguinte ordem: BossEnemy -> BasicEnemy
+        """
+        fallback_hierarchy = []
+
+        # Definir hierarchy baseada no nome da entidade
+        if "Boss" in obj_name or "Final" in obj_name:
+            fallback_hierarchy = ["BossEnemy", "BasicEnemy"]
+            print(f"FALLBACK: '{obj_name}' não encontrado, tentando usar boss enemies...")
+        else:
+            fallback_hierarchy = ["BasicEnemy"]
+            print(f"FALLBACK: '{obj_name}' não encontrado, tentando usar inimigo básico...")
+
+        for fallback_type in fallback_hierarchy:
+            if fallback_type in self.configs["entities"]:
+                print(f"FALLBACK: Usando '{fallback_type}' no lugar de '{obj_name}'")
+                return self.create_enemy(fallback_type, position, properties)
+
+        print(f"FALLBACK: Falha ao criar fallback para '{obj_name}' - nenhuma opção disponível")
+        return None
+
+    def _is_enemy_fallback(self, obj_name: str) -> bool:
+        """
+        Verifica se a entidade é um tipo que pode ter fallback para inimigo.
+        """
+        enemy_fallback_types = [
+            "FinalBoss", "Boss", "BossEnemy", "StrongEnemy", "BasicEnemy",
+            "Enemy", "Inimigo", "Chefe", "MiniBoss"
+        ]
+
+        return any(fallback_type in obj_name for fallback_type in enemy_fallback_types)
     
     def _create_weapon_for_entity(self, entity_type: str, entity_config: Dict) -> Optional[Weapon]:
         weapon_name = entity_config.get("weapon")

@@ -275,5 +275,10 @@
   <object id="8" name="BasicEnemy" x="529" y="1075">
    <point/>
   </object>
+  <object id="9" name="Door" x="420" y="250" width="120" height="48">
+   <properties>
+    <property name="destination" value="next_map"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

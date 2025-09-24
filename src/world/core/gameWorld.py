@@ -317,21 +317,23 @@ class GameWorld:
 
     def _get_next_map(self) -> Optional[Room]:
         current_id = self.current_room.id
-        
+
         if current_id == "Mapa1":
             next_id = "Mapa2"
         elif current_id == "Mapa2":
             next_id = "Mapa 3"
         elif current_id == "Mapa 3":
+            next_id = "Mapa 4"
+        elif current_id == "Mapa 4":
             # Fim de jogo - jogador completou todos os mapas
-            return None  
+            return None
         else:
             next_id = "Mapa1"
-        
+
         for room in self.map.rooms:
             if room.id == next_id:
                 return room
-        
+
         return None
 
     def _teleport_to_room(self, target_room: Room) -> None:

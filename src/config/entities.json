@@ -3,7 +3,7 @@
     "health": 100,
     "speed": 200,
     "damage": 25,
-    "size": [96, 96],
+    "size": [32, 32],
     "hitbox_size": [24, 24],
     "sprite": {
       "path": "assets/sprites/player_pixelado.png",
@@ -19,7 +19,7 @@
     "health": 50,
     "speed": 80,
     "damage": 10,
-    "size": [96, 96],
+    "size": [32, 32],
     "hitbox_size": [24, 24],
     "detection_range": 250,
     "sprite": {
@@ -41,8 +41,8 @@
     "size": [32, 32],
     "hitbox_size": [24, 24],
     "detection_range": 300,
-    "sprite": {
-      "path": "assets/sprites/Player_Movement.png",
+   "sprite": {
+      "path": "assets/sprites/enemy2.png",
       "frames": 4,
       "frame_rows": 4,
       "animation_speed": 0.15
@@ -62,9 +62,10 @@
     "hitbox_size": [40, 40],
     "detection_range": 400,
     "sprite": {
-      "path": "assets/sprites/Player_Movement.png",
-      "frames": 6,
-      "animation_speed": 0.2
+      "path": "assets/sprites/enemy2.png",
+      "frames": 4,
+      "frame_rows": 4,
+      "animation_speed": 0.15
     },
     "weapon": "Rifle",
     "drops": [
