@@ -11,7 +11,7 @@ screen_width, screen_height = get_optimal_screen_size(preferred_width=950, prefe
 
 center_window(screen_width, screen_height)
 screen: pygame.Surface = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Main Menu")
+pygame.display.set_caption("Menu Principal - Linha Direta")
 
 white: tuple = (255, 255, 255)
 black: tuple = (0, 0, 0)
@@ -66,7 +66,7 @@ def show_menu() -> None:
     exit: pygame.Surface = font.render("Sair", True, white)
 
     small_font = pygame.font.Font(None, 36)
-    instructions = small_font.render("Enter: Iniciar | L: Ranking | Esc: Sair", True, (200, 200, 200))
+    instructions = small_font.render("ENTER: Iniciar | L: Ranking | ESC: Sair", True, (200, 200, 200))
 
     title_rect = title.get_rect(center=(screen_width // 2, screen_height // 2 - 140))
     start_rect = start.get_rect(center=(screen_width // 2, screen_height // 2 - 40))
@@ -104,7 +104,6 @@ def run_menu() -> str:
                     sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
-                # Obter as posicoes dos botoes da funcao show_menu
                 if start_rect and start_rect.collidepoint(x, y):
                     return "start"
                 elif leaderboard_rect and leaderboard_rect.collidepoint(x, y):
@@ -113,12 +112,10 @@ def run_menu() -> str:
                     pygame.quit()
                     sys.exit()
 
-        # Renderizar o menu
         show_menu()
         clock.tick(10)
 
 def main() -> None:
-    """Funcao principal para testar o menu isoladamente"""
     action = run_menu()
     if action == "start":
         print("Iniciando jogo...")

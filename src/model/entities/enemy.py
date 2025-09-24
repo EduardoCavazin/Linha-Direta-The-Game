@@ -46,7 +46,6 @@ class Enemy(Entity):
         if not self.is_alive():
             return None
             
-        # Update animation
         self.update_animation(delta_time)
             
         self.rotate_towards(player_pos)
@@ -106,7 +105,7 @@ class Enemy(Entity):
             speed=BulletConst.ENEMY_BULLET_SPEED,            
             damage=damage,
             rotation=bullet_angle,
-            is_player_bullet=False  # Balas dos inimigos
+            is_player_bullet=False
         )
         
         return bullet

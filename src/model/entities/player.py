@@ -20,15 +20,12 @@ class Player(Entity):
         sprite_config: Optional[Dict] = None,
         hitbox_size: Optional[Tuple[int, int]] = None
     ) -> None:
-        # Setup player sprite
         image = self._load_player_sprite(sprite_config, size)
         
-        # Player usa hitbox triangular por padrão
         super().__init__(id, name, position, size, speed, health, weapon, ammo, image, status, 0, sprite_config, hitbox_size, "triangle")
     
 
     def _load_player_sprite(self, sprite_config: Optional[Dict], size: Tuple[int, int]) -> pygame.Surface:
-        """Carrega o sprite do jogador"""
         if sprite_config:
             sprite_path = sprite_config.get("path", "assets/sprites/player_pixelado.png")
         else:
@@ -37,21 +34,18 @@ class Player(Entity):
         spritesheet = load_image(sprite_path)
         
         if spritesheet is None:
-            # Fallback para uma superfície colorida se não conseguir carregar
             spritesheet = create_surface(PlayerConst.FALLBACK_SPRITE_SIZE)
             spritesheet.fill(PlayerConst.FALLBACK_SPRITE_COLOR)
         
         return spritesheet
 
     def update_animation(self, delta_time: float) -> None:
-        """Override para controlar animação apenas quando se movendo"""
         if not self.moving:
             self.current_frame = 0
             if self.frames:
                 self.base_image = self.frames[0]
             return
 
-        # Chama o método da classe pai se estiver se movendo
         super().update_animation(delta_time)
 
     def move(
@@ -170,4 +164,4 @@ class Player(Entity):
         
         if actual_damage > 0:
             if self.health <= 0:
-                self.die()  # Use the inherited die() method from Entity
+                self.die()

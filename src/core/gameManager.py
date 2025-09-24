@@ -100,8 +100,6 @@ class GameManager:
         if self.state == GameState.GAME_OVER:
             if keys[pygame.K_r]:
                 self._restart_game()
-            elif keys[pygame.K_q]:
-                self.state = GameState.QUIT  # Will exit main loop
         
         # Playing state controls
         elif self.state == GameState.PLAYING:
@@ -159,14 +157,19 @@ class GameManager:
                     self.name_input_screen.handle_event(event)
                 
             elif event.type == pygame.KEYDOWN:
-                # ESC para pausar/despausar
+                # Controle de ESC específico por estado
                 if event.key == pygame.K_ESCAPE:
                     if self.state == GameState.PLAYING:
                         self.toggle_pause()
                     elif self.state == GameState.PAUSED:
                         self.toggle_pause()
                     elif self.state == GameState.GAME_OVER:
-                        pass  # Não fazer nada no game over
+                        self.state = GameState.QUIT
+                    elif self.state == GameState.NAME_INPUT:
+                        # Pular entrada de nome e ir para game over
+                        self.game_over_screen = GameOverScreen(self.screen, game_completed=True)
+                        self.game_over_screen.leaderboard = self.leaderboard
+                        self.state = GameState.GAME_OVER
                 
                 # P também pode pausar (alternativa)
                 elif event.key == pygame.K_p and self.state in [GameState.PLAYING, GameState.PAUSED]:

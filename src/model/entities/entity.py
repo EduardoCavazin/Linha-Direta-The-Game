@@ -35,7 +35,6 @@ class Entity(MovableObject):
         self.image: Optional[pygame.Surface] = image
         self.status: str = status
         
-        # Animation setup
         self._setup_animation(sprite_config, image, size)
         
         self._position: pygame.Vector2 = pygame.Vector2(position)
@@ -48,16 +47,14 @@ class Entity(MovableObject):
         self.direction: pygame.Vector2 = pygame.Vector2(0, 1)
 
     def _setup_animation(self, sprite_config: Optional[dict], image: Optional[pygame.Surface], size: Tuple[int, int]) -> None:
-        """Configura o sistema de animação da entidade"""
         sprite_config = sprite_config or {}
         
         self.frame_count = sprite_config.get("frames", 1)
-        self.frame_rows = sprite_config.get("frame_rows", 1)  # Novo: suporte a linhas
+        self.frame_rows = sprite_config.get("frame_rows", 1)
         self.animation_speed = sprite_config.get("animation_speed", 0.2)
         self.current_frame = 0
         self.animation_timer = 0.0
         
-        # If it's an animated sprite, load frames
         if self.frame_count > 1 and image:
             self.frames = self._load_animation_frames(image, size)
             self.base_image = self.frames[0] if self.frames else image
@@ -66,25 +63,20 @@ class Entity(MovableObject):
             self.frames = [image] if image else []
     
     def _load_animation_frames(self, spritesheet: pygame.Surface, size: Tuple[int, int]) -> List[pygame.Surface]:
-        """Simplified animation frame loader - supports both 1xN and MxN spritesheets"""
         frames = []
         if self.frame_count <= 1:
             return [spritesheet]
         
-        # Calculate frame dimensions based on layout
         if self.frame_rows > 1:
-            # Multi-row spritesheet (MxN grid)
             frame_width = spritesheet.get_width() // self.frame_count
             frame_height = spritesheet.get_height() // self.frame_rows
             
-            # Load row by row, frame by frame
             for y in range(self.frame_rows):
                 for x in range(self.frame_count):
                     frame = self._extract_frame(spritesheet, x * frame_width, y * frame_height, 
                                               frame_width, frame_height, size)
                     frames.append(frame)
         else:
-            # Single row horizontal spritesheet (1xN)
             frame_width = spritesheet.get_width() // self.frame_count
             frame_height = spritesheet.get_height()
             
@@ -97,13 +89,11 @@ class Entity(MovableObject):
     
     def _extract_frame(self, spritesheet: pygame.Surface, x: int, y: int, 
                       width: int, height: int, target_size: Tuple[int, int]) -> pygame.Surface:
-        """Extract and scale a single frame from spritesheet"""
         frame = create_surface((width, height))
         frame.blit(spritesheet, (0, 0), (x, y, width, height))
         return pygame.transform.scale(frame, target_size)
     
     def update_animation(self, delta_time: float) -> None:
-        """Atualiza a animação da entidade"""
         if self.frame_count <= 1 or not self.frames:
             return
             
@@ -116,12 +106,10 @@ class Entity(MovableObject):
 
     @property
     def position(self) -> pygame.Vector2:
-        """Getter da posição da entidade - returns Vector2 for consistency"""
         return self._position
 
     @position.setter
     def position(self, value: Union[pygame.Vector2, Tuple[float, float]]) -> None:
-        """Setter da posição da entidade - accepts Vector2 or tuple"""
         if isinstance(value, tuple):
             self._position = pygame.Vector2(value)
         else:
@@ -135,7 +123,6 @@ class Entity(MovableObject):
             target.take_damage(self.weapon.damage)
 
     def shoot(self, target_pos: Optional[Tuple[float, float]] = None) -> Optional[Bullet]:
-        """Dispara uma bala se tiver arma e munição"""
         if self.weapon and self.ammo > 0:
             self.ammo -= 1
             
@@ -165,7 +152,7 @@ class Entity(MovableObject):
                 speed=bullet_speed,
                 damage=self.weapon.damage,
                 rotation=rotation,
-                is_player_bullet=True  # Assume que Entity é para player por padrão
+                is_player_bullet=True
             )
             bullet.directedSpeed = direction * bullet.speed
             return bullet
@@ -205,7 +192,6 @@ class Entity(MovableObject):
         
         new_rotation = angle_deg - Physics.DIRECTION_OFFSET_DEGREES
         
-        # Usar o novo método para atualizar rotação (inclui hitbox triangular)
         self.update_rotation(new_rotation)
         
         self.direction = pygame.Vector2(

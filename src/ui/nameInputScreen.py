@@ -147,7 +147,7 @@ class NameInputScreen:
         # Instructions
         if not self.submitted:
             instructions = [
-                "Enter - Salvar nome",
+                "ENTER - Salvar nome",
                 "ESC - Pular",
                 f"Máximo {self.max_name_length} caracteres"
             ]

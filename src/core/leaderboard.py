@@ -24,7 +24,7 @@ class LeaderboardEntry:
     @classmethod
     def from_dict(cls, data: Dict) -> 'LeaderboardEntry':
         return cls(
-            name=data.get("name", "Anonymous"),
+            name=data.get("name", "Anônimo"),
             time=data.get("time", 0),
             score=data.get("score", 0),
             date=data.get("date", "")
@@ -113,7 +113,7 @@ class Leaderboard:
         """Limpa todos os scores do leaderboard"""
         try:
             self.entries.clear()
-            self._save_to_file()
+            self.save_scores()
             return True
         except Exception as e:
             print(f"Erro ao limpar leaderboard: {e}")

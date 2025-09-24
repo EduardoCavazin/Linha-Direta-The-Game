@@ -67,7 +67,7 @@ class GameOverScreen:
         """Handle keyboard input"""
         if key == pygame.K_r:
             return "restart"
-        elif key == pygame.K_ESCAPE or key == pygame.K_q:
+        elif key == pygame.K_ESCAPE:
             return "quit"
         return "none"
     
@@ -82,7 +82,7 @@ class GameOverScreen:
             subtitle_text = self.font_medium.render("Você completou todos os mapas!", True, self.text_color)
         else:
             title_text = self.font_large.render("GAME OVER", True, self.red_accent)
-            subtitle_text = self.font_medium.render("You were eliminated!", True, self.text_color)
+            subtitle_text = self.font_medium.render("Você foi eliminado!", True, self.text_color)
 
         title_rect = title_text.get_rect(center=(self.center_x, 80))
         self.screen.blit(title_text, title_rect)
@@ -98,7 +98,7 @@ class GameOverScreen:
         pygame.draw.rect(self.screen, restart_color, self.restart_button)
         pygame.draw.rect(self.screen, self.text_color, self.restart_button, 2)  # Border
         
-        restart_text = self.font_small.render("Restart (R)", True, self.text_color)
+        restart_text = self.font_small.render("Reiniciar (R)", True, self.text_color)
         restart_text_rect = restart_text.get_rect(center=self.restart_button.center)
         self.screen.blit(restart_text, restart_text_rect)
         
@@ -107,12 +107,12 @@ class GameOverScreen:
         pygame.draw.rect(self.screen, quit_color, self.quit_button)
         pygame.draw.rect(self.screen, self.text_color, self.quit_button, 2)  # Border
         
-        quit_text = self.font_small.render("Quit (Q)", True, self.text_color)
+        quit_text = self.font_small.render("Sair (ESC)", True, self.text_color)
         quit_text_rect = quit_text.get_rect(center=self.quit_button.center)
         self.screen.blit(quit_text, quit_text_rect)
         
         # Draw instructions
-        instruction_text = self.font_small.render("Press R to restart or ESC to quit", True, self.text_color)
+        instruction_text = self.font_small.render("R - Reiniciar | ESC - Sair", True, self.text_color)
         instruction_rect = instruction_text.get_rect(center=(self.center_x, self.screen.get_height() - 50))
         self.screen.blit(instruction_text, instruction_rect)
     
