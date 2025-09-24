@@ -108,4 +108,3 @@ def run_leaderboard_screen(screen_width: int, screen_height: int) -> str:
 if __name__ == "__main__":
     width, height = get_optimal_screen_size()
     action = run_leaderboard_screen(width, height)
-    print(f"Acao retornada: {action}")

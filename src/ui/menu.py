@@ -2,7 +2,6 @@ import sys
 import pygame
 import os
 from PIL import Image, ImageSequence
-from src.core.utils import load_image
 from src.core.screenUtils import get_optimal_screen_size, center_window
 
 pygame.init()
@@ -118,7 +117,7 @@ def run_menu() -> str:
 def main() -> None:
     action = run_menu()
     if action == "start":
-        print("Iniciando jogo...")
+        pass
     pygame.quit()
     sys.exit()
 
