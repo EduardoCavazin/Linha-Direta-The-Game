@@ -3,7 +3,7 @@
     "health": 100,
     "speed": 200,
     "damage": 25,
-    "size": [32, 32],
+    "size": [96, 96],
     "hitbox_size": [24, 24],
     "sprite": {
       "path": "assets/sprites/player_pixelado.png",
@@ -19,7 +19,7 @@
     "health": 50,
     "speed": 80,
     "damage": 10,
-    "size": [32, 32],
+    "size": [96, 96],
     "hitbox_size": [24, 24],
     "detection_range": 250,
     "sprite": {
