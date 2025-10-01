@@ -6,6 +6,7 @@ from src.core.utils import load_image
 from src.core.constants import Enemy as EnemyConst, Animation, Bullet as BulletConst
 from src.core.enums import EntityStatus
 from src.core.mathUtils import calculate_angle_to_target
+from src.core.logging_utils import log_error
 
 if TYPE_CHECKING:
     from src.model.objects.bullet import Bullet
@@ -123,8 +124,8 @@ class Enemy(Entity):
             self.rect = self.image.get_rect()
             self.rect.center = old_center
             self.hitbox = self.rect
-        except Exception as e:
-            print(f"Erro ao carregar imagem de inimigo morto: {e}")
+        except (FileNotFoundError, pygame.error) as e:
+            log_error(f"Erro ao carregar imagem de inimigo morto", "enemy", e)
         
         self.speed = 0
     

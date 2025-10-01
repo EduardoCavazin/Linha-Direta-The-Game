@@ -1,4 +1,5 @@
 import pygame
+from src.core.logging_utils import log_warning
 
 class AudioManager:
     def __init__(self) -> None:
@@ -22,7 +23,7 @@ class AudioManager:
                 sound.set_volume(self.sfx_volume)
                 self.sounds[name] = sound
             except pygame.error as e:
-                print(f"Não foi possível carregar: {file_path} - {e}")
+                log_warning(f"Não foi possível carregar áudio: {file_path}", "audioManager")
                 self.sounds[name] = pygame.mixer.Sound(buffer=b'\x00' * 1024)
     
     def play_sound(self, sound_name: str) -> None:
@@ -42,7 +43,7 @@ class AudioManager:
                 pygame.mixer.music.play(-1) 
                 return
             except pygame.error as e:
-                print(f"Não foi possível carregar: {music_file} - {e}")
+                log_warning(f"Não foi possível carregar música: {music_file}", "audioManager")
         
     
     def set_music_volume(self, volume: float) -> None:

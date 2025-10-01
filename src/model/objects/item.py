@@ -4,6 +4,7 @@ from typing import Tuple, Any
 from src.model.objects.gameObject import GameObject
 from src.core.utils import load_image
 from src.core.enums import ItemEffect
+from src.core.logging_utils import log_error
 
 class Item(GameObject):
     def __init__(self, id: str, name: str, position: Tuple[float, float], size: Tuple[int, int], effect: str, sprite_name: str = None) -> None:
@@ -18,8 +19,8 @@ class Item(GameObject):
         
         try:
             self.image = load_image(sprite_name, size)
-        except Exception as e:
-            print(f"Erro ao carregar sprite {sprite_name}: {e}")
+        except (FileNotFoundError, pygame.error) as e:
+            log_error(f"Erro ao carregar sprite {sprite_name}", "item", e)
 
     
     @property

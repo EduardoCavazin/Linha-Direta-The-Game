@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Tuple
 from src.world.loaders.tiledLoader import TiledLoader
 from src.world.core.room import Room
 from src.core.entityFactory import EntityFactory
+from src.core.logging_utils import log_error, log_warning
 
 class Map:
     
@@ -21,7 +22,7 @@ class Map:
         rooms: List[Room] = []
         
         if not os.path.exists(self.rooms_folder):
-            print(f"Pasta não encontrada: {self.rooms_folder}")
+            log_warning(f"Pasta não encontrada: {self.rooms_folder}", "map")
             return rooms
         
         for filename in os.listdir(self.rooms_folder):
@@ -68,7 +69,7 @@ class Map:
             return room
             
         except Exception as e:
-            print(f"Erro ao carregar TMX {tmx_path}: {e}")
+            log_error(f"Erro ao carregar TMX {tmx_path}", "map", e)
             return None
 
     def generate_sequence(self, num_rooms: int = 5) -> None:

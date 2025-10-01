@@ -4,6 +4,7 @@ import pygame
 from typing import Dict, List, Tuple, Optional, Any
 from PIL import Image, ImageSequence
 from src.world.loaders.assetLoader import AssetLoader, get_asset_loader
+from src.core.logging_utils import log_error, log_warning
 
 class TiledLoader:
     
@@ -46,9 +47,7 @@ class TiledLoader:
             self._parse_objects(root)
             
         except Exception as e:
-            print(f"Erro ao carregar TMX {self.path}: {e}")
-            import traceback
-            traceback.print_exc()
+            log_error(f"Erro ao carregar TMX {self.path}", "tiledLoader", e)
 
     def _parse_tilesets(self, root) -> None:
         for tileset in root.findall("tileset"):
@@ -160,12 +159,10 @@ class TiledLoader:
                     else:
                         tileset["image"] = self._create_fallback_tileset(tileset)
                 else:
-                    print(f"Tileset sem image_source: {tileset.get('name', 'Unknown')}")
+                    log_warning(f"Tileset sem image_source: {tileset.get('name', 'Unknown')}", "tiledLoader")
         
         except Exception as e:
-            print(f"Erro ao carregar tilesets: {e}")
-            import traceback
-            traceback.print_exc()
+            log_error(f"Erro ao carregar tilesets", "tiledLoader", e)
 
     def _create_fallback_tileset(self, tileset: Dict) -> pygame.Surface:
         tilewidth = tileset.get("tilewidth", 32)
@@ -243,8 +240,7 @@ class TiledLoader:
             
         
         except Exception as e:
-            import traceback
-            traceback.print_exc()
+            log_error(f"Erro na animação de tiles", "tiledLoader", e)
 
     def _slice_tileset(self, tileset: Dict) -> None:
         if "image" not in tileset or tileset["image"] is None:

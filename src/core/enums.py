@@ -91,7 +91,7 @@ def get_item_effect(item_type: ItemType) -> ItemEffect:
 def get_item_display_name(item_type: ItemType) -> str:
     """Gets display name for items (can be localized later)"""
     mapping = {
-        ItemType.HEALTH_PACK: "Health Kit",
-        ItemType.AMMO_PACK: "Ammo Pack"
+        ItemType.HEALTH_PACK: "Kit Médico",
+        ItemType.AMMO_PACK: "Kit Munição"
     }
     return mapping[item_type]

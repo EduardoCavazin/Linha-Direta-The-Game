@@ -2,6 +2,7 @@ import sys
 import pygame
 import os
 from src.core.screenUtils import get_optimal_screen_size, center_window
+from src.core.logging_utils import log_error
 
 pygame.init()
 
@@ -21,15 +22,15 @@ background_path: str = os.path.join(project_root, 'assets', 'ui', 'menu', 'backg
 
 try:
     font: pygame.font.Font = pygame.font.Font(font_path, 74)
-except Exception as e:
-    print(f"Erro ao carregar fonte: {e}")
+except (FileNotFoundError, pygame.error) as e:
+    log_error(f"Erro ao carregar fonte", "menu", e)
     font: pygame.font.Font = pygame.font.Font(None, 74) 
 
 try:
     background: pygame.Surface = pygame.image.load(background_path)
     background = pygame.transform.scale(background, (screen_width, screen_height))
-except Exception as e:
-    print(f"Erro ao carregar background: {e}")
+except (FileNotFoundError, pygame.error) as e:
+    log_error(f"Erro ao carregar background", "menu", e)
     background: pygame.Surface = pygame.Surface((screen_width, screen_height))
     background.fill((50, 50, 75))
 

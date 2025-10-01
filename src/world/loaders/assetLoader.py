@@ -3,6 +3,7 @@ import pygame
 from typing import Dict, Optional, Tuple
 from src.core.utils import load_image
 from src.core.constants import Rendering
+from src.core.logging_utils import log_error
 
 class AssetLoader:
     def __init__(self):
@@ -29,13 +30,13 @@ class AssetLoader:
                     image = load_image(image_path, size)
                     self._tileset_cache[cache_key] = image
                     return image
-                except Exception as e:
+                except (FileNotFoundError, pygame.error):
                     continue
                 
             return None
             
         except Exception as e:
-            print(f"Erro ao carregar tileset {name}: {e}")
+            log_error(f"Erro ao carregar tileset {name}", "assetLoader", e)
             return None
     
     def load_texture(self, name: str, size: Optional[Tuple[int, int]] = None) -> Optional[pygame.Surface]:
@@ -50,7 +51,7 @@ class AssetLoader:
             self._texture_cache[cache_key] = image
             return image
         except Exception as e:
-            print(f"Erro ao carregar textura {name}: {e}")
+            log_error(f"Erro ao carregar textura {name}", "assetLoader", e)
             return None
     
     def create_room_background(self, room_id: str, size: Tuple[int, int], fill_color: Tuple[int, int, int] = Rendering.DEFAULT_ROOM_COLOR) -> pygame.Surface:

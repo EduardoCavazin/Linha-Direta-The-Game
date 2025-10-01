@@ -5,6 +5,7 @@ import pygame
 import sys
 from src.core.leaderboard import Leaderboard
 from src.core.screenUtils import get_optimal_screen_size, center_window
+from src.core.constants import Rendering
 
 # Cores
 white = (255, 255, 255)
@@ -103,7 +104,7 @@ def run_leaderboard_screen(screen_width: int, screen_height: int) -> str:
                     leaderboard_screen.leaderboard.clear_scores()
 
         leaderboard_screen.draw(screen)
-        clock.tick(60)
+        clock.tick(Rendering.TARGET_FPS)
 
 if __name__ == "__main__":
     width, height = get_optimal_screen_size()

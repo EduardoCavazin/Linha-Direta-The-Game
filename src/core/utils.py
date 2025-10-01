@@ -11,9 +11,6 @@ def load_image(path: str, size: Optional[Tuple[int, int]] = None) -> pygame.Surf
 
     if not os.path.exists(full_path):
         raise FileNotFoundError(f"Imagem não encontrada: {full_path}")
-
-    if not os.path.exists(full_path):
-        raise FileNotFoundError(f"Imagem não encontrada: {full_path}")
     
     image = pygame.image.load(full_path)
     

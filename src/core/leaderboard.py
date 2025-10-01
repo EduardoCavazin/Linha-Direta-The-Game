@@ -5,11 +5,12 @@ import json
 import os
 from typing import List, Dict, Optional
 from datetime import datetime
+from src.core.logging_utils import log_error
 
 class LeaderboardEntry:
     def __init__(self, name: str, time: int, score: int = 0, date: str = None):
         self.name = name
-        self.time = time  # Tempo em milissegundos
+        self.time = time  
         self.score = score
         self.date = date or datetime.now().strftime("%Y-%m-%d %H:%M")
     
@@ -55,13 +56,12 @@ class Leaderboard:
             else:
                 self.entries = []
         except Exception as e:
-            print(f"Erro ao carregar leaderboard: {e}")
+            log_error(f"Erro ao carregar leaderboard", "leaderboard", e)
             self.entries = []
     
     def save_scores(self) -> None:
         """Salva scores no arquivo JSON"""
         try:
-            # Manter apenas top 20 para não crescer muito
             top_entries = self.entries[:20]
             
             data = {
@@ -72,7 +72,7 @@ class Leaderboard:
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"Erro ao salvar leaderboard: {e}")
+            log_error(f"Erro ao salvar leaderboard", "leaderboard", e)
     
     def add_score(self, name: str, time: int, score: int = 0) -> int:
         """
@@ -116,5 +116,5 @@ class Leaderboard:
             self.save_scores()
             return True
         except Exception as e:
-            print(f"Erro ao limpar leaderboard: {e}")
+            log_error(f"Erro ao limpar leaderboard", "leaderboard", e)
             return False

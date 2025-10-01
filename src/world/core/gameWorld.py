@@ -12,6 +12,7 @@ from src.core.entityFactory import EntityFactory
 from src.core.constants import World, Player, Enemy, Bullet, Items, Physics, FireDamage, get_random_drop_offset
 from src.core.enums import ItemType, ItemEffect, get_item_effect, get_item_display_name
 from src.core.collisionOptimizer import CollisionOptimizer
+from src.core.logging_utils import log_error, log_warning
 
 
 class GameWorld:
@@ -79,7 +80,7 @@ class GameWorld:
                     self._unlock_room_doors()
             self._spawn_player()
         else:
-            print("ERRO: Nenhuma sala carregada!")
+            log_error("Nenhuma sala carregada!", "gameWorld")
     
     def _lock_room_doors(self) -> None:
         if not self.current_room:
@@ -100,7 +101,7 @@ class GameWorld:
             self.player.ammo = Player.STARTING_AMMO
             
         else:
-            print("ERRO: Falha ao criar player principal com EntityFactory!")
+            log_error("Falha ao criar player principal com EntityFactory!", "gameWorld")
         
     # Input Processing
     
@@ -170,7 +171,7 @@ class GameWorld:
         try:
             self._update_tile_animations(delta_time)
         except Exception as e:
-            print(f"Warning: Tile animation error: {e}")
+            log_warning(f"Tile animation error: {e}", "gameWorld")
         
         self._update_render_queue()
     
@@ -459,7 +460,7 @@ class GameWorld:
         if self.player:
             self.player.draw_debug_hitbox(self.screen, camera_offset, (0, 255, 0))  # Verde
             if show_detailed:
-                self._draw_hitbox_info(self.player, camera_offset, "Player (Triangular)")
+                self._draw_hitbox_info(self.player, camera_offset, "Jogador (Triangular)")
         
         # Debug dos inimigos
         if self.current_room:
@@ -467,20 +468,20 @@ class GameWorld:
                 if enemy.is_alive():
                     enemy.draw_debug_hitbox(self.screen, camera_offset, (255, 0, 0))  # Vermelho
                     if show_detailed:
-                        hitbox_type = "Triangular" if getattr(enemy, 'hitbox_type', 'rect') == "triangle" else "Rectangular"
-                        self._draw_hitbox_info(enemy, camera_offset, f"Enemy ({hitbox_type})")
+                        hitbox_type = "Triangular" if getattr(enemy, 'hitbox_type', 'rect') == "triangle" else "Retangular"
+                        self._draw_hitbox_info(enemy, camera_offset, f"Inimigo ({hitbox_type})")
             
             # Debug dos itens  
             for item in self.current_room.items:
                 item.draw_debug_hitbox(self.screen, camera_offset, (255, 255, 0))  # Amarelo
                 if show_detailed:
-                    self._draw_hitbox_info(item, camera_offset, "Item (Rect)")
+                    self._draw_hitbox_info(item, camera_offset, "Item (Retangular)")
                 
             # Debug das portas
             for door in self.current_room.doors:
                 door.draw_debug_hitbox(self.screen, camera_offset, (0, 255, 255))  # Ciano
                 if show_detailed:
-                    self._draw_hitbox_info(door, camera_offset, "Door (Rect)")
+                    self._draw_hitbox_info(door, camera_offset, "Porta (Retangular)")
             
             # Debug das estruturas/paredes do mundo
             self._draw_world_structures(camera_offset, show_detailed)
@@ -489,12 +490,12 @@ class GameWorld:
         for bullet in self.bullets:
             bullet.draw_debug_hitbox(self.screen, camera_offset, (255, 0, 255))  # Magenta
             if show_detailed:
-                self._draw_hitbox_info(bullet, camera_offset, "Player Bullet")
+                self._draw_hitbox_info(bullet, camera_offset, "Bala Jogador")
             
         for enemy_bullet in self.enemy_bullets:
             enemy_bullet.draw_debug_hitbox(self.screen, camera_offset, (255, 128, 0))  # Laranja
             if show_detailed:
-                self._draw_hitbox_info(enemy_bullet, camera_offset, "Enemy Bullet")
+                self._draw_hitbox_info(enemy_bullet, camera_offset, "Bala Inimigo")
     
     def _draw_hitbox_info(self, obj, camera_offset, label):
         """Desenha informações sobre o hitbox de um objeto"""

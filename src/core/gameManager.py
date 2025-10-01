@@ -12,11 +12,10 @@ from src.core.leaderboard import Leaderboard
 from src.core.screenUtils import get_optimal_screen_size, center_window
 
 
-TARGET_FPS: int = 60
 # Tamanho da tela será calculado dinamicamente
 
 class GameManager:
-    def __init__(self, width: int = None, height: int = None, fps: int = TARGET_FPS) -> None:
+    def __init__(self, width: int = None, height: int = None, fps: int = Rendering.TARGET_FPS) -> None:
         pygame.init()
 
         pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)

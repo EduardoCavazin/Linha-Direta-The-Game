@@ -7,6 +7,7 @@ from src.model.objects.item import Item
 from src.model.objects.door import Door
 from src.model.objects.weapon import Weapon
 from src.core.constants import Player as PlayerConst, Enemy as EnemyConst
+from src.core.logging_utils import log_error, log_warning
 
 class EntityFactory:
     def __init__(self, config_folder: str = "src/config"):
@@ -43,7 +44,7 @@ class EntityFactory:
                 else:
                     return {}
         except Exception as e:
-            print(f"Erro ao carregar {filepath}: {e}")
+            log_error(f"Erro ao carregar {filepath}", "entityFactory", e)
             return {}
     
     def create_room_entities(self, objects_data: List[Dict]) -> Dict[str, any]:
@@ -85,7 +86,7 @@ class EntityFactory:
             if fallback_enemy:
                 return fallback_enemy
 
-            print(f"Tipo de entidade desconhecido: {obj_name}")
+            log_warning(f"Tipo de entidade desconhecido: {obj_name}", "entityFactory")
             return None
     
     def _add_entity_to_collection(self, entity: any, obj_name: str, entities: Dict) -> None:
@@ -123,14 +124,14 @@ class EntityFactory:
             return player
             
         except Exception as e:
-            print(f"Erro ao criar player: {e}")
+            log_error(f"Erro ao criar player", "entityFactory", e)
             return None
     
     def create_enemy(self, enemy_type: str, position: Tuple[float, float], properties: Dict = None) -> Optional[Enemy]:
         try:
             config = self.configs["entities"].get(enemy_type, {})
             if not config:
-                print(f"Configuração do inimigo {enemy_type} não encontrada")
+                log_error(f"Configuração do inimigo {enemy_type} não encontrada", "entityFactory")
                 return None
             
             sprite_config = config.get("sprite", {})
@@ -154,14 +155,14 @@ class EntityFactory:
             return enemy
             
         except Exception as e:
-            print(f"Erro ao criar inimigo {enemy_type}: {e}")
+            log_error(f"Erro ao criar inimigo {enemy_type}", "entityFactory", e)
             return None
     
     def create_item(self, item_type: str, position: Tuple[float, float], properties: Dict = None) -> Optional[Item]:
         try:
             config = self.configs["items"].get(item_type, {})
             if not config:
-                print(f"Configuração do item {item_type} não encontrada")
+                log_error(f"Configuração do item {item_type} não encontrada", "entityFactory")
                 return None
             
             sprite_name = config.get("sprite", f"assets/sprites/{item_type.lower()}.png")
@@ -181,7 +182,7 @@ class EntityFactory:
             return item
             
         except Exception as e:
-            print(f"Erro ao criar item {item_type}: {e}")
+            log_error(f"Erro ao criar item {item_type}", "entityFactory", e)
             return None
     
     def create_door(self, door_type: str, position: Tuple[float, float], width: float, height: float, properties: Dict = None) -> Optional[Door]:
@@ -214,7 +215,7 @@ class EntityFactory:
             return door
 
         except Exception as e:
-            print(f"Erro ao criar porta {door_type}: {e}")
+            log_error(f"Erro ao criar porta {door_type}", "entityFactory", e)
             return None
 
     def _try_enemy_fallback(self, obj_name: str, position: Tuple[float, float], properties: Dict = None) -> Optional[Enemy]:
@@ -227,17 +228,15 @@ class EntityFactory:
         # Definir hierarchy baseada no nome da entidade
         if "Boss" in obj_name or "Final" in obj_name:
             fallback_hierarchy = ["BossEnemy", "BasicEnemy"]
-            print(f"FALLBACK: '{obj_name}' não encontrado, tentando usar boss enemies...")
         else:
             fallback_hierarchy = ["BasicEnemy"]
-            print(f"FALLBACK: '{obj_name}' não encontrado, tentando usar inimigo básico...")
 
         for fallback_type in fallback_hierarchy:
             if fallback_type in self.configs["entities"]:
-                print(f"FALLBACK: Usando '{fallback_type}' no lugar de '{obj_name}'")
+                log_warning(f"Usando fallback '{fallback_type}' para '{obj_name}'", "entityFactory")
                 return self.create_enemy(fallback_type, position, properties)
 
-        print(f"FALLBACK: Falha ao criar fallback para '{obj_name}' - nenhuma opção disponível")
+        log_warning(f"Falha ao criar fallback para '{obj_name}' - nenhuma opção disponível", "entityFactory")
         return None
 
     def _is_enemy_fallback(self, obj_name: str) -> bool:
