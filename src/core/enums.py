@@ -75,6 +75,7 @@ class GameState(Enum):
     VICTORY = auto()
     NAME_INPUT = auto()  # When player is entering name for leaderboard
     QUIT = auto()  # When player chooses to quit
+    RETURN_TO_MENU = auto()  # When player wants to return to main menu
 
 # ==============================================
 # MAPPING HELPERS

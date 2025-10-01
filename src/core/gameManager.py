@@ -121,7 +121,7 @@ class GameManager:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.state = GameState.QUIT
-                
+
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.state == GameState.PLAYING:
                     mouse_pos = pygame.mouse.get_pos()
@@ -174,10 +174,14 @@ class GameManager:
                 elif event.key == pygame.K_p and self.state in [GameState.PLAYING, GameState.PAUSED]:
                     self.toggle_pause()
                 
+                # M para voltar ao menu quando pausado
+                elif event.key == pygame.K_m and self.state == GameState.PAUSED:
+                    self.state = GameState.RETURN_TO_MENU
+
                 # R para resetar quando pausado
                 elif event.key == pygame.K_r and self.state == GameState.PAUSED:
                     self._restart_game()
-                
+
                 # X para sair do jogo quando pausado
                 elif event.key == pygame.K_x and self.state == GameState.PAUSED:
                     self.state = GameState.QUIT
@@ -221,6 +225,7 @@ class GameManager:
         # Instruções de controle
         controls = [
             "ESC ou P - Continuar",
+            "M - Voltar ao Menu",
             "R - Resetar Jogo",
             "X - Sair do Jogo"
         ]
@@ -246,9 +251,9 @@ class GameManager:
             return self.game_world.player.position
         return (0, 0)
 
-    def run(self) -> None:
+    def run(self) -> str:
         try:
-            while self.state != GameState.QUIT:
+            while self.state not in [GameState.QUIT, GameState.RETURN_TO_MENU]:
                 delta_time: float = self.clock.tick(self.target_fps) / 1000.0
                 
                 self.handle_events()
@@ -298,8 +303,9 @@ class GameManager:
         except Exception as e:
             pass
         finally:
-            pygame.quit()
-            sys.exit()
+            if self.state == GameState.RETURN_TO_MENU:
+                return "menu"
+            return "quit"
     
     def _restart_game(self) -> None:
         """Restart the game by creating new game world"""

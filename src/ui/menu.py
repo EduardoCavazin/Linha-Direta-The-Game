@@ -45,7 +45,7 @@ def draw_rounded_background(surface: pygame.Surface, rect: pygame.Rect, color: t
     surface.blit(transparent_background, (rect.x - 10, rect.y - 5))
 
 def show_menu() -> None:
-    global title_rect, start_rect, exit_rect
+    global title_rect, start_rect, leaderboard_rect, exit_rect
 
     screen.blit(background, (0, 0))
 
@@ -58,9 +58,9 @@ def show_menu() -> None:
     instructions = small_font.render("ENTER: Iniciar | L: Ranking | ESC: Sair", True, (200, 200, 200))
 
     title_rect = title.get_rect(center=(screen_width // 2, screen_height // 2 - 200))
-    start_rect = start.get_rect(center=(screen_width // 2, screen_height // 2 - 60))
-    leaderboard_rect = leaderboard.get_rect(center=(screen_width // 2, screen_height // 2 + 20))
-    exit_rect = exit.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
+    start_rect = start.get_rect(center=(screen_width // 2, screen_height // 2 - 80))
+    leaderboard_rect = leaderboard.get_rect(center=(screen_width // 2, screen_height // 2))
+    exit_rect = exit.get_rect(center=(screen_width // 2, screen_height // 2 + 80))
     instructions_rect = instructions.get_rect(center=(screen_width // 2, screen_height // 2 + 220))
 
     for rect in [title_rect, start_rect, leaderboard_rect, exit_rect]:

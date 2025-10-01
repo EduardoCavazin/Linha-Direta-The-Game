@@ -16,10 +16,16 @@ def main():
 
         if action == "start":
             game = GameManager(width=screen_width, height=screen_height)
-            game.run()
+            game_result = game.run()
+            if game_result == "menu":
+                continue
+            elif game_result == "quit":
+                break
 
         elif action == "leaderboard":
             leaderboard_action = run_leaderboard_screen(screen_width, screen_height)
+            if leaderboard_action == "menu":
+                continue
 
         else:
             break
