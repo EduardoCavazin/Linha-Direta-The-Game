@@ -260,7 +260,7 @@
 </data>
  </layer>
  <objectgroup id="4" name="Objetos 4">
-  <object id="1" name="FinalBoss" x="478.667" y="353.333">
+  <object id="1" name="BossEnemy" x="478.667" y="353.333">
    <point/>
   </object>
   <object id="3" name="Player" x="772" y="1897.33">

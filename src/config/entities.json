@@ -58,11 +58,11 @@
     "health": 300,
     "speed": 60,
     "damage": 30,
-    "size": [48, 48],
-    "hitbox_size": [40, 40],
+    "size": [60, 60],
+    "hitbox_size": [52, 52],
     "detection_range": 400,
     "sprite": {
-      "path": "assets/sprites/enemy2.png",
+      "path": "assets/sprites/Boss.png",
       "frames": 4,
       "frame_rows": 4,
       "animation_speed": 0.15
