@@ -81,7 +81,6 @@ class EntityFactory:
             return self.create_door(obj_name, position, obj_data.get("width", 32), obj_data.get("height", 48), properties)
 
         else:
-            # Sistema de fallback hierárquico para entidades não reconhecidas
             fallback_enemy = self._try_enemy_fallback(obj_name, position, properties)
             if fallback_enemy:
                 return fallback_enemy
@@ -99,7 +98,6 @@ class EntityFactory:
         elif obj_name in self.configs["doors"] or obj_name == "Door" or obj_name == "Door2":
             entities["doors"].append(entity)
         elif self._is_enemy_fallback(obj_name):
-            # Entidades com fallback também são consideradas inimigos
             entities["enemies"].append(entity)
     
     def create_player(self, position: Tuple[float, float], properties: Dict = None) -> Optional[Player]:
@@ -197,8 +195,6 @@ class EntityFactory:
             locked = properties.get("locked", config.get("locked", False))
             destination = properties.get("destination", config.get("destination", "next_room"))
 
-            # CORREÇÃO: Tiled retorna posição topleft, mas nosso sistema usa center
-            # Converter topleft para center
             center_x = position[0] + width / 2
             center_y = position[1] + height / 2
             center_position = (center_x, center_y)
@@ -225,7 +221,6 @@ class EntityFactory:
         """
         fallback_hierarchy = []
 
-        # Definir hierarchy baseada no nome da entidade
         if "Boss" in obj_name or "Final" in obj_name:
             fallback_hierarchy = ["BossEnemy", "BasicEnemy"]
         else:

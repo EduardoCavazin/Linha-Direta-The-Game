@@ -160,7 +160,6 @@ class GameManager:
                     self.name_input_screen.handle_event(event)
                 
             elif event.type == pygame.KEYDOWN:
-                # Controle de ESC específico por estado
                 if event.key == pygame.K_ESCAPE:
                     if self.state == GameState.PLAYING:
                         self.toggle_pause()
@@ -169,45 +168,36 @@ class GameManager:
                     elif self.state == GameState.GAME_OVER:
                         self.state = GameState.QUIT
                     elif self.state == GameState.NAME_INPUT:
-                        # Pular entrada de nome e ir para game over
                         self.game_over_screen = GameOverScreen(self.screen, game_completed=True)
                         self.game_over_screen.leaderboard = self.leaderboard
                         self.state = GameState.GAME_OVER
-                
-                # P também pode pausar (alternativa)
+
                 elif event.key == pygame.K_p and self.state in [GameState.PLAYING, GameState.PAUSED]:
                     self.toggle_pause()
-                
-                # M para voltar ao menu quando pausado
+
                 elif event.key == pygame.K_m and self.state == GameState.PAUSED:
                     self.state = GameState.RETURN_TO_MENU
 
-                # R para resetar quando pausado
                 elif event.key == pygame.K_r and self.state == GameState.PAUSED:
                     self._restart_game()
 
-                # X para sair do jogo quando pausado
                 elif event.key == pygame.K_x and self.state == GameState.PAUSED:
                     self.state = GameState.QUIT
-                
-                # Controles do name input
+
                 elif self.state == GameState.NAME_INPUT and self.name_input_screen:
                     action = self.name_input_screen.handle_event(event)
                     if action == "submit":
                         self._save_score_and_continue()
                     elif action == "skip":
-                        # Player completed the game but skipped name input
                         self.game_over_screen = GameOverScreen(self.screen, game_completed=True)
                         self.game_over_screen.leaderboard = self.leaderboard
                         self.state = GameState.GAME_OVER
-                
-                # Controles do game over
+
                 elif self.state == GameState.GAME_OVER and self.game_over_screen:
                     action = self.game_over_screen.handle_keypress(event.key)
                     if action == "restart":
                         self._restart_game()
                     elif action == "credits":
-                        # Importar aqui para evitar import circular
                         from src.ui.creditsScreen import run_credits_screen
                         run_credits_screen(self.width, self.height)
                     elif action == "quit":
@@ -225,12 +215,10 @@ class GameManager:
             font_large = pygame.font.Font(None, Rendering.PAUSE_FONT_SIZE)
             font_small = pygame.font.Font(None, Rendering.PAUSE_FONT_SIZE // 2)
             
-        # Título "PAUSADO"
         pause_text = font_large.render("PAUSADO", True, (255, 255, 255))
         pause_rect = pause_text.get_rect(center=(self.width // 2, self.height // 2 - 50))
         self.screen.blit(pause_text, pause_rect)
-        
-        # Instruções de controle
+
         controls = [
             "ESC ou P - Continuar",
             "M - Voltar ao Menu",

@@ -39,10 +39,8 @@ class GameWorld:
         self.last_teleport_time: float = 0.0 
         self.start_time = pygame.time.get_ticks()
         
-        # Fire damage system
         self.last_fire_damage_time: float = 0.0
         
-        # Game completion flag
         self.game_completed: bool = False
         
         self._initialize_world()
@@ -103,7 +101,6 @@ class GameWorld:
         else:
             log_error("Falha ao criar player principal com EntityFactory!", "gameWorld")
         
-    # Input Processing
     
     def process_player_input(self, keys: pygame.key.ScancodeWrapper) -> None:
         if not self.player or not self.current_room:
@@ -143,31 +140,25 @@ class GameWorld:
             return True
         return False
 
-    # Update Logic
     
     def update(self, delta_time: float = None) -> None:
         if not self.current_room:
             return
         
-        # Update collision optimizer frame (for cache management)
         self.collision_optimizer.update_frame()
         
-        # Update player
         if self.player:
             self.player.update(delta_time)
             self.camera.follow_target(self.player)
         
-        # Update game objects
         self._update_enemies()
         self._update_bullets()
         self._update_enemy_bullets()
             
-        # Update collisions and interactions
         self._check_item_collisions()
         self._check_door_collisions()
         self._check_fire_damage(delta_time)
         
-        # Update visuals
         try:
             self._update_tile_animations(delta_time)
         except Exception as e:
@@ -189,7 +180,6 @@ class GameWorld:
                 enemy_bullet = enemy.update(player_pos, delta_time)
                 if enemy_bullet:
                     self.enemy_bullets.append(enemy_bullet)
-                    # Tocar som de tiro do inimigo
                     if self.audio_manager:
                         self.audio_manager.play_sound('shoot')
             else:
@@ -197,7 +187,6 @@ class GameWorld:
         
         enemies_alive_after = self.current_room.get_alive_enemies_count()
         
-        # Verificar se todos os inimigos foram eliminados
         if enemies_alive_after == 0 and not self.current_room.cleared:
             self.current_room.mark_cleared()
             self._unlock_room_doors()
@@ -294,7 +283,6 @@ class GameWorld:
                 self._teleport_to_room(target_room)
                 return
             else:
-                # Jogo completado - todos os mapas foram concluídos
                 self.game_completed = True
                 return
         
@@ -326,7 +314,6 @@ class GameWorld:
         elif current_id == "Mapa 3":
             next_id = "Mapa 4"
         elif current_id == "Mapa 4":
-            # Fim de jogo - jogador completou todos os mapas
             return None
         else:
             next_id = "Mapa1"
