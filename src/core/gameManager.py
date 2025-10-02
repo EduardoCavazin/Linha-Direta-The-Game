@@ -136,6 +136,10 @@ class GameManager:
                     action = self.game_over_screen.handle_click(mouse_pos)
                     if action == "restart":
                         self._restart_game()
+                    elif action == "credits":
+                        # Importar aqui para evitar import circular
+                        from src.ui.creditsScreen import run_credits_screen
+                        run_credits_screen(self.width, self.height)
                     elif action == "quit":
                         self.state = GameState.QUIT
                 
@@ -202,6 +206,10 @@ class GameManager:
                     action = self.game_over_screen.handle_keypress(event.key)
                     if action == "restart":
                         self._restart_game()
+                    elif action == "credits":
+                        # Importar aqui para evitar import circular
+                        from src.ui.creditsScreen import run_credits_screen
+                        run_credits_screen(self.width, self.height)
                     elif action == "quit":
                         self.state = GameState.QUIT
 

@@ -69,8 +69,8 @@
     },
     "weapon": "Rifle",
     "drops": [
-      {"item": "KeyCard", "chance": 1.0},
-      {"item": "HealthPack", "chance": 1.0}
+      {"item": "AmmoPack", "chance": 0.3},
+      {"item": "HealthPack", "chance": 0.2}
     ],
     "behavior": "boss_pattern",
     "special_attacks": ["area_attack", "summon_minions"]

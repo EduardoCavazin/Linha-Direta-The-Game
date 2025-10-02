@@ -55,7 +55,7 @@ def show_menu() -> None:
     exit: pygame.Surface = font.render("Sair", True, white)
 
     small_font = pygame.font.Font(None, 36)
-    instructions = small_font.render("ENTER: Iniciar | L: Ranking | ESC: Sair", True, (200, 200, 200))
+    instructions = small_font.render("ENTER: Iniciar | L: Ranking | C: Créditos | ESC: Sair", True, (200, 200, 200))
 
     title_rect = title.get_rect(center=(screen_width // 2, screen_height // 2 - 200))
     start_rect = start.get_rect(center=(screen_width // 2, screen_height // 2 - 80))
@@ -88,6 +88,8 @@ def run_menu() -> str:
                     return "start"
                 elif event.key == pygame.K_l:
                     return "leaderboard"
+                elif event.key == pygame.K_c:
+                    return "credits"
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()

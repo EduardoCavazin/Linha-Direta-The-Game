@@ -2,6 +2,7 @@ import pygame
 from src.core.gameManager import GameManager
 from src.ui.menu import run_menu, screen_width, screen_height
 from src.ui.leaderboardScreen import run_leaderboard_screen
+from src.ui.creditsScreen import run_credits_screen
 from src.core.screenUtils import get_screen_info
 
 def main():
@@ -25,6 +26,11 @@ def main():
         elif action == "leaderboard":
             leaderboard_action = run_leaderboard_screen(screen_width, screen_height)
             if leaderboard_action == "menu":
+                continue
+
+        elif action == "credits":
+            credits_action = run_credits_screen(screen_width, screen_height)
+            if credits_action == "back":
                 continue
 
         else:

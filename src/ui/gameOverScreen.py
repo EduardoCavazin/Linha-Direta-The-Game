@@ -39,26 +39,37 @@ class GameOverScreen:
             self.button_height
         )
         
-        self.quit_button = pygame.Rect(
+        self.credits_button = pygame.Rect(
             self.center_x - self.button_width // 2,
             self.center_y + 50 + self.button_height + self.button_spacing,
             self.button_width,
             self.button_height
         )
-        
+
+        self.quit_button = pygame.Rect(
+            self.center_x - self.button_width // 2,
+            self.center_y + 50 + 2 * (self.button_height + self.button_spacing),
+            self.button_width,
+            self.button_height
+        )
+
         # Track hover states
         self.restart_hovered = False
+        self.credits_hovered = False
         self.quit_hovered = False
     
     def handle_mouse_motion(self, mouse_pos: tuple) -> None:
         """Update button hover states based on mouse position"""
         self.restart_hovered = self.restart_button.collidepoint(mouse_pos)
+        self.credits_hovered = self.credits_button.collidepoint(mouse_pos)
         self.quit_hovered = self.quit_button.collidepoint(mouse_pos)
     
     def handle_click(self, mouse_pos: tuple) -> str:
         """Handle mouse clicks and return action"""
         if self.restart_button.collidepoint(mouse_pos):
             return "restart"
+        elif self.credits_button.collidepoint(mouse_pos):
+            return "credits"
         elif self.quit_button.collidepoint(mouse_pos):
             return "quit"
         return "none"
@@ -67,6 +78,8 @@ class GameOverScreen:
         """Handle keyboard input"""
         if key == pygame.K_r:
             return "restart"
+        elif key == pygame.K_c:
+            return "credits"
         elif key == pygame.K_ESCAPE:
             return "quit"
         return "none"
@@ -101,18 +114,27 @@ class GameOverScreen:
         restart_text = self.font_small.render("Reiniciar (R)", True, self.text_color)
         restart_text_rect = restart_text.get_rect(center=self.restart_button.center)
         self.screen.blit(restart_text, restart_text_rect)
-        
+
+        # Draw credits button
+        credits_color = self.button_hover_color if self.credits_hovered else self.button_color
+        pygame.draw.rect(self.screen, credits_color, self.credits_button)
+        pygame.draw.rect(self.screen, self.text_color, self.credits_button, 2)  # Border
+
+        credits_text = self.font_small.render("Créditos (C)", True, self.text_color)
+        credits_text_rect = credits_text.get_rect(center=self.credits_button.center)
+        self.screen.blit(credits_text, credits_text_rect)
+
         # Draw quit button
         quit_color = self.button_hover_color if self.quit_hovered else self.button_color
         pygame.draw.rect(self.screen, quit_color, self.quit_button)
         pygame.draw.rect(self.screen, self.text_color, self.quit_button, 2)  # Border
-        
+
         quit_text = self.font_small.render("Sair (ESC)", True, self.text_color)
         quit_text_rect = quit_text.get_rect(center=self.quit_button.center)
         self.screen.blit(quit_text, quit_text_rect)
         
         # Draw instructions
-        instruction_text = self.font_small.render("R - Reiniciar | ESC - Sair", True, self.text_color)
+        instruction_text = self.font_small.render("R - Reiniciar | C - Créditos | ESC - Sair", True, self.text_color)
         instruction_rect = instruction_text.get_rect(center=(self.center_x, self.screen.get_height() - 50))
         self.screen.blit(instruction_text, instruction_rect)
     
