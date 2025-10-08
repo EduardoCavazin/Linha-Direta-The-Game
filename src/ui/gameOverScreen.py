@@ -1,15 +1,13 @@
-"""
-Game Over Screen - Displayed when player dies
-"""
 import pygame
-import math
+import os
 from typing import Callable, List
 from src.core.enums import GameState
 from src.core.leaderboard import Leaderboard, LeaderboardEntry
+from src.core.logging_utils import log_error
 from src.ui.ui_components import (
-    MenuItem, draw_rounded_background, draw_pulsing_title,
+    MenuItem, draw_rounded_background,
     create_particle_system, update_and_draw_particles,
-    WHITE, GOLD, SELECTED_COLOR
+    WHITE, GOLD
 )
 
 class GameOverScreen:
@@ -21,10 +19,21 @@ class GameOverScreen:
         self.font_medium = pygame.font.Font(None, 48)
         self.font_small = pygame.font.Font(None, 36)
 
-        # Colors
         self.background_color = (20, 20, 30)
         self.text_color = WHITE
         self.red_accent = (200, 50, 50)
+
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        project_root = os.path.abspath(os.path.join(base_path, "../.."))
+        background_path = os.path.join(project_root, 'assets', 'ui', 'menu', 'gameover.png')
+        
+        try:
+            self.background = pygame.image.load(background_path)
+            self.background = pygame.transform.scale(self.background, (screen.get_width(), screen.get_height()))
+        except (FileNotFoundError, pygame.error) as e:
+            log_error(f"Erro ao carregar background do game over", "gameOverScreen", e)
+            self.background = pygame.Surface((screen.get_width(), screen.get_height()))
+            self.background.fill(self.background_color)
 
         self.button_width = 300
         self.button_height = 60
@@ -33,10 +42,8 @@ class GameOverScreen:
         self.center_x = screen.get_width() // 2
         self.center_y = screen.get_height() // 2
 
-        # Partículas
         self.particles = create_particle_system(screen.get_width(), screen.get_height(), 50)
 
-        # Menu items animados
         self.menu_items = []
         restart_rect = pygame.Rect(0, 0, self.button_width, self.button_height)
         restart_rect.center = (self.center_x, self.center_y + 50)
@@ -56,8 +63,6 @@ class GameOverScreen:
 
         self.dt = 0
     
-    def handle_mouse_motion(self, mouse_pos: tuple) -> None:
-        pass  # Agora é gerenciado pelos MenuItems
     
     def handle_click(self, mouse_pos: tuple) -> str:
         if self.restart_button.collidepoint(mouse_pos):
@@ -78,26 +83,18 @@ class GameOverScreen:
         return "none"
     
     def draw(self, mouse_pos: tuple = None, dt: float = 0.016) -> None:
-        self.screen.fill(self.background_color)
+        self.screen.blit(self.background, (0, 0))
 
-        # Partículas
         update_and_draw_particles(self.particles, self.screen)
 
-        # Título com efeito
         if self.game_completed:
-            draw_pulsing_title(self.screen, "PARABÉNS!", 74, (self.center_x, 80), (0, 255, 0))
             subtitle_text = self.font_medium.render("Você completou todos os mapas!", True, self.text_color)
-        else:
-            draw_pulsing_title(self.screen, "GAME OVER", 74, (self.center_x, 80), self.red_accent)
-            subtitle_text = self.font_medium.render("Você foi eliminado!", True, self.text_color)
-
-        subtitle_rect = subtitle_text.get_rect(center=(self.center_x, 140))
-        draw_rounded_background(self.screen, subtitle_rect, (0, 0, 0, 128), 10)
-        self.screen.blit(subtitle_text, subtitle_rect)
+            subtitle_rect = subtitle_text.get_rect(center=(self.center_x, 140))
+            draw_rounded_background(self.screen, subtitle_rect, (0, 0, 0, 128), 10)
+            self.screen.blit(subtitle_text, subtitle_rect)
 
         self._draw_leaderboard()
 
-        # Atualizar e desenhar menu items
         if mouse_pos is None:
             mouse_pos = pygame.mouse.get_pos()
 
@@ -106,7 +103,6 @@ class GameOverScreen:
             item.update(is_hovered, dt)
             new_rect = item.draw(self.screen, self.font_small, self.text_color)
 
-            # Atualizar rects para detecção de clique
             if item.action == "restart":
                 self.restart_button = new_rect
             elif item.action == "credits":

@@ -3,16 +3,17 @@ Tela do Leaderboard - Mostra os melhores tempos dos jogadores
 """
 import pygame
 import sys
+import os
 from src.core.leaderboard import Leaderboard
 from src.core.screenUtils import get_optimal_screen_size, center_window
 from src.core.constants import Rendering
+from src.core.logging_utils import log_error
 from src.ui.ui_components import (
-    draw_rounded_background, draw_pulsing_title,
+    draw_rounded_background,
     create_particle_system, update_and_draw_particles,
-    WHITE, GOLD, HOVER_COLOR
+    WHITE, GOLD
 )
 
-# Cores
 white = WHITE
 black = (0, 0, 0)
 gold = GOLD
@@ -32,6 +33,18 @@ class LeaderboardScreen:
 
         self.leaderboard = Leaderboard()
         self.particles = create_particle_system(screen_width, screen_height, 50)
+        
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        project_root = os.path.abspath(os.path.join(base_path, "../.."))
+        background_path = os.path.join(project_root, 'assets', 'ui', 'menu', 'raking.png')
+        
+        try:
+            self.background = pygame.image.load(background_path)
+            self.background = pygame.transform.scale(self.background, (screen_width, screen_height))
+        except (FileNotFoundError, pygame.error) as e:
+            log_error(f"Erro ao carregar background do ranking", "leaderboard", e)
+            self.background = pygame.Surface((screen_width, screen_height))
+            self.background.fill(dark_blue)
 
     def _get_rank_color(self, rank: int) -> tuple:
         if rank == 1:
@@ -44,14 +57,9 @@ class LeaderboardScreen:
             return white
 
     def draw(self, screen: pygame.Surface):
-        screen.fill(dark_blue)
+        screen.blit(self.background, (0, 0))
 
-        # Desenhar partículas
         update_and_draw_particles(self.particles, screen)
-
-        # Título com efeito de pulso
-        draw_pulsing_title(screen, "RANKING DOS MELHORES", 74,
-                          (self.screen_width // 2, 80), gold)
 
         top_scores = self.leaderboard.get_top_scores(10)
 

@@ -1,12 +1,8 @@
-"""
-Componentes UI compartilhados para padronização visual do jogo
-"""
 import pygame
 import random
 import math
-from typing import Optional, Tuple
+from typing import Tuple
 
-# Cores padrão
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 HOVER_COLOR = (100, 200, 255)
@@ -14,7 +10,6 @@ SELECTED_COLOR = (255, 220, 100)
 GOLD = (255, 215, 0)
 
 class Particle:
-    """Partícula animada para efeito de fundo"""
     def __init__(self, screen_width: int, screen_height: int):
         self.screen_width = screen_width
         self.screen_height = screen_height
@@ -36,7 +31,6 @@ class Particle:
         surface.blit(s, (self.x - self.size, self.y - self.size))
 
 class MenuItem:
-    """Item de menu animado com hover e efeitos visuais"""
     def __init__(self, text: str, rect: pygame.Rect, action: str):
         self.text = text
         self.rect = rect
@@ -84,36 +78,14 @@ class MenuItem:
         return scaled_rect
 
 def draw_rounded_background(surface: pygame.Surface, rect: pygame.Rect, color: tuple, radius: int) -> None:
-    """Desenha um fundo arredondado com transparência"""
     transparent_background = pygame.Surface((rect.width + 20, rect.height + 10), pygame.SRCALPHA)
     pygame.draw.rect(transparent_background, color, transparent_background.get_rect(), border_radius=radius)
     surface.blit(transparent_background, (rect.x - 10, rect.y - 5))
 
-def draw_pulsing_title(surface: pygame.Surface, text: str, font_size: int,
-                       center_pos: Tuple[int, int], color: Tuple[int, int, int] = SELECTED_COLOR) -> pygame.Rect:
-    """Desenha um título com efeito de pulso e brilho"""
-    title_pulse = math.sin(pygame.time.get_ticks() * 0.002) * 0.03 + 1
-    title_font = pygame.font.Font(None, int(font_size * title_pulse))
-    title_surface = title_font.render(text, True, color)
-    title_rect = title_surface.get_rect(center=center_pos)
-
-    # Brilho do título
-    title_glow = pygame.Surface((title_rect.width + 60, title_rect.height + 60), pygame.SRCALPHA)
-    glow_alpha = int((math.sin(pygame.time.get_ticks() * 0.003) * 0.5 + 0.5) * 100)
-    pygame.draw.rect(title_glow, (*color, glow_alpha), title_glow.get_rect(), border_radius=20)
-    surface.blit(title_glow, (title_rect.x - 30, title_rect.y - 30))
-
-    draw_rounded_background(surface, title_rect, (0, 0, 0, 150), 10)
-    surface.blit(title_surface, title_rect)
-
-    return title_rect
-
 def create_particle_system(screen_width: int, screen_height: int, count: int = 50) -> list:
-    """Cria um sistema de partículas"""
     return [Particle(screen_width, screen_height) for _ in range(count)]
 
 def update_and_draw_particles(particles: list, surface: pygame.Surface):
-    """Atualiza e desenha todas as partículas"""
     for particle in particles:
         particle.update()
         particle.draw(surface)

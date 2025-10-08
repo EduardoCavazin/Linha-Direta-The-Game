@@ -137,7 +137,6 @@ class GameManager:
                     if action == "restart":
                         self._restart_game()
                     elif action == "credits":
-                        # Importar aqui para evitar import circular
                         from src.ui.creditsScreen import run_credits_screen
                         run_credits_screen(self.width, self.height)
                     elif action == "quit":
@@ -148,15 +147,12 @@ class GameManager:
                     if action == "submit":
                         self._save_score_and_continue()
                     elif action == "skip":
-                        # Player completed the game but skipped name input
                         self.game_over_screen = GameOverScreen(self.screen, game_completed=True)
                         self.game_over_screen.leaderboard = self.leaderboard
                         self.state = GameState.GAME_OVER
                         
             elif event.type == pygame.MOUSEMOTION:
-                if self.state == GameState.GAME_OVER and self.game_over_screen:
-                    self.game_over_screen.handle_mouse_motion(event.pos)
-                elif self.state == GameState.NAME_INPUT and self.name_input_screen:
+                if self.state == GameState.NAME_INPUT and self.name_input_screen:
                     self.name_input_screen.handle_event(event)
                 
             elif event.type == pygame.KEYDOWN:

@@ -1,7 +1,5 @@
-"""
-Tela de Créditos - usando a fonte default do Pygame (sem watermark)
-"""
 import sys
+import os
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
@@ -9,6 +7,7 @@ import pygame
 
 from src.core.screenUtils import get_optimal_screen_size, center_window
 from src.core.constants import Rendering
+from src.core.logging_utils import log_error
 from src.ui.ui_components import (
     create_particle_system, update_and_draw_particles,
     WHITE, GOLD
@@ -19,9 +18,7 @@ Color = Tuple[int, int, int]
 RGBA = Tuple[int, int, int, int]
 
 
-# --------- helpers visuais ---------
 def make_vertical_gradient(size: Tuple[int, int], top: Color, bottom: Color) -> pygame.Surface:
-    """Degradê vertical simples (pré-computado)."""
     w, h = size
     surf = pygame.Surface((w, h)).convert()
     for y in range(h):
@@ -34,7 +31,6 @@ def make_vertical_gradient(size: Tuple[int, int], top: Color, bottom: Color) -> 
 
 
 def draw_rounded_bg(surface: pygame.Surface, rect: pygame.Rect, color_rgba: RGBA, radius: int, pad: Tuple[int, int]=(12, 6)) -> None:
-    """Retângulo arredondado com alpha e padding."""
     w = rect.width + pad[0] * 2
     h = rect.height + pad[1] * 2
     bg = pygame.Surface((w, h), pygame.SRCALPHA)
@@ -43,7 +39,6 @@ def draw_rounded_bg(surface: pygame.Surface, rect: pygame.Rect, color_rgba: RGBA
 
 
 def wrap_text(text: str, font: pygame.font.Font, max_width: int) -> List[str]:
-    """Quebra de linha por palavras respeitando max_width."""
     words = text.split()
     if not words:
         return [""]
@@ -89,16 +84,25 @@ class CreditsScreen:
         def s(px: int) -> int:
             return max(1, int(round(px * scale)))
 
-        self.font_large  = pygame.font.Font(None, s(56))
+        self.font_large  = pygame.font.Font(None, s(72))  
         self.font_large.set_bold(True)
-        self.font_medium = pygame.font.Font(None, s(38))
-        self.font_small  = pygame.font.Font(None, s(28))
+        self.font_medium = pygame.font.Font(None, s(48))  
+        self.font_small  = pygame.font.Font(None, s(36)) 
 
-        self.bg = make_vertical_gradient(
-            (screen_width, screen_height),
-            top=(45, 45, 45),
-            bottom=(75, 75, 75)
-        )
+        base_path = os.path.abspath(os.path.dirname(__file__))
+        project_root = os.path.abspath(os.path.join(base_path, "../.."))
+        background_path = os.path.join(project_root, 'assets', 'ui', 'menu', 'creditos.png')
+        
+        try:
+            self.bg = pygame.image.load(background_path)
+            self.bg = pygame.transform.scale(self.bg, (screen_width, screen_height))
+        except (FileNotFoundError, pygame.error) as e:
+            log_error(f"Erro ao carregar background dos créditos", "creditsScreen", e)
+            self.bg = make_vertical_gradient(
+                (screen_width, screen_height),
+                top=(45, 45, 45),
+                bottom=(75, 75, 75)
+            )
 
         center_x = screen_width // 2
         spacing  = s(30)
@@ -108,8 +112,6 @@ class CreditsScreen:
         def w(font, txt): return wrap_text(txt, font, max_text_width)
 
         blocks: List[BlockSpec] = [
-            BlockSpec(["Créditos"], self.font_large, self.gold, center_x, y_start - spacing * 1.5, (0, 0, 0, 140), s(12)),
-
             BlockSpec(["Linha Direta - The Game"], self.font_medium, self.white, center_x, y_start + spacing * 1, (0, 0, 0, 120), s(10)),
 
             BlockSpec(["Orientador:"], self.font_medium, self.gold, center_x, y_start + spacing * 4, (0, 0, 0, 100), s(10)),
@@ -152,7 +154,6 @@ class CreditsScreen:
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.bg, (0, 0))
 
-        # Desenhar partículas
         update_and_draw_particles(self.particles, screen)
 
         alpha = self._current_alpha()
