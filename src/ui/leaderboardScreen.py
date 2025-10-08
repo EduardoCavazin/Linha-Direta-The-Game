@@ -6,11 +6,16 @@ import sys
 from src.core.leaderboard import Leaderboard
 from src.core.screenUtils import get_optimal_screen_size, center_window
 from src.core.constants import Rendering
+from src.ui.ui_components import (
+    draw_rounded_background, draw_pulsing_title,
+    create_particle_system, update_and_draw_particles,
+    WHITE, GOLD, HOVER_COLOR
+)
 
 # Cores
-white = (255, 255, 255)
+white = WHITE
 black = (0, 0, 0)
-gold = (255, 215, 0)
+gold = GOLD
 silver = (192, 192, 192)
 bronze = (205, 127, 50)
 dark_blue = (20, 20, 30)
@@ -19,18 +24,14 @@ class LeaderboardScreen:
     def __init__(self, screen_width: int, screen_height: int):
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.screen = None 
+        self.screen = None
 
-        try:
-            self.font_large = pygame.font.Font("assets/fonts/techno_hideo.ttf", 64)
-            self.font_medium = pygame.font.Font("assets/fonts/techno_hideo.ttf", 36)
-            self.font_small = pygame.font.Font("assets/fonts/techno_hideo.ttf", 28)
-        except:
-            self.font_large = pygame.font.Font(None, 64)
-            self.font_medium = pygame.font.Font(None, 36)
-            self.font_small = pygame.font.Font(None, 28)
+        self.font_large = pygame.font.Font(None, 74)
+        self.font_medium = pygame.font.Font(None, 48)
+        self.font_small = pygame.font.Font(None, 36)
 
         self.leaderboard = Leaderboard()
+        self.particles = create_particle_system(screen_width, screen_height, 50)
 
     def _get_rank_color(self, rank: int) -> tuple:
         if rank == 1:
@@ -42,25 +43,22 @@ class LeaderboardScreen:
         else:
             return white
 
-    def _draw_rounded_background(self, surface: pygame.Surface, rect: pygame.Rect, color: tuple, radius: int = 10):
-        transparent_bg = pygame.Surface((rect.width + 20, rect.height + 10), pygame.SRCALPHA)
-        pygame.draw.rect(transparent_bg, color, transparent_bg.get_rect(), border_radius=radius)
-        surface.blit(transparent_bg, (rect.x - 10, rect.y - 5))
-
     def draw(self, screen: pygame.Surface):
         screen.fill(dark_blue)
 
-        title = self.font_large.render("RANKING DOS MELHORES", True, gold)
-        title_rect = title.get_rect(center=(self.screen_width // 2, 80))
-        self._draw_rounded_background(screen, title_rect, (0, 0, 0, 128))
-        screen.blit(title, title_rect)
+        # Desenhar partículas
+        update_and_draw_particles(self.particles, screen)
+
+        # Título com efeito de pulso
+        draw_pulsing_title(screen, "RANKING DOS MELHORES", 74,
+                          (self.screen_width // 2, 80), gold)
 
         top_scores = self.leaderboard.get_top_scores(10)
 
         if not top_scores:
             no_scores = self.font_medium.render("Nenhum recorde ainda!", True, white)
             no_scores_rect = no_scores.get_rect(center=(self.screen_width // 2, self.screen_height // 2))
-            self._draw_rounded_background(screen, no_scores_rect, (0, 0, 0, 128))
+            draw_rounded_background(screen, no_scores_rect, (0, 0, 0, 128), 10)
             screen.blit(no_scores, no_scores_rect)
         else:
             start_y = 150
@@ -72,12 +70,12 @@ class LeaderboardScreen:
                 score_surface = self.font_medium.render(score_text, True, color)
                 score_rect = score_surface.get_rect(center=(self.screen_width // 2, start_y + (i * 45)))
 
-                self._draw_rounded_background(screen, score_rect, (0, 0, 0, 100))
+                draw_rounded_background(screen, score_rect, (0, 0, 0, 100), 10)
                 screen.blit(score_surface, score_rect)
 
         instructions = self.font_small.render("ESC: Voltar ao Menu | R: Resetar Ranking", True, (200, 200, 200))
         instructions_rect = instructions.get_rect(center=(self.screen_width // 2, self.screen_height - 50))
-        self._draw_rounded_background(screen, instructions_rect, (0, 0, 0, 100))
+        draw_rounded_background(screen, instructions_rect, (0, 0, 0, 100), 5)
         screen.blit(instructions, instructions_rect)
 
         pygame.display.flip()

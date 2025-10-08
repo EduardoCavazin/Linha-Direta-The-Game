@@ -2,70 +2,64 @@
 Game Over Screen - Displayed when player dies
 """
 import pygame
+import math
 from typing import Callable, List
 from src.core.enums import GameState
 from src.core.leaderboard import Leaderboard, LeaderboardEntry
+from src.ui.ui_components import (
+    MenuItem, draw_rounded_background, draw_pulsing_title,
+    create_particle_system, update_and_draw_particles,
+    WHITE, GOLD, SELECTED_COLOR
+)
 
 class GameOverScreen:
     def __init__(self, screen: pygame.Surface, game_completed: bool = False):
         self.screen = screen
         self.game_completed = game_completed
         self.leaderboard = Leaderboard()
-        self.font_large = pygame.font.Font(None, 72)
+        self.font_large = pygame.font.Font(None, 74)
         self.font_medium = pygame.font.Font(None, 48)
         self.font_small = pygame.font.Font(None, 36)
-        
+
         # Colors
-        self.background_color = (20, 20, 30)  # Dark blue
-        self.text_color = (255, 255, 255)     # White
-        self.button_color = (60, 60, 80)      # Dark gray
-        self.button_hover_color = (80, 80, 100)  # Light gray
-        self.red_accent = (200, 50, 50)       # Red for "Game Over"
-        
-        # Button properties
+        self.background_color = (20, 20, 30)
+        self.text_color = WHITE
+        self.red_accent = (200, 50, 50)
+
         self.button_width = 300
         self.button_height = 60
         self.button_spacing = 20
-        
-        # Center of screen
+
         self.center_x = screen.get_width() // 2
         self.center_y = screen.get_height() // 2
-        
-        # Create buttons
-        self.restart_button = pygame.Rect(
-            self.center_x - self.button_width // 2,
-            self.center_y + 50,
-            self.button_width,
-            self.button_height
-        )
-        
-        self.credits_button = pygame.Rect(
-            self.center_x - self.button_width // 2,
-            self.center_y + 50 + self.button_height + self.button_spacing,
-            self.button_width,
-            self.button_height
-        )
 
-        self.quit_button = pygame.Rect(
-            self.center_x - self.button_width // 2,
-            self.center_y + 50 + 2 * (self.button_height + self.button_spacing),
-            self.button_width,
-            self.button_height
-        )
+        # Partículas
+        self.particles = create_particle_system(screen.get_width(), screen.get_height(), 50)
 
-        # Track hover states
-        self.restart_hovered = False
-        self.credits_hovered = False
-        self.quit_hovered = False
+        # Menu items animados
+        self.menu_items = []
+        restart_rect = pygame.Rect(0, 0, self.button_width, self.button_height)
+        restart_rect.center = (self.center_x, self.center_y + 50)
+        self.menu_items.append(MenuItem("Reiniciar (R)", restart_rect, "restart"))
+
+        credits_rect = pygame.Rect(0, 0, self.button_width, self.button_height)
+        credits_rect.center = (self.center_x, self.center_y + 50 + self.button_height + self.button_spacing)
+        self.menu_items.append(MenuItem("Créditos (C)", credits_rect, "credits"))
+
+        quit_rect = pygame.Rect(0, 0, self.button_width, self.button_height)
+        quit_rect.center = (self.center_x, self.center_y + 50 + 2 * (self.button_height + self.button_spacing))
+        self.menu_items.append(MenuItem("Sair (ESC)", quit_rect, "quit"))
+
+        self.restart_button = restart_rect
+        self.credits_button = credits_rect
+        self.quit_button = quit_rect
+
+        self.dt = 0
     
     def handle_mouse_motion(self, mouse_pos: tuple) -> None:
-        """Update button hover states based on mouse position"""
-        self.restart_hovered = self.restart_button.collidepoint(mouse_pos)
-        self.credits_hovered = self.credits_button.collidepoint(mouse_pos)
-        self.quit_hovered = self.quit_button.collidepoint(mouse_pos)
+        pass  # Agora é gerenciado pelos MenuItems
     
     def handle_click(self, mouse_pos: tuple) -> str:
-        """Handle mouse clicks and return action"""
         if self.restart_button.collidepoint(mouse_pos):
             return "restart"
         elif self.credits_button.collidepoint(mouse_pos):
@@ -75,7 +69,6 @@ class GameOverScreen:
         return "none"
     
     def handle_keypress(self, key: int) -> str:
-        """Handle keyboard input"""
         if key == pygame.K_r:
             return "restart"
         elif key == pygame.K_c:
@@ -84,103 +77,88 @@ class GameOverScreen:
             return "quit"
         return "none"
     
-    def draw(self) -> None:
-        """Draw the game over screen"""
-        # Fill background
+    def draw(self, mouse_pos: tuple = None, dt: float = 0.016) -> None:
         self.screen.fill(self.background_color)
-        
-        # Draw title based on completion status
+
+        # Partículas
+        update_and_draw_particles(self.particles, self.screen)
+
+        # Título com efeito
         if self.game_completed:
-            title_text = self.font_large.render("PARABÉNS!", True, (0, 255, 0))  # Green for success
+            draw_pulsing_title(self.screen, "PARABÉNS!", 74, (self.center_x, 80), (0, 255, 0))
             subtitle_text = self.font_medium.render("Você completou todos os mapas!", True, self.text_color)
         else:
-            title_text = self.font_large.render("GAME OVER", True, self.red_accent)
+            draw_pulsing_title(self.screen, "GAME OVER", 74, (self.center_x, 80), self.red_accent)
             subtitle_text = self.font_medium.render("Você foi eliminado!", True, self.text_color)
 
-        title_rect = title_text.get_rect(center=(self.center_x, 80))
-        self.screen.blit(title_text, title_rect)
-
-        subtitle_rect = subtitle_text.get_rect(center=(self.center_x, 130))
+        subtitle_rect = subtitle_text.get_rect(center=(self.center_x, 140))
+        draw_rounded_background(self.screen, subtitle_rect, (0, 0, 0, 128), 10)
         self.screen.blit(subtitle_text, subtitle_rect)
-        
-        # Draw leaderboard
+
         self._draw_leaderboard()
-        
-        # Draw restart button
-        restart_color = self.button_hover_color if self.restart_hovered else self.button_color
-        pygame.draw.rect(self.screen, restart_color, self.restart_button)
-        pygame.draw.rect(self.screen, self.text_color, self.restart_button, 2)  # Border
-        
-        restart_text = self.font_small.render("Reiniciar (R)", True, self.text_color)
-        restart_text_rect = restart_text.get_rect(center=self.restart_button.center)
-        self.screen.blit(restart_text, restart_text_rect)
 
-        # Draw credits button
-        credits_color = self.button_hover_color if self.credits_hovered else self.button_color
-        pygame.draw.rect(self.screen, credits_color, self.credits_button)
-        pygame.draw.rect(self.screen, self.text_color, self.credits_button, 2)  # Border
+        # Atualizar e desenhar menu items
+        if mouse_pos is None:
+            mouse_pos = pygame.mouse.get_pos()
 
-        credits_text = self.font_small.render("Créditos (C)", True, self.text_color)
-        credits_text_rect = credits_text.get_rect(center=self.credits_button.center)
-        self.screen.blit(credits_text, credits_text_rect)
+        for item in self.menu_items:
+            is_hovered = item.rect.collidepoint(mouse_pos)
+            item.update(is_hovered, dt)
+            new_rect = item.draw(self.screen, self.font_small, self.text_color)
 
-        # Draw quit button
-        quit_color = self.button_hover_color if self.quit_hovered else self.button_color
-        pygame.draw.rect(self.screen, quit_color, self.quit_button)
-        pygame.draw.rect(self.screen, self.text_color, self.quit_button, 2)  # Border
+            # Atualizar rects para detecção de clique
+            if item.action == "restart":
+                self.restart_button = new_rect
+            elif item.action == "credits":
+                self.credits_button = new_rect
+            elif item.action == "quit":
+                self.quit_button = new_rect
 
-        quit_text = self.font_small.render("Sair (ESC)", True, self.text_color)
-        quit_text_rect = quit_text.get_rect(center=self.quit_button.center)
-        self.screen.blit(quit_text, quit_text_rect)
-        
-        # Draw instructions
-        instruction_text = self.font_small.render("R - Reiniciar | C - Créditos | ESC - Sair", True, self.text_color)
+        instruction_text = self.font_small.render("R - Reiniciar | C - Créditos | ESC - Sair", True, (200, 200, 200))
         instruction_rect = instruction_text.get_rect(center=(self.center_x, self.screen.get_height() - 50))
+        draw_rounded_background(self.screen, instruction_rect, (0, 0, 0, 100), 5)
         self.screen.blit(instruction_text, instruction_rect)
     
     def _draw_leaderboard(self) -> None:
-        """Draw the top 5 leaderboard only if game was completed"""
         if not self.game_completed:
-            # Show message about completing the game to enter leaderboard
             message_text = self.font_small.render("Complete todos os mapas para entrar no ranking!", True, (255, 255, 0))
             message_rect = message_text.get_rect(center=(self.center_x, 200))
+            draw_rounded_background(self.screen, message_rect, (0, 0, 0, 120), 10)
             self.screen.blit(message_text, message_rect)
             return
 
-        # Title
-        leaderboard_title = self.font_medium.render("TOP 5 MELHORES TEMPOS", True, (255, 215, 0))  # Gold
-        title_rect = leaderboard_title.get_rect(center=(self.center_x, 180))
+        leaderboard_title = self.font_medium.render("TOP 5 MELHORES TEMPOS", True, GOLD)
+        title_rect = leaderboard_title.get_rect(center=(self.center_x, 190))
+        draw_rounded_background(self.screen, title_rect, (0, 0, 0, 140), 10)
         self.screen.blit(leaderboard_title, title_rect)
 
-        # Get top scores
         top_scores = self.leaderboard.get_top_scores(5)
 
         if not top_scores:
             no_scores_text = self.font_small.render("Nenhum recorde ainda!", True, self.text_color)
-            no_scores_rect = no_scores_text.get_rect(center=(self.center_x, 220))
+            no_scores_rect = no_scores_text.get_rect(center=(self.center_x, 230))
+            draw_rounded_background(self.screen, no_scores_rect, (0, 0, 0, 120), 10)
             self.screen.blit(no_scores_text, no_scores_rect)
             return
 
-        # Draw scores
-        start_y = 220
+        start_y = 240
         for i, entry in enumerate(top_scores):
             rank = i + 1
             color = self._get_rank_color(rank)
 
-            # Format: "1. PlayerName - 02:45"
             score_text = f"{rank}. {entry.name} - {entry.get_time_formatted()}"
 
             score_surface = self.font_small.render(score_text, True, color)
-            score_rect = score_surface.get_rect(center=(self.center_x, start_y + (i * 30)))
+            score_rect = score_surface.get_rect(center=(self.center_x, start_y + (i * 35)))
+            draw_rounded_background(self.screen, score_rect, (0, 0, 0, 100), 8)
             self.screen.blit(score_surface, score_rect)
     
     def _get_rank_color(self, rank: int) -> tuple:
-        """Get color for rank position"""
         if rank == 1:
-            return (255, 215, 0)    # Gold
+            return (255, 215, 0)  
         elif rank == 2:
-            return (192, 192, 192)  # Silver
+            return (192, 192, 192) 
         elif rank == 3:
-            return (205, 127, 50)   # Bronze
+            return (205, 127, 50) 
         else:
-            return (255, 255, 255)  # White
+            return (255, 255, 255)  

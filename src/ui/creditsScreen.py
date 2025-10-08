@@ -9,6 +9,10 @@ import pygame
 
 from src.core.screenUtils import get_optimal_screen_size, center_window
 from src.core.constants import Rendering
+from src.ui.ui_components import (
+    create_particle_system, update_and_draw_particles,
+    WHITE, GOLD
+)
 
 
 Color = Tuple[int, int, int]
@@ -74,9 +78,11 @@ class CreditsScreen:
         self.screen_width = screen_width
         self.screen_height = screen_height
 
-        self.white: Color = (255, 255, 255)
-        self.gold: Color = (255, 215, 0)
+        self.white: Color = WHITE
+        self.gold: Color = GOLD
         self.subtle: Color = (220, 220, 220)
+
+        self.particles = create_particle_system(screen_width, screen_height, 50)
 
         base_w, base_h = 1280, 720
         scale = min(screen_width / base_w, screen_height / base_h)
@@ -145,6 +151,10 @@ class CreditsScreen:
 
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.bg, (0, 0))
+
+        # Desenhar partículas
+        update_and_draw_particles(self.particles, screen)
+
         alpha = self._current_alpha()
         for surf, rect, bg_rgba, radius in self.rendered:
             if bg_rgba:
