@@ -136,6 +136,8 @@ class GameManager:
                     action = self.game_over_screen.handle_click(mouse_pos)
                     if action == "restart":
                         self._restart_game()
+                    elif action == "menu":
+                        self.state = GameState.RETURN_TO_MENU
                     elif action == "credits":
                         from src.ui.creditsScreen import run_credits_screen
                         run_credits_screen(self.width, self.height)
@@ -193,6 +195,8 @@ class GameManager:
                     action = self.game_over_screen.handle_keypress(event.key)
                     if action == "restart":
                         self._restart_game()
+                    elif action == "menu":
+                        self.state = GameState.RETURN_TO_MENU
                     elif action == "credits":
                         from src.ui.creditsScreen import run_credits_screen
                         run_credits_screen(self.width, self.height)

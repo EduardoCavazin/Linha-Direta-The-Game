@@ -35,8 +35,8 @@ class GameOverScreen:
             self.background = pygame.Surface((screen.get_width(), screen.get_height()))
             self.background.fill(self.background_color)
 
-        self.button_width = 300
-        self.button_height = 60
+        self.button_width = 180  
+        self.button_height = 50 
         self.button_spacing = 20
 
         self.center_x = screen.get_width() // 2
@@ -44,20 +44,30 @@ class GameOverScreen:
 
         self.particles = create_particle_system(screen.get_width(), screen.get_height(), 50)
 
+        button_y = screen.get_height() - 120  
+        button_spacing_horizontal = 15  
+        total_button_width = 4 * self.button_width + 3 * button_spacing_horizontal
+        start_x = (screen.get_width() - total_button_width) // 2
+        
         self.menu_items = []
         restart_rect = pygame.Rect(0, 0, self.button_width, self.button_height)
-        restart_rect.center = (self.center_x, self.center_y + 50)
-        self.menu_items.append(MenuItem("Reiniciar (R)", restart_rect, "restart"))
+        restart_rect.center = (start_x + self.button_width // 2, button_y)
+        self.menu_items.append(MenuItem("Reiniciar", restart_rect, "restart"))
+
+        menu_rect = pygame.Rect(0, 0, self.button_width, self.button_height)
+        menu_rect.center = (start_x + self.button_width + button_spacing_horizontal + self.button_width // 2, button_y)
+        self.menu_items.append(MenuItem("Menu", menu_rect, "menu"))
 
         credits_rect = pygame.Rect(0, 0, self.button_width, self.button_height)
-        credits_rect.center = (self.center_x, self.center_y + 50 + self.button_height + self.button_spacing)
-        self.menu_items.append(MenuItem("Créditos (C)", credits_rect, "credits"))
+        credits_rect.center = (start_x + 2 * (self.button_width + button_spacing_horizontal) + self.button_width // 2, button_y)
+        self.menu_items.append(MenuItem("Créditos", credits_rect, "credits"))
 
         quit_rect = pygame.Rect(0, 0, self.button_width, self.button_height)
-        quit_rect.center = (self.center_x, self.center_y + 50 + 2 * (self.button_height + self.button_spacing))
-        self.menu_items.append(MenuItem("Sair (ESC)", quit_rect, "quit"))
+        quit_rect.center = (start_x + 3 * (self.button_width + button_spacing_horizontal) + self.button_width // 2, button_y)
+        self.menu_items.append(MenuItem("Sair", quit_rect, "quit"))
 
         self.restart_button = restart_rect
+        self.menu_button = menu_rect
         self.credits_button = credits_rect
         self.quit_button = quit_rect
 
@@ -67,6 +77,8 @@ class GameOverScreen:
     def handle_click(self, mouse_pos: tuple) -> str:
         if self.restart_button.collidepoint(mouse_pos):
             return "restart"
+        elif self.menu_button.collidepoint(mouse_pos):
+            return "menu"
         elif self.credits_button.collidepoint(mouse_pos):
             return "credits"
         elif self.quit_button.collidepoint(mouse_pos):
@@ -76,6 +88,8 @@ class GameOverScreen:
     def handle_keypress(self, key: int) -> str:
         if key == pygame.K_r:
             return "restart"
+        elif key == pygame.K_m:
+            return "menu"
         elif key == pygame.K_c:
             return "credits"
         elif key == pygame.K_ESCAPE:
@@ -105,12 +119,14 @@ class GameOverScreen:
 
             if item.action == "restart":
                 self.restart_button = new_rect
+            elif item.action == "menu":
+                self.menu_button = new_rect
             elif item.action == "credits":
                 self.credits_button = new_rect
             elif item.action == "quit":
                 self.quit_button = new_rect
 
-        instruction_text = self.font_small.render("R - Reiniciar | C - Créditos | ESC - Sair", True, (200, 200, 200))
+        instruction_text = self.font_small.render("R - Reiniciar | M - Menu | C - Créditos | ESC - Sair", True, (200, 200, 200))
         instruction_rect = instruction_text.get_rect(center=(self.center_x, self.screen.get_height() - 50))
         draw_rounded_background(self.screen, instruction_rect, (0, 0, 0, 100), 5)
         self.screen.blit(instruction_text, instruction_rect)
@@ -145,7 +161,7 @@ class GameOverScreen:
             score_text = f"{rank}. {entry.name} - {entry.get_time_formatted()}"
 
             score_surface = self.font_small.render(score_text, True, color)
-            score_rect = score_surface.get_rect(center=(self.center_x, start_y + (i * 35)))
+            score_rect = score_surface.get_rect(center=(self.center_x, start_y + (i * 45)))
             draw_rounded_background(self.screen, score_rect, (0, 0, 0, 100), 8)
             self.screen.blit(score_surface, score_rect)
     
